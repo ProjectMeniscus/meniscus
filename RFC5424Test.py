@@ -1,3 +1,4 @@
+from datetime import datetime
 from RFC5424 import *
 
 import unittest
@@ -46,7 +47,7 @@ class FromTextToSyslogMessage(unittest.TestCase):
         self.assertEqual(message.priority, '46')
         self.assertEqual(message.application, 'rsyslogd')
         self.assertEqual(message.process_id, '6611')
-        self.assertEqual(message.timestamp, '2012-12-11T15:48:23.217459-06:00')
+        self.assertEqual(message.timestamp, datetime(2012, 12, 11, 9, 42, 23, 217459))
         self.assertEqual(message.message_id, '12512')
         self.assertEqual(message.message, 'start')
 
@@ -60,7 +61,6 @@ class FromTextToSyslogMessage(unittest.TestCase):
         self.assertEqual(message.priority, '46')
         self.assertEqual(message.application, '-')
         self.assertEqual(message.process_id, '-')
-        self.assertEqual(message.timestamp, '-')
         self.assertEqual(message.message_id, '-')
         self.assertEqual(message.message, 'start')
         

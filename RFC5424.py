@@ -1,14 +1,16 @@
 from datetime import datetime
-
+"""
+A parser for the syslog rfc5424
+"""
 import re
-import time
 
 
-class ParserError:
+class ParserError(Exception):
     """
         Simple exception class for the parser
     """
     def __init__(self, msg):
+        super(ParserError, self).__init__()
         self.msg = msg
 
 
@@ -17,23 +19,22 @@ class TailToken:
         Tail tokens are used to describe the unique grammar components of
         structured data.
     """
-    _REPR_FORMAT = 'Token(Tokens.{0}, {1}, {2}, {3}, {4})'
-
     SD_END = 1
     SD_NAME = 2
     SD_PARAM_NAME = 3
     SD_PARAM_VALUE = 4
     MSG = 5
-        
+
     def __init__(self, type, value, source):
         self.type = type
         self.value = value
         self.source = source
 
     def __repr__(self):
-        return self._REPR_FORMAT.format(self.type,
-                                        repr(self.value),
-                                        repr(self.source))
+        return 'Token(Tokens.{0}, {1},'\
+            ' {2}, {3}, {4})'.format(self.type,
+                                     repr(self.value),
+                                     repr(self.source))
 
     def matches(self, type):
         return self.type is type
@@ -166,6 +167,7 @@ class SyslogMessage:
 class StructuredData(dict):
 
     def __init__(self, name):
+        super(StructuredData, self).__init__()
         self.name = name
 
     def __repr__(self):
@@ -174,15 +176,38 @@ class StructuredData(dict):
 
 class RFC5424MessageParser:
 
-    HEAD_REGEX = re.compile('<(\d{1,3})>(\d)\s+'
-                            '(-|\d\d\d\d-\d\d-\d\d'
-                            'T'
-                            '\d\d:\d\d:\d\d.\d+(?:Z|[+-]\d\d:\d\d))\s+'
-                            '(-|[^\s\[]+)\s+'
-                            '(-|[^\s\[]+)\s+'
-                            '(-|[^\s\[]+)\s+'
-                            '(-|[^\s\[]+)\s+'
-                            '(?:-\s+)?(.+)')
+    PRIORITY = 1
+    VERSION = 2
+    EMPTY_DATETIME = 3
+    YEAR = 4
+    MONTH = 5
+    DAY = 6
+    HOURS = 7
+    MINUTES = 8
+    SECONDS = 9
+    FRACTIONAL_SECONDS = 10
+    EMPTY_TIMEZONE = 11
+    TZ_OFFSET_SIGN = 12
+    TZ_OFFSET_HOURS = 13
+    TZ_OFFSET_MINUTES = 14
+    HOSTNAME = 15
+    APPLICATION_NAME = 16
+    PROCESS_ID = 17
+    MESSAGE_ID = 18
+    MESSAGE_TAIL = 19
+
+    HEAD_REGEX = re.compile('''
+                            <(\d{1,3})>(\d)\s+
+                            (?:(-)|(\d+)-(\d+)-(\d+)
+                            T
+                            (\d+):(\d+):(\d+)(.\d+)
+                            (?:(Z)|([+-])(\d+):(\d+)))\s+
+                            (-|[^\s\[]+)\s+
+                            (-|[^\s\[]+)\s+
+                            (-|[^\s\[]+)\s+
+                            (-|[^\s\[]+)\s+
+                            (?:-\s+)?(.+)
+                            ''', re.X)
 
     def parse(self, data):
         match = self.HEAD_REGEX.match(data)
@@ -192,36 +217,45 @@ class RFC5424MessageParser:
 
         groupCount = len(match.groups())
 
-        if groupCount != 8:
+        if groupCount != 19:
             raise ParserError('String is probably not a syslog message. '
                               'Found {0}'.format(groupCount))
 
         message = SyslogMessage()
 
-        message.priority = match.group(1)
-        message.version = match.group(2)
-        message.timestamp = match.group(3)
-        message.hostname = match.group(4)
-        message.application = match.group(5)
-        message.process_id = match.group(6)
-        message.message_id = match.group(7)
+        message.priority = match.group(self.PRIORITY)
+        message.version = match.group(self.VERSION)
 
-        MessageTailParser(match.group(8)).parse(message)
+        if not match.group(self.EMPTY_DATETIME):
+            message.timestamp = self.parse_datetime(match)
+        else:
+            message.timestamp = datetime.now()
+
+        message.hostname = match.group(self.HOSTNAME)
+        message.application = match.group(self.APPLICATION_NAME)
+        message.process_id = match.group(self.PROCESS_ID)
+        message.message_id = match.group(self.MESSAGE_ID)
+
+        MessageTailParser(match.group(self.MESSAGE_TAIL)).parse(message)
 
         return message
-    
-    def parse_datetime(self, timestamp):
-        parsed_datetime = None
-        
-        if timestamp == '-':
-            parsed_datetime = datetime.now()
-        elif timestamp[-1] == 'Z':
-            parsed_datetime = datetime.strptime(ts,
-                                                '%Y-%m-%dT%H:%M:%S.%fZ')
-        else:
-            parsed_datetime = datetime.strptime(ts[:-6], 
-                                                '%Y-%m-%dT%H:%M:%S.%f')
-            hours = int(ts[-5:-3])
-            mins = int(ts[-2:])
-            sign = ts[-6] == '-' and -1 or 1
-            self.timestamp += timedelta(sign*(hours*3600+mins*60))
+
+    def parse_datetime(self, match):
+        year = int(match.group(self.YEAR))
+        month = int(match.group(self.MONTH))
+        day = int(match.group(self.DAY))
+        hours = int(match.group(self.HOURS))
+        minutes = int(match.group(self.MINUTES))
+        seconds = int(match.group(self.SECONDS))
+
+        fractional_seconds = float(match.group(self.FRACTIONAL_SECONDS))
+        microseconds = int(1000000 * fractional_seconds)
+
+        if not match.group(self.EMPTY_TIMEZONE):
+            # Timezone offset specified
+            sign = match.group(self.TZ_OFFSET_SIGN) == '-' and -1 or 1
+            hours = hours + sign * int(match.group(self.TZ_OFFSET_HOURS))
+            minutes = minutes + sign * int(match.group(self.TZ_OFFSET_HOURS))
+
+        return datetime(year, month, day, hours, minutes,
+                        seconds, microseconds)

@@ -24,20 +24,16 @@ class TailToken:
     SD_PARAM_NAME = 3
     SD_PARAM_VALUE = 4
     MSG = 5
-
-    def __init__(self, type, value, source, start, end):
+        
+    def __init__(self, type, value, source):
         self.type = type
         self.value = value
         self.source = source
-        self.start = start
-        self.end = end
 
     def __repr__(self):
         return self._REPR_FORMAT.format(self.type,
                                         repr(self.value),
-                                        repr(self.source),
-                                        self.start,
-                                        self.end)
+                                        repr(self.source))
 
     def matches(self, type):
         return self.type is type
@@ -73,33 +69,23 @@ class TailTokenizer:
             if match.group(TailToken.SD_END):
                 yield TailToken(TailToken.SD_END,
                                 match.group(TailToken.SD_END),
-                                source,
-                                match.start(TailToken.SD_END),
-                                match.end(TailToken.SD_END))
+                                source)
             elif match.group(TailToken.SD_NAME):
                 yield TailToken(TailToken.SD_NAME,
                                 match.group(TailToken.SD_NAME),
-                                source,
-                                match.start(TailToken.SD_NAME),
-                                match.end(TailToken.SD_NAME))
+                                source)
             elif match.group(TailToken.SD_PARAM_NAME):
                 yield TailToken(TailToken.SD_PARAM_NAME,
                                 match.group(TailToken.SD_PARAM_NAME),
-                                source,
-                                match.start(TailToken.SD_PARAM_NAME),
-                                match.end(TailToken.SD_PARAM_NAME))
+                                source)
             elif match.group(TailToken.SD_PARAM_VALUE):
                 yield TailToken(TailToken.SD_PARAM_VALUE,
                                 match.group(TailToken.SD_PARAM_VALUE),
-                                source,
-                                match.start(TailToken.SD_PARAM_VALUE),
-                                match.end(TailToken.SD_PARAM_VALUE))
+                                source)
             else:
                 yield TailToken(TailToken.MSG,
                                 match.group(TailToken.MSG),
-                                source,
-                                match.start(TailToken.SD_PARAM_VALUE),
-                                match.end(TailToken.SD_PARAM_VALUE))
+                                source)
 
 
 class MessageTailParser:
@@ -189,9 +175,9 @@ class StructuredData(dict):
 class RFC5424MessageParser:
 
     HEAD_REGEX = re.compile('<(\d{1,3})>(\d)\s+'
-                            '(\d\d\d\d-\d\d-\d\d'
+                            '(-|\d\d\d\d-\d\d-\d\d'
                             'T'
-                            '\d\d:\d\d:\d\d.\d+-\d\d:\d\d)\s+'
+                            '\d\d:\d\d:\d\d.\d+(?:Z|[+-]\d\d:\d\d))\s+'
                             '(-|[^\s\[]+)\s+'
                             '(-|[^\s\[]+)\s+'
                             '(-|[^\s\[]+)\s+'
@@ -223,3 +209,19 @@ class RFC5424MessageParser:
         MessageTailParser(match.group(8)).parse(message)
 
         return message
+    
+    def parse_datetime(self, timestamp):
+        parsed_datetime = None
+        
+        if timestamp == '-':
+            parsed_datetime = datetime.now()
+        elif timestamp[-1] == 'Z':
+            parsed_datetime = datetime.strptime(ts,
+                                                '%Y-%m-%dT%H:%M:%S.%fZ')
+        else:
+            parsed_datetime = datetime.strptime(ts[:-6], 
+                                                '%Y-%m-%dT%H:%M:%S.%f')
+            hours = int(ts[-5:-3])
+            mins = int(ts[-2:])
+            sign = ts[-6] == '-' and -1 or 1
+            self.timestamp += timedelta(sign*(hours*3600+mins*60))

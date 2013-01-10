@@ -25,5 +25,8 @@ def main():
     PerformanceTest().test_performance()
 
 if __name__ == '__main__':
-    #cProfile.run('main()')
-	main()
+    print 'First run performed without profiling for true results.'
+    main()
+    
+    print 'Second run performed with profiling for detailed results'
+    cProfile.run('main()')

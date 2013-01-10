@@ -1,10 +1,9 @@
 from RFC5424 import *
 
-import time
 import unittest
 
 HAPPY_PATH_MESSAGE = '<46>1 2012-12-11T15:48:23.217459-06:00 tohru rsyslogd 6611 12512  [origin software="rsyslogd" swVersion="7.2.2" x-pid="12297" x-info="http://www.rsyslog.com"] [origin software="rsyslogd" swVersion="7.2.2" x-pid="12297" x-info="http://www.rsyslog.com"] start'
-PARTIAL_MESSAGE = '<46>1 2012-12-11T15:48:23.217459-06:00 - - - - - start'
+PARTIAL_MESSAGE = '<46>1 - - - - - - start'
 
 HAPPY_PATH_SD = '[origin software="rsyslogd" swVersion="7.2.2" x-pid="12297" x-info="http://www.rsyslog.com"] [origin software="rsyslogd" swVersion="7.2.2" x-pid="12297" x-info="http://www.rsyslog.com"] start'
 
@@ -61,7 +60,7 @@ class FromTextToSyslogMessage(unittest.TestCase):
         self.assertEqual(message.priority, '46')
         self.assertEqual(message.application, '-')
         self.assertEqual(message.process_id, '-')
-        self.assertEqual(message.timestamp, '2012-12-11T15:48:23.217459-06:00')
+        self.assertEqual(message.timestamp, '-')
         self.assertEqual(message.message_id, '-')
         self.assertEqual(message.message, 'start')
         

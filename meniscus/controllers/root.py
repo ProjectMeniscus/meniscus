@@ -2,7 +2,8 @@ from pecan import expose, redirect
 from pecan.rest import RestController
 from pecan.core import abort, response
 
-from meniscus.model import session_maker
+from meniscus.model import Session
+from meniscus.model.control import Tennant
 
 
 class ProfileController(RestController):
@@ -18,7 +19,7 @@ class ProfileController(RestController):
 
 class HostController(RestController):
 
-    @expose()
+    @expose('json')
     def get(self, tennant_id, hostname):
         return hostname
 
@@ -35,9 +36,26 @@ class TennantController(RestController):
 
     host = HostController()
     
-    @expose()
+    @expose('json')
     def get(self, tennant_id):
-        return tennant_id
+        found_tennant = Session.query(Tennant).filter_by(name=tennant_id).first()
+
+        if not found_tennant:
+            abort(404, "unable to locate {0}".format(tennant_id))
+
+        return found_tennant
+
+    @expose()
+    def post(self, tennant_id):
+        found_tennant = Session.query(Tennant).filter_by(name=tennant_id).first()
+
+        if found_tennant:
+            abort(400)
+
+        Session.add(Tennant(tennant_id, []))
+
+        response.status_code = 202
+        return response
 
 
 class RootController(object):

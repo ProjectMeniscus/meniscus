@@ -83,4 +83,5 @@ class Tennant(Base):
     hosts = relationship('Host', secondary=_registered_hosts)
 
     def __init__(self, name, hosts):
+        self.name = name
         self.hosts = hosts

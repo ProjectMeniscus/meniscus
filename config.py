@@ -17,6 +17,14 @@ app = {
 #    }
 }
 
+sqlalchemy = {
+    'url'           : 'sqlite:////tmp/meniscus.db',
+    'echo'          : True,
+    'echo_pool'     : False,
+    'pool_recycle'  : 3600,
+    'encoding'      : 'utf-8'
+}
+
 logging = {
     'loggers': {
         'root' : {'level': 'INFO', 'handlers': ['console']},

@@ -1,4 +1,6 @@
 from pecan import make_app
+from pecan.hooks import TransactionHook
+
 from meniscus import model
 
 def setup_app(config):
@@ -11,5 +13,14 @@ def setup_app(config):
         template_path   = config.app.template_path,
         logging         = getattr(config, 'logging', {}),
         debug           = getattr(config.app, 'debug', False),
-        force_canonical = getattr(config.app, 'force_canonical', True)
+        force_canonical = getattr(config.app, 'force_canonical', True),
+        hooks           = [
+            TransactionHook(
+                model.start,
+                model.start_read_only,
+                model.commit,
+                model.rollback,
+                model.clear
+            )
+        ]
     )

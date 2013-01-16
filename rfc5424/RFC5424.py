@@ -45,9 +45,12 @@ class TailToken:
 
 class TailTokenizer:
 
-    TOKEN_RE = re.compile(
-        '\s*(?:(\])|\[(\w+)|([^"][^=]+)=|"([^\\"]*(?:\\.[^\\"]*)*)"|(.*))',
-        re.X)
+    TOKEN_RE = re.compile('''
+                          \s*
+                          (?:(\])|\[(\w+)
+                          |([^"][^=]+)=
+                          |"([^\\"]*(?:\\.[^\\"]*)*)"
+                          |(.*))''', re.X)
 
     def __init__(self, source):
         self.iter = self.tokenize(source)
@@ -116,24 +119,24 @@ class MessageTailParser:
             token = self.tokenizer.next_token()
 
             if not token.matches(TailToken.SD_PARAM_NAME):
-                raise token.error('Expected structured data param name. '
-                                  'Got: {0}'.format(token))
+                raise token.error('Expected structured data param '
+                                  'name. Got: {0}'.format(token))
 
             name = token.value
 
             token = self.tokenizer.next_token()
 
             if not token.matches(TailToken.SD_PARAM_VALUE):
-                raise token.error('Expected structured data param value. '
-                                  'Got: {0}'.format(token))
+                raise token.error('Expected structured data param '
+                                  'value. Got: {0}'.format(token))
 
             structured_data[name] = token.value
 
         token = self.tokenizer.next_token()
 
         if not token.matches(TailToken.SD_END):
-            raise token.error('Expected structured data closing token. '
-                              'Got: {0}'.format(token))
+            raise token.error('Expected structured data closing '
+                              'token. Got: {0}'.format(token))
 
         return structured_data
 

@@ -1,0 +1,17 @@
+<uwsgi>    
+    <socket>localhost:8080</socket>
+    <protocol>http</protocol>
+
+    <master>true</master>
+    <vaccum>true</vaccum>
+
+    <pythonpath>/home/zinic/work/python/meniscus/service</pythonpath>
+    <module>laas_wsgi:application</module>
+    
+    <!-- <mount>/=laas:app</mount> -->
+
+    <no-default-app />
+    
+    <processes>12</processes>
+    <memory-report/>
+</uwsgi>

@@ -55,8 +55,12 @@ class FromTextToSyslogMessage(unittest.TestCase):
 
     def test_parsing_partial_message(self):
         parser = RFC5424MessageParser()
-        message = parser.parse(PARTIAL_MESSAGE)
 
+        try:
+            message = parser.parse(PARTIAL_MESSAGE)
+        except ParserError as pe:
+            self.fail(pe.msg)
+            
         self.assertEqual(message.version, '1')
         self.assertEqual(message.priority, '46')
         self.assertEqual(message.application, '-')

@@ -10,11 +10,11 @@ app = {
     'modules': ['meniscus'],
     'static_root': '%(confdir)s/public', 
     'template_path': '%(confdir)s/meniscus/templates',
-    'debug': False,
-    'errors': {
-        404: '/error/404',
-        '__force_dict__': True
-    }
+    'debug': False
+#    'errors': {
+#        404: '/error/404',
+#        '__force_dict__': True
+#    }
 }
 
 logging = {

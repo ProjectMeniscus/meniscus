@@ -1,14 +1,44 @@
 from pecan import expose, redirect
 from pecan.rest import RestController
-from pecan.core import abort
+from pecan.core import abort, response
 
 from meniscus.model import session_maker
 
-class TennantController(object):
+
+class ProfileController(RestController):
 
     @expose()
-    def index(self):
+    def get(self, tennant_id, hostname):
         abort(404)
+
+    @expose()
+    def set(self, tennant_id, hostname, profile_name):
+        return profile_name
+
+
+class HostController(RestController):
+
+    @expose()
+    def get(self, tennant_id, hostname):
+        return hostname
+
+    @expose()
+    def post(self, tennant_id, **host_profile):
+        if host_profile['hostname'] is None or host_profile['ip_address'] is None:
+            abort(400)
+
+        response.status_code = 202
+        return response
+
+
+class TennantController(RestController):
+
+    host = HostController()
+    
+    @expose()
+    def get(self, tennant_id):
+        return tennant_id
+
 
 class RootController(object):
 

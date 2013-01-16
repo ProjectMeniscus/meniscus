@@ -14,7 +14,7 @@ class ParserError(Exception):
         self.msg = msg
 
 
-class TailToken:
+class TailToken(object):
     """
         Tail tokens are used to describe the unique grammar components of
         structured data.
@@ -43,7 +43,7 @@ class TailToken:
         return ParserError(msg)
 
 
-class TailTokenizer:
+class TailTokenizer(object):
 
     TOKEN_RE = re.compile('''
                           \s*
@@ -92,7 +92,7 @@ class TailTokenizer:
                                 source)
 
 
-class MessageTailParser:
+class MessageTailParser(object):
 
     def __init__(self, source):
         self.tokenizer = TailTokenizer(source)
@@ -141,7 +141,7 @@ class MessageTailParser:
         return structured_data
 
 
-class SyslogMessage:
+class SyslogMessage(object):
 
     def __init__(self):
         self.structured_data = []
@@ -177,7 +177,7 @@ class StructuredData(dict):
         return 'StructuredData({0}, {1})'.format(self.name, dict(self))
 
 
-class RFC5424MessageParser:
+class RFC5424MessageParser(object):
 
     PRIORITY = 1
     VERSION = 2
@@ -262,3 +262,9 @@ class RFC5424MessageParser:
 
         return datetime(year, month, day, hours, minutes,
                         seconds, microseconds)
+
+
+PARSER = RFC5424MessageParser()
+
+def parse_rfc5424(self, msg):
+    return PARSER.parse(msg)

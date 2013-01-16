@@ -5,11 +5,11 @@
     <master>true</master>
     <vaccum>true</vaccum>
 
-    <pythonpath>/home/zinic/work/python/meniscus/service</pythonpath>
-    <module>laas_wsgi:application</module>
+    <pythonpath>/home/zinic/work/python/meniscus/</pythonpath>
+    <module>meniscus.wsgi:application</module>
     
-    <!-- <mount>/=laas:app</mount> -->
-
+    <!-- <mount>/=meniscus.wsgi:application</mount> -->
+    
     <no-default-app />
     
     <processes>12</processes>

@@ -1,6 +1,8 @@
 from pecan import expose, redirect
 from webob.exc import status_map
 
+from meniscus.model import session_maker
+
 
 class RootController(object):
 
@@ -20,3 +22,8 @@ class RootController(object):
             status = 500
         message = getattr(status_map.get(status), 'explanation', '')
         return dict(status=status, message=message)
+
+class TennantController(object):
+
+    @expose()
+    def index(self):

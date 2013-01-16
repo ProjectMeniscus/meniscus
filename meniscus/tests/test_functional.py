@@ -1,6 +1,6 @@
 from unittest import TestCase
 from webtest import TestApp
-from laas.tests import FunctionalTest
+from meniscus.tests import FunctionalTest
 
 
 class TestRootController(FunctionalTest):

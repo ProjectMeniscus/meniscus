@@ -1,7 +1,5 @@
 from sqlalchemy import Table, Column, String, Integer, ForeignKey
-from sqlalchemy import create_engine
-
-from sqlalchemy.orm import relationship, backref, sessionmaker
+from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
 
 
@@ -14,18 +12,6 @@ class Persisted(object):
 
 
 Base = declarative_base(cls=Persisted)
-
-assigned_producers = Table('profile_assigned_producer', Base.metadata,
-                           Column('event_producer_id', Integer,
-                                  ForeignKey('eventproducer.id')),
-                           Column('host_profile_id', Integer,
-                                  ForeignKey('hostprofile.id')))
-
-registered_hosts = Table('registered_hosts', Base.metadata,
-                           Column('tennant_id', Integer,
-                                  ForeignKey('tennant.id')),
-                           Column('host_id', Integer,
-                                  ForeignKey('host.id')))
 
 
 class EventProducer(Base):
@@ -50,10 +36,14 @@ class HostProfile(Base):
     Host profiles are resuable collections of event producers with an
     associated, unique name for lookup.
     """
-
+    _assigned_producers = Table('profile_assigned_producer', Base.metadata,
+                               Column('event_producer_id', Integer,
+                                      ForeignKey('eventproducer.id')),
+                               Column('host_profile_id', Integer,
+                                      ForeignKey('hostprofile.id')))
     name = Column(String)                        
     event_producers = relationship('EventProducer',
-                                   secondary=assigned_producers)
+                                   secondary=_assigned_producers)
 
     def __init__(self, name, event_producers):
         self.name = name
@@ -83,9 +73,14 @@ class Tennant(Base):
     Tennants are users of the environemnts being monitored for
     application events.
     """
+    _registered_hosts = Table('registered_hosts', Base.metadata,
+                               Column('tennant_id', Integer,
+                                      ForeignKey('tennant.id')),
+                               Column('host_id', Integer,
+                                      ForeignKey('host.id')))
 
     name = Column(String)
-    hosts = relationship('Host', secondary=registered_hosts)
+    hosts = relationship('Host', secondary=_registered_hosts)
 
     def __init__(self, name, hosts):
         self.hosts = hosts

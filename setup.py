@@ -9,13 +9,13 @@ except ImportError:
 setup(
     name = 'meniscus',
     version = '0.1',
-    description = 'Application event logging at scale',
-    author = 'John Hopper',
-    author_email = 'john.hopper@rackspace.com',
+    description = '',
+    author = '',
+    author_email = '',
     install_requires = [
         "pecan",
     ],
-    test_suite = 'laas',
+    test_suite = 'meniscus',
     zip_safe = False,
     include_package_data = True,
     packages = find_packages(exclude=['ez_setup'])

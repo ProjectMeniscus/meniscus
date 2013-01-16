@@ -6,10 +6,10 @@ server = {
 
 # Pecan Application Configurations
 app = {
-    'root': 'laas.controllers.root.RootController',
-    'modules': ['laas'],
+    'root': 'meniscus.controllers.root.RootController',
+    'modules': ['meniscus'],
     'static_root': '%(confdir)s/public', 
-    'template_path': '%(confdir)s/laas/templates',
+    'template_path': '%(confdir)s/meniscus/templates',
     'debug': False,
     'errors': {
         404: '/error/404',
@@ -20,7 +20,7 @@ app = {
 logging = {
     'loggers': {
         'root' : {'level': 'INFO', 'handlers': ['console']},
-        'laas': {'level': 'DEBUG', 'handlers': ['console']}
+        'meniscus': {'level': 'DEBUG', 'handlers': ['console']}
     },
     'handlers': {
         'console': {

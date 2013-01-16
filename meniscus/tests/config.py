@@ -6,8 +6,8 @@ server = {
 
 # Pecan Application Configurations
 app = {
-    'root'            : 'laas.controllers.root.RootController',
-    'modules'         : ['laas'],
+    'root'            : 'meniscus.controllers.root.RootController',
+    'modules'         : ['meniscus'],
     'static_root'     : '%(confdir)s/../../public', 
     'template_path'   : '%(confdir)s/../templates',
     'debug'           : True,

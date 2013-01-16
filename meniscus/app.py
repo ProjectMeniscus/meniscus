@@ -1,5 +1,5 @@
 from pecan import make_app
-from laas import model
+from meniscus import model
 
 def setup_app(config):
     

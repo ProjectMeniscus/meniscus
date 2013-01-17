@@ -3,7 +3,16 @@ from pecan.rest import RestController
 from pecan.core import abort, response
 
 from meniscus.model import Session
-from meniscus.model.control import Tennant
+from meniscus.model.control import Tennant, Host
+
+def find_tennant(tennant_id):
+    return Session.query(Tennant).filter_by(name=tennant_id).first()
+
+def find_host_by_id(host_id):
+    return Session.query(Host).filter_by(id=host_id).first()
+
+def find_host_by_hostname(hostname):
+    return Session.query(Host).filter_by(hostname=hostname).first()
 
 
 class ProfileController(RestController):
@@ -17,50 +26,95 @@ class ProfileController(RestController):
         return profile_name
 
 
-class HostController(RestController):
+class HostController(object):
 
-    @expose('json')
-    def get(self, tennant_id, hostname):
-        return hostname
+    def __init__(self, host_id):
+        self.host_id = host_id
 
-    @expose()
-    def post(self, tennant_id, **host_profile):
-        if host_profile['hostname'] is None or host_profile['ip_address'] is None:
-            abort(400)
+    @expose('json', generic=True)
+    def index(self):        
+        found_host = find_host_by_id(self.host_id)
 
-        response.status_code = 202
-        return response
+        if not found_host:
+            abort(404, 'Unable to find a host with id={0}'.format(self.host_id))
+        
+        return found_host
 
 
-class TennantController(RestController):
+class HostsController(object):
 
-    host = HostController()
-    
-    @expose('json')
-    def get(self, tennant_id):
-        found_tennant = Session.query(Tennant).filter_by(name=tennant_id).first()
+    def __init__(self, tennant_id):
+        self.tennant_id = tennant_id
+
+    @expose('json', generic=True)
+    def index(self):        
+        found_tennant = find_tennant(self.tennant_id)
 
         if not found_tennant:
-            abort(404, "unable to locate {0}".format(tennant_id))
+            abort(404, "Unable to locate tennant: {0}".format(tennant_id))
+        
+        return found_tennant.hosts
+
+    @index.when(method='POST')
+    def new_host(self, hostname, ip_address):
+        found_host = find_host_by_hostname(hostname)
+
+        if found_host:
+            abort(400, 'Host already exists with id={0}'.format(found_host.id))
+        
+        new_host_profile = Host(hostname, ip_address, None)
+        Session.add(new_host_profile)
+        self.tennant.hosts.append(new_host_profile)
+        return new_host_profile
+
+    @expose()
+    def _lookup(self, host_id, *remainder):
+        return HostController(host_id), remainder
+
+
+class TennantController(object):
+
+    def __init__(self, tennant_id):
+        self.tennant_id = tennant_id
+
+    @expose('json', generic=True)
+    def index(self):
+        found_tennant = find_tennant(self.tennant_id)
+
+        if not found_tennant:
+            abort(404, "Unable to locate tennant: {0}".format(tennant_id))
 
         return found_tennant
 
-    @expose()
-    def post(self, tennant_id):
-        found_tennant = Session.query(Tennant).filter_by(name=tennant_id).first()
+    @index.when(method='POST')
+    def post(self):
+        found_tennant = find_tennant(tennant_id)
 
         if found_tennant:
             abort(400)
 
-        Session.add(Tennant(tennant_id, []))
+        new_tennant = Tennant(tennant_id, [])
+        Session.add(new_tennant)
+        return new_tennant
 
-        response.status_code = 202
-        return response
+    @expose()
+    def _lookup(self, tennant_resource, *remainder):
+        if tennant_resource == 'hosts':
+            return HostsController(self.tennant_id), remainder
+
+        abort(404, 'Unable to locate tennant resource: {0}'.format(tennant_resource))
 
 
 class RootController(object):
 
-    tennant = TennantController()
+    @expose()
+    def index(self):
+        return 'homedoc'
+
+    @expose()
+    def _lookup(self, version, tennant_id, *remainder):
+        if version == 'v1':
+            return TennantController(tennant_id), remainder
 
     @expose('json')
     def error(self, status):

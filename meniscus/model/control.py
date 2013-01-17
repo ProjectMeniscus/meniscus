@@ -36,12 +36,14 @@ class HostProfile(Base):
     Host profiles are resuable collections of event producers with an
     associated, unique name for lookup.
     """
-    _assigned_producers = Table('profile_assigned_producer', Base.metadata,
-                               Column('event_producer_id', Integer,
-                                      ForeignKey('eventproducer.id')),
-                               Column('host_profile_id', Integer,
-                                      ForeignKey('hostprofile.id')))
-    name = Column(String)                        
+    _assigned_producers = Table(
+        'profile_assigned_producer', Base.metadata,
+        Column('event_producer_id', Integer,
+               ForeignKey('eventproducer.id')),
+        Column('host_profile_id', Integer,
+               ForeignKey('hostprofile.id')))
+
+    name = Column(String)
     event_producers = relationship('EventProducer',
                                    secondary=_assigned_producers)
 
@@ -58,7 +60,7 @@ class Host(Base):
 
     hostname = Column(String)
     ip_address = Column(String)
-    
+
     profile_id = Column(Integer, ForeignKey('hostprofile.id'))
     profile = relationship('HostProfile')
 
@@ -73,11 +75,12 @@ class Tennant(Base):
     Tennants are users of the environemnts being monitored for
     application events.
     """
-    _registered_hosts = Table('registered_hosts', Base.metadata,
-                               Column('tennant_id', Integer,
-                                      ForeignKey('tennant.id')),
-                               Column('host_id', Integer,
-                                      ForeignKey('host.id')))
+    _registered_hosts = Table(
+        'registered_hosts', Base.metadata,
+        Column('tennant_id', Integer,
+               ForeignKey('tennant.id')),
+        Column('host_id', Integer,
+               ForeignKey('host.id')))
 
     name = Column(String)
     hosts = relationship('Host', secondary=_registered_hosts)

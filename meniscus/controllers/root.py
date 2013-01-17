@@ -5,11 +5,14 @@ from pecan.core import abort, response
 from meniscus.model import Session
 from meniscus.model.control import Tennant, Host
 
+
 def find_tennant(tennant_id):
     return Session.query(Tennant).filter_by(name=tennant_id).first()
 
+
 def find_host_by_id(host_id):
     return Session.query(Host).filter_by(id=host_id).first()
+
 
 def find_host_by_hostname(hostname):
     return Session.query(Host).filter_by(hostname=hostname).first()
@@ -32,12 +35,14 @@ class HostController(object):
         self.host_id = host_id
 
     @expose('json', generic=True)
-    def index(self):        
+    def index(self):
         found_host = find_host_by_id(self.host_id)
 
         if not found_host:
-            abort(404, 'Unable to find a host with id={0}'.format(self.host_id))
-        
+            abort(404,
+                  'Unable to find a host'
+                  ' with id={0}'.format(self.host_id))
+
         return found_host
 
 
@@ -47,12 +52,12 @@ class HostsController(object):
         self.tennant_id = tennant_id
 
     @expose('json', generic=True)
-    def index(self):        
+    def index(self):
         found_tennant = find_tennant(self.tennant_id)
 
         if not found_tennant:
             abort(404, "Unable to locate tennant: {0}".format(tennant_id))
-        
+
         return found_tennant.hosts
 
     @expose('json')
@@ -62,12 +67,12 @@ class HostsController(object):
 
         if not found_tennant:
             abort(404, "Unable to locate tennant: {0}".format(tennant_id))
-        
+
         found_host = find_host_by_hostname(hostname)
 
         if found_host:
             abort(400, 'Host already exists with id={0}'.format(found_host.id))
-        
+
         new_host_profile = Host(hostname, ip_address, None)
         Session.add(new_host_profile)
         found_tennant.hosts.append(new_host_profile)
@@ -109,14 +114,15 @@ class TennantController(object):
         if tennant_resource == 'hosts':
             return HostsController(self.tennant_id), remainder
 
-        abort(404, 'Unable to locate tennant resource: {0}'.format(tennant_resource))
+        abort(404, 'Unable to locate tennant'
+                   ' resource: {0}'.format(tennant_resource))
 
 
 class VersionController(object):
 
     def __init__(self, version):
         self.version = version
-    
+
     @expose()
     def index(self):
         return 'homedoc'
@@ -130,7 +136,7 @@ class RootController(object):
 
     @expose('json')
     def index(self):
-        return {'v1':'current'}
+        return {'v1': 'current'}
 
     @expose()
     def _lookup(self, version, *remainder):
@@ -147,6 +153,5 @@ class RootController(object):
 
         if status == 404:
             message = 'not found'
-            
-        return dict(status=status, message=message)
 
+        return dict(status=status, message=message)

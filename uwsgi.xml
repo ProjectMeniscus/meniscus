@@ -5,7 +5,7 @@
     <master>true</master>
     <vaccum>true</vaccum>
 
-    <pythonpath>/home/zinic/work/python/meniscus/</pythonpath>
+    <pythonpath>./</pythonpath>
     <module>meniscus.wsgi:application</module>
     
     <!-- <mount>/=meniscus.wsgi:application</mount> -->

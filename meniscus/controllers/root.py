@@ -55,8 +55,14 @@ class HostsController(object):
         
         return found_tennant.hosts
 
+    @expose('json')
     @index.when(method='POST')
     def new_host(self, hostname, ip_address):
+        found_tennant = find_tennant(self.tennant_id)
+
+        if not found_tennant:
+            abort(404, "Unable to locate tennant: {0}".format(tennant_id))
+        
         found_host = find_host_by_hostname(hostname)
 
         if found_host:
@@ -64,7 +70,7 @@ class HostsController(object):
         
         new_host_profile = Host(hostname, ip_address, None)
         Session.add(new_host_profile)
-        self.tennant.hosts.append(new_host_profile)
+        found_tennant.hosts.append(new_host_profile)
         return new_host_profile
 
     @expose()
@@ -86,6 +92,7 @@ class TennantController(object):
 
         return found_tennant
 
+    @expose('json')
     @index.when(method='POST')
     def post(self):
         found_tennant = find_tennant(tennant_id)
@@ -105,16 +112,29 @@ class TennantController(object):
         abort(404, 'Unable to locate tennant resource: {0}'.format(tennant_resource))
 
 
-class RootController(object):
+class VersionController(object):
 
+    def __init__(self, version):
+        self.version = version
+    
     @expose()
     def index(self):
         return 'homedoc'
 
     @expose()
-    def _lookup(self, version, tennant_id, *remainder):
-        if version == 'v1':
-            return TennantController(tennant_id), remainder
+    def _lookup(self, tennant_id, *remainder):
+        return TennantController(tennant_id), remainder
+
+
+class RootController(object):
+
+    @expose('json')
+    def index(self):
+        return {'v1':'current'}
+
+    @expose()
+    def _lookup(self, version, *remainder):
+        return VersionController(version), remainder
 
     @expose('json')
     def error(self, status):

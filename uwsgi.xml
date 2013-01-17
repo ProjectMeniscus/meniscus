@@ -2,16 +2,16 @@
     <socket>localhost:8080</socket>
     <protocol>http</protocol>
 
-    <master>true</master>
-    <vaccum>true</vaccum>
+    <processes>12</processes>
 
+    <master />
+    <vaccum />
+
+    <no-default-app />
+    <memory-report/>
+    
     <pythonpath>./</pythonpath>
     <module>meniscus.wsgi:application</module>
     
     <!-- <mount>/=meniscus.wsgi:application</mount> -->
-    
-    <no-default-app />
-    
-    <processes>12</processes>
-    <memory-report/>
 </uwsgi>

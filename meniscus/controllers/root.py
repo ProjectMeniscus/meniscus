@@ -2,30 +2,23 @@ from pecan import expose, redirect
 from pecan.rest import RestController
 from pecan.core import abort, response
 
-from meniscus.model import Session
-from meniscus.model.control import Tennant, Host
+from meniscus.model import db_session
+from meniscus.model.util import find_tenant, find_host_by_id
+from meniscus.model.control import Tenant, Host
 
 
-def find_tennant(tennant_id):
-    return Session.query(Tennant).filter_by(name=tennant_id).first()
-
-
-def find_host_by_id(host_id):
-    return Session.query(Host).filter_by(id=host_id).first()
-
-
-def find_host_by_hostname(hostname):
-    return Session.query(Host).filter_by(hostname=hostname).first()
+def _tenant_not_found(): abort(404, "Unable to locate tenant.")
+def _tenant_already_exists(): abort(500, "Tenant already exists.")
 
 
 class ProfileController(RestController):
 
     @expose()
-    def get(self, tennant_id, hostname):
+    def get(self, tenant_id, hostname):
         abort(404)
 
     @expose()
-    def set(self, tennant_id, hostname, profile_name):
+    def set(self, tenant_id, hostname, profile_name):
         return profile_name
 
 
@@ -34,9 +27,8 @@ class HostController(object):
     def __init__(self, host_id):
         self.host_id = host_id
 
-    @expose('json', generic=True)
-    def index(self):
-        found_host = find_host_by_id(self.host_id)
+    def _locate_host(self, host_id):
+        found_host = find_host_by_id(host_id)
 
         if not found_host:
             abort(404,
@@ -45,37 +37,48 @@ class HostController(object):
 
         return found_host
 
+    @expose('json')
+    def index(self):
+        return self._locate_host(self.host_id)
+
+    @expose('json', generic=True)
+    def profile(self):
+        found_host = self._locate_host(self.host_id)
+        return found_host.profile
+
+    @profile.when(method='POST')
+    def set_profile(self, profile_id):
+        pass
+
 
 class HostsController(object):
 
-    def __init__(self, tennant_id):
-        self.tennant_id = tennant_id
+    def __init__(self, tenant_id):
+        self.tenant_id = tenant_id
 
     @expose('json', generic=True)
     def index(self):
-        found_tennant = find_tennant(self.tennant_id)
+        found_tenant = find_tenant(self.tenant_id)
 
-        if not found_tennant:
-            abort(404, "Unable to locate tennant: {0}".format(tennant_id))
+        if not found_tenant:
+            abort(404, "Unable to locate tenant: {0}".format(tenant_id))
 
-        return found_tennant.hosts
+        return found_tenant.hosts
 
     @expose('json')
     @index.when(method='POST')
     def new_host(self, hostname, ip_address):
-        found_tennant = find_tennant(self.tennant_id)
+        found_tenant = find_tenant(tenant_id=self.tenant_id,
+                                     when_not_found=_tenant_not_found)
 
-        if not found_tennant:
-            abort(404, "Unable to locate tennant: {0}".format(tennant_id))
-
-        found_host = find_host_by_hostname(hostname)
-
-        if found_host:
-            abort(400, 'Host already exists with id={0}'.format(found_host.id))
+        for host in found_tenant.hosts:
+            if host.hostname == hostname:
+                abort(400, 'Host already exists with'
+                           ' id={0}'.format(found_host.id))
 
         new_host_profile = Host(hostname, ip_address, None)
-        Session.add(new_host_profile)
-        found_tennant.hosts.append(new_host_profile)
+        db_session().add(new_host_profile)
+        found_tenant.hosts.append(new_host_profile)
         return new_host_profile
 
     @expose()
@@ -83,39 +86,35 @@ class HostsController(object):
         return HostController(host_id), remainder
 
 
-class TennantController(object):
+class TenantController(object):
 
-    def __init__(self, tennant_id):
-        self.tennant_id = tennant_id
+    def __init__(self, tenant_id):
+        self.tenant_id = tenant_id
 
     @expose('json', generic=True)
     def index(self):
-        found_tennant = find_tennant(self.tennant_id)
-
-        if not found_tennant:
-            abort(404, "Unable to locate tennant: {0}".format(tennant_id))
-
-        return found_tennant
+        return find_tenant(tenant_id=self.tenant_id,
+                            when_not_found=_tenant_not_found)
 
     @expose('json')
     @index.when(method='POST')
     def post(self):
-        found_tennant = find_tennant(tennant_id)
+        found_tenant = find_tenant(self.tenant_id)
 
-        if found_tennant:
+        if found_tenant:
             abort(400)
 
-        new_tennant = Tennant(tennant_id, [])
-        Session.add(new_tennant)
-        return new_tennant
+        new_tenant = Tenant(self.tenant_id, [])
+        db_session().add(new_tenant)
+        return new_tenant
 
     @expose()
-    def _lookup(self, tennant_resource, *remainder):
-        if tennant_resource == 'hosts':
-            return HostsController(self.tennant_id), remainder
+    def _lookup(self, tenant_resource, *remainder):
+        if tenant_resource == 'hosts':
+            return HostsController(self.tenant_id), remainder
 
-        abort(404, 'Unable to locate tennant'
-                   ' resource: {0}'.format(tennant_resource))
+        abort(404, 'Unable to locate tenant'
+                   ' resource: {0}'.format(tenant_resource))
 
 
 class VersionController(object):
@@ -128,8 +127,8 @@ class VersionController(object):
         return 'homedoc'
 
     @expose()
-    def _lookup(self, tennant_id, *remainder):
-        return TennantController(tennant_id), remainder
+    def _lookup(self, tenant_id, *remainder):
+        return TenantController(tenant_id), remainder
 
 
 class RootController(object):

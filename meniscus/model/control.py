@@ -4,11 +4,12 @@ from sqlalchemy.ext.declarative import declarative_base, declared_attr
 
 
 class Persisted(object):
+    
+    id = Column(Integer, primary_key=True)
+    
     @declared_attr
     def __tablename__(self):
         return self.__name__.lower()
-
-    id = Column(Integer, primary_key=True)
 
 
 Base = declarative_base(cls=Persisted)
@@ -70,15 +71,15 @@ class Host(Base):
         self.profile = profile
 
 
-class Tennant(Base):
+class Tenant(Base):
     """
-    Tennants are users of the environemnts being monitored for
+    Tenants are users of the environemnts being monitored for
     application events.
     """
     _registered_hosts = Table(
         'registered_hosts', Base.metadata,
-        Column('tennant_id', Integer,
-               ForeignKey('tennant.id')),
+        Column('tenant_id', Integer,
+               ForeignKey('tenant.id')),
         Column('host_id', Integer,
                ForeignKey('host.id')))
 

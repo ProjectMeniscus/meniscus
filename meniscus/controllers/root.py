@@ -96,7 +96,7 @@ class TenantController(object):
                    ' resource: {0}'.format(tenant_resource))
 
 
-class VersionController(object):
+class RootController(object):
 
     def __init__(self, version):
         self.version = version
@@ -115,11 +115,8 @@ class VersionController(object):
             abort(400, 'Tennant with name {0} '
                        'already exists'.format(name))
 
-        new_tenant = Tenant(name, [])
-
+        new_tenant = Tenant(name)
         db_session().add(new_tenant)
-        db_session().commit()
-        
         return new_tenant
 
     @expose()
@@ -127,7 +124,7 @@ class VersionController(object):
         return TenantController(tenant_name), remainder
 
 
-class RootController(object):
+class VersionController(object):
 
     @expose('json')
     def index(self):
@@ -135,7 +132,11 @@ class RootController(object):
 
     @expose()
     def _lookup(self, version, *remainder):
-        return VersionController(version), remainder
+        if version == 'v1':
+            return RootController(version), remainder
+
+        abort(404, 'No version matches {0}.'.format(version))
+        
 
     @expose('json')
     def error(self, status):

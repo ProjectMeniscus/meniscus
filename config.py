@@ -6,7 +6,7 @@ server = {
 
 # Pecan Application Configurations
 app = {
-    'root': 'meniscus.controllers.root.RootController',
+    'root': 'meniscus.controllers.root.VersionController',
     'modules': ['meniscus'],
     'static_root': '%(confdir)s/public', 
     'template_path': '%(confdir)s/meniscus/templates',

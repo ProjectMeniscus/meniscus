@@ -86,6 +86,6 @@ class Tenant(Base):
     name = Column(String)
     hosts = relationship('Host', secondary=_registered_hosts)
 
-    def __init__(self, name, hosts):
+    def __init__(self, name, hosts=[]):
         self.name = name
         self.hosts = hosts

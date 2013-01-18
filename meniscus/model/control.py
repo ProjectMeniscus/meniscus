@@ -45,10 +45,12 @@ class HostProfile(Base):
                ForeignKey('hostprofile.id')))
 
     name = Column(String)
+    owner_id = Column(Integer, ForeignKey('tenant.id'))
     event_producers = relationship('EventProducer',
                                    secondary=_assigned_producers)
 
-    def __init__(self, name, event_producers):
+    def __init__(self, owner_id, name, event_producers=[]):
+        self.owner_id = owner_id
         self.name = name
         self.event_producers = event_producers
 
@@ -63,7 +65,7 @@ class Host(Base):
     ip_address = Column(String)
 
     profile_id = Column(Integer, ForeignKey('hostprofile.id'))
-    profile = relationship('HostProfile')
+    profile = relationship('HostProfile', uselist=False)
 
     def __init__(self, hostname, ip_address, profile):
         self.hostname = hostname
@@ -83,9 +85,11 @@ class Tenant(Base):
         Column('host_id', Integer,
                ForeignKey('host.id')))
 
-    name = Column(String)
+    tenant_id = Column(String)
     hosts = relationship('Host', secondary=_registered_hosts)
+    saved_profiles = relationship('HostProfile')
 
-    def __init__(self, name, hosts=[]):
-        self.name = name
+    def __init__(self, tenant_id, hosts=[], saved_profiles=[]):
+        self.tenant_id = tenant_id
         self.hosts = hosts
+        self.saved_profiles = saved_profiles

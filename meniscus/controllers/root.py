@@ -3,8 +3,8 @@ from pecan.rest import RestController
 from pecan.core import abort, response
 
 from meniscus.model import db_session
-from meniscus.model.util import find_tenant, find_host_by_id
-from meniscus.model.control import Tenant, Host
+from meniscus.model.util import find_tenant, find_host, find_host_profile
+from meniscus.model.control import Tenant, Host, HostProfile
 
 
 def _tenant_not_found(): abort(404, 'Unable to locate tenant.')
@@ -12,7 +12,9 @@ def _tenant_already_exists(): abort(500, 'Tenant already exists.')
 def _host_not_found(): abort(404,'Unable to locate host.')
 
 
-class ProfileController(RestController):
+class TenantProfilesController(RestController):
+
+    
 
     @expose()
     def get(self, tenant_name, hostname):
@@ -30,13 +32,13 @@ class HostController(object):
 
     @expose('json')
     def index(self):
-        return find_host_by_id(host_id=self.host_id,
-                               when_not_found=_host_not_found)
+        return find_host(id=self.host_id,
+                         when_not_found=_host_not_found)
 
     @expose('json', generic=True)
     def profile(self):
-        host = find_host_by_id(host_id=self.host_id,
-                                     when_not_found=_host_not_found)
+        host = find_host(id=self.host_id,
+                         when_not_found=_host_not_found)
         return host.profile
 
     @profile.when(method='POST')
@@ -46,12 +48,12 @@ class HostController(object):
 
 class HostsController(object):
 
-    def __init__(self, tenant_name):
-        self.tenant_name = tenant_name
+    def __init__(self, tenant_id):
+        self.tenant_id = tenant_id
 
     @expose('json', generic=True)
     def index(self):
-        tenant = find_tenant(name=self.tenant_name,
+        tenant = find_tenant(tenant_id=self.tenant_id,
                              when_not_found=_tenant_not_found)
 
         return tenant.hosts
@@ -59,18 +61,26 @@ class HostsController(object):
     @expose('json')
     @index.when(method='POST')
     def new_host(self, hostname, ip_address):
-        tenant = find_tenant(name=self.tenant_name,
-                                   when_not_found=_tenant_not_found)
+        tenant = find_tenant(tenant_id=self.tenant_id,
+                             when_not_found=_tenant_not_found)
 
+        # Check if the tenant already has a host with this hostname
         for host in tenant.hosts:
             if host.hostname == hostname:
                 abort(400, 'Host already exists with'
                            ' id={0}'.format(host.id))
 
-        new_host_profile = Host(hostname, ip_address, None)
-        db_session().add(new_host_profile)
-        tenant.hosts.append(new_host_profile)
-        return new_host_profile
+        # Create the new profile for the host
+        new_host_profile = HostProfile(tenant.id,
+                                       '{0}-profile'.format(hostname))
+
+        # Create the new host definition
+        new_host = Host(hostname, ip_address, new_host_profile)
+        
+        db_session().add(new_host)
+        tenant.hosts.append(new_host)
+
+        return new_host
 
     @expose()
     def _lookup(self, host_id, *remainder):
@@ -79,18 +89,18 @@ class HostsController(object):
 
 class TenantController(object):
 
-    def __init__(self, tenant_name):
-        self.tenant_name = tenant_name
+    def __init__(self, tenant_id):
+        self.tenant_id = tenant_id
 
     @expose('json')
     def index(self):
-        return find_tenant(name=self.tenant_name,
+        return find_tenant(tenant_id=self.tenant_id,
                            when_not_found=_tenant_not_found)
 
     @expose()
     def _lookup(self, tenant_resource, *remainder):
         if tenant_resource == 'hosts':
-            return HostsController(self.tenant_name), remainder
+            return HostsController(self.tenant_id), remainder
 
         abort(404, 'Unable to locate tenant'
                    ' resource: {0}'.format(tenant_resource))
@@ -108,14 +118,14 @@ class RootController(object):
 
     @expose('json')
     @index.when(method='POST')
-    def post(self, name):
-        tenant = find_tenant(name)
+    def post(self, tenant_id):
+        tenant = find_tenant(tenant_id=tenant_id)
 
         if tenant:
-            abort(400, 'Tennant with name {0} '
-                       'already exists'.format(name))
+            abort(400, 'Tennant with tenant_id {0} '
+                       'already exists'.format(tenant_id))
 
-        new_tenant = Tenant(name)
+        new_tenant = Tenant(tenant_id)
         db_session().add(new_tenant)
         return new_tenant
 

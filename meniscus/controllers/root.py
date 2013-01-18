@@ -117,8 +117,7 @@ class RootController(object):
         return 'homedoc'
 
     @expose('json')
-    @index.when(method='POST')
-    def post(self, tenant_id):
+    def tenant(self, tenant_id):
         tenant = find_tenant(tenant_id=tenant_id)
 
         if tenant:

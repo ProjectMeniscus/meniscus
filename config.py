@@ -11,7 +11,7 @@ app = {
     'static_root': '%(confdir)s/public', 
     'template_path': '%(confdir)s/meniscus/templates',
     'debug': False,
-    'force_canonical' : True
+    'force_canonical' : False
 #    'errors': {
 #        404: '/error/404',
 #        '__force_dict__': True

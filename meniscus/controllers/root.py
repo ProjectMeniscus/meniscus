@@ -12,9 +12,7 @@ def _tenant_already_exists(): abort(500, 'Tenant already exists.')
 def _host_not_found(): abort(404,'Unable to locate host.')
 
 
-class TenantProfilesController(RestController):
-
-    
+class HostProfilesController(object):
 
     @expose()
     def get(self, tenant_name, hostname):
@@ -41,34 +39,42 @@ class HostController(object):
                          when_not_found=_host_not_found)
         return host.profile
 
+    @expose('json')
     @profile.when(method='POST')
     def set_profile(self, profile_id):
         pass
 
 
-class HostsController(object):
+class TenantController(object):
 
     def __init__(self, tenant_id):
         self.tenant_id = tenant_id
 
-    @expose('json', generic=True)
+    @expose('json')
     def index(self):
+        return find_tenant(tenant_id=self.tenant_id,
+                           when_not_found=_tenant_not_found)
+
+    @expose('json', generic=True)
+    def hosts(self):
         tenant = find_tenant(tenant_id=self.tenant_id,
                              when_not_found=_tenant_not_found)
 
         return tenant.hosts
 
     @expose('json')
-    @index.when(method='POST')
-    def new_host(self, hostname, ip_address):
+    @hosts.when(method='POST')
+    def new_host(self, hostname=None, ip_address=None):
+        print 'lolol {0} {1}'.format(hostname, ip_address)
+        
         tenant = find_tenant(tenant_id=self.tenant_id,
                              when_not_found=_tenant_not_found)
 
         # Check if the tenant already has a host with this hostname
         for host in tenant.hosts:
             if host.hostname == hostname:
-                abort(400, 'Host already exists with'
-                           ' id={0}'.format(host.id))
+                abort(400, 'Host with hostname {0} already exists with'
+                           ' id={1}'.format(hostname, host.id))
 
         # Create the new profile for the host
         new_host_profile = HostProfile(tenant.id,
@@ -83,24 +89,11 @@ class HostsController(object):
         return new_host
 
     @expose()
-    def _lookup(self, host_id, *remainder):
-        return HostController(host_id), remainder
-
-
-class TenantController(object):
-
-    def __init__(self, tenant_id):
-        self.tenant_id = tenant_id
-
-    @expose('json')
-    def index(self):
-        return find_tenant(tenant_id=self.tenant_id,
-                           when_not_found=_tenant_not_found)
-
-    @expose()
-    def _lookup(self, tenant_resource, *remainder):
-        if tenant_resource == 'hosts':
-            return HostsController(self.tenant_id), remainder
+    def _lookup(self, tenant_resource, resource_id, *remainder):
+        if tenant_resource == 'host':
+            return HostController(resource_id), remainder
+        elif tenant_resource == 'profile':
+            return HostProfileController(resource_id1), remainder
 
         abort(404, 'Unable to locate tenant'
                    ' resource: {0}'.format(tenant_resource))

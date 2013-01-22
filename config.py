@@ -20,8 +20,9 @@ app = {
 
 sqlalchemy = {
     'url'           : 'sqlite:////tmp/meniscus.db',
+#    'url'           : 'sqlite://',
     'echo'          : True,
-    'echo_pool'     : False,
+    'echo_pool'     : True,
     'pool_recycle'  : 3600,
     'encoding'      : 'utf-8'
 }

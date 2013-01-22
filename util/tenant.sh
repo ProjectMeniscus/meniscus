@@ -34,10 +34,12 @@ while [ "${1}" != "" ]; do
     case "${currentArgument}" in
         add)
             add_tenant "${1}";
+            break;
         ;;
 
         remove)
             remove_tenant "${1}";
+            break;
         ;;
 
         *)

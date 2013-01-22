@@ -4,7 +4,7 @@ TARGET_HOST="127.0.0.1"
 TARGET_PORT="8080"
 
 function add_host {
-    curl -v -X POST -d "hostname=${2}" -d "ip_address=${3}" "http://${TARGET_HOST}:${TARGET_PORT}/v1/${1}/hosts";
+    curl -v -X POST -d "hostname=${2}" -d "ip_address=${3}" "http://${TARGET_HOST}:${TARGET_PORT}/v1/${1}/hosts/";
 }
 
 function remove_host {

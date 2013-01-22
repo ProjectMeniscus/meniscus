@@ -15,10 +15,9 @@ def setup_app(config):
         logging=getattr(config, 'logging', {}),
         debug=getattr(config.app, 'debug', False),
         force_canonical=getattr(config.app, 'force_canonical', True),
-        hooks=[
-            TransactionHook(model.start,
-                            model.start_read_only,
-                            model.commit,
-                            model.rollback,
-                            model.clear)]
+        hooks=[TransactionHook(model.start,
+                               model.start_read_only,
+                               model.commit,
+                               model.rollback,
+                               model.clear)]
     )

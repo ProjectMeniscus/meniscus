@@ -45,28 +45,21 @@ class HostController(object):
         pass
 
 
-class TenantController(object):
+class TenantHostsController(object):
 
     def __init__(self, tenant_id):
         self.tenant_id = tenant_id
 
-    @expose('json')
-    def index(self):
-        return find_tenant(tenant_id=self.tenant_id,
-                           when_not_found=_tenant_not_found)
-
     @expose('json', generic=True)
-    def hosts(self):
+    def index(self):
         tenant = find_tenant(tenant_id=self.tenant_id,
                              when_not_found=_tenant_not_found)
 
         return tenant.hosts
 
     @expose('json')
-    @hosts.when(method='POST')
-    def new_host(self, hostname=None, ip_address=None):
-        print 'lolol {0} {1}'.format(hostname, ip_address)
-        
+    @index.when(method='POST')
+    def new_host(self, hostname=None, ip_address=None):        
         tenant = find_tenant(tenant_id=self.tenant_id,
                              when_not_found=_tenant_not_found)
 
@@ -85,18 +78,25 @@ class TenantController(object):
         
         db_session().add(new_host)
         tenant.hosts.append(new_host)
+        db_session().flush()
 
         return new_host
 
     @expose()
-    def _lookup(self, tenant_resource, resource_id, *remainder):
-        if tenant_resource == 'host':
-            return HostController(resource_id), remainder
-        elif tenant_resource == 'profile':
-            return HostProfileController(resource_id1), remainder
+    def _lookup(self, host_id, *remainder):
+        return HostController(host_id), remainder
 
-        abort(404, 'Unable to locate tenant'
-                   ' resource: {0}'.format(tenant_resource))
+
+class TenantController(object):
+
+    def __init__(self, tenant_id):
+        self.tenant_id = tenant_id
+        self.hosts = TenantHostsController(tenant_id)
+
+    @expose('json')
+    def index(self):
+        return find_tenant(tenant_id=self.tenant_id,
+                           when_not_found=_tenant_not_found)
 
 
 class RootController(object):
@@ -119,6 +119,8 @@ class RootController(object):
 
         new_tenant = Tenant(tenant_id)
         db_session().add(new_tenant)
+        db_session().flush()
+        
         return new_tenant
 
     @expose()

@@ -1,7 +1,7 @@
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
 from meniscus.model import db_session
-from meniscus.model.control import Base, Tenant, Host
+from meniscus.model.control import Base, Tenant, Host, HostProfile
 
 def _empty_condition(): pass
 
@@ -31,10 +31,13 @@ def find_host(id, when_not_found=_empty_condition,
         when_multiple_found()
 
 
-def find_host_profile(id, when_not_found=_empty_condition,
+def find_host_profile(id=None, name=None, when_not_found=_empty_condition,
                     when_multiple_found=_empty_condition):
     try:
-        return db_session().query(HostProfile).filter_by(id=id).one()
+        if id:
+            return db_session().query(HostProfile).filter_by(id=id).one()
+        elif name:
+            return db_session().query(HostProfile).filter_by(name=name).one()
     except NoResultFound:
         when_not_found()
     except MultipleResultsFound:

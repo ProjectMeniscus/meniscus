@@ -87,9 +87,9 @@ class Tenant(Base):
 
     tenant_id = Column(String)
     hosts = relationship('Host', secondary=_registered_hosts)
-    saved_profiles = relationship('HostProfile')
+    profiles = relationship('HostProfile')
 
-    def __init__(self, tenant_id, hosts=[], saved_profiles=[]):
+    def __init__(self, tenant_id, hosts=[], profiles=[]):
         self.tenant_id = tenant_id
         self.hosts = hosts
-        self.saved_profiles = saved_profiles
+        self.profiles = profiles

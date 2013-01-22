@@ -11,8 +11,13 @@ function remove_tenant {
     curl -v -X DELETE "http://${TARGET_HOST}:${TARGET_PORT}/v1/${1}";
 }
 
+function add_profile {
+    curl -v -X POST -d "name=${2}" "http://${TARGET_HOST}:${TARGET_PORT}/v1/${1}/profiles";
+}
+
 function echo_usage {
-    echo "${0} <add|remove> [tennant_id]";
+    echo "${0} <add|remove> <tennant_id>";
+    echo "${0} <add_profile> <tennant_id> <profile_name>";
 
     if [ ${#} -gt 0 ]; then
         exit ${1};
@@ -34,14 +39,19 @@ while [ "${1}" != "" ]; do
     case "${currentArgument}" in
         add)
             add_tenant "${1}";
-            break;
+            exit $?;
         ;;
 
         remove)
             remove_tenant "${1}";
-            break;
+            exit $?;
         ;;
 
+        add_profile)
+            add_profile "${1}" "${2}"
+            exit $?;
+        ;;
+        
         *)
             echo_usage 2;
         ;;

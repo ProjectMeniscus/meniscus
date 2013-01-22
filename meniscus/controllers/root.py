@@ -8,8 +8,9 @@ from meniscus.model.control import Tenant, Host, HostProfile
 
 
 def _tenant_not_found(): abort(404, 'Unable to locate tenant.')
-def _tenant_already_exists(): abort(500, 'Tenant already exists.')
+def _tenant_already_exists(): abort(400, 'Tenant already exists.')
 def _host_not_found(): abort(404,'Unable to locate host.')
+def _profile_not_found(): abort(404,'Unable to locate host profile.')
 
 
 class HostProfilesController(object):
@@ -25,78 +26,112 @@ class HostProfilesController(object):
 
 class HostController(object):
 
-    def __init__(self, host_id):
-        self.host_id = host_id
+    def __init__(self, host):
+        self.host = host
 
     @expose('json')
     def index(self):
-        return find_host(id=self.host_id,
-                         when_not_found=_host_not_found)
+        return self.host
 
     @expose('json', generic=True)
     def profile(self):
-        host = find_host(id=self.host_id,
-                         when_not_found=_host_not_found)
-        return host.profile
+        return self.host.profile
 
     @expose('json')
-    @profile.when(method='POST')
+    @profile.when(method='PUT')
     def set_profile(self, profile_id):
-        pass
+        profile = find_host_profile(id=profile_id,
+                                    when_not_found=_profile_not_found)
+
+        self.host.profile = profile
+        self.host.profile_id = profile_id
+
+        db_session().add(self.host)
+        db_session().flush()
+        
+        return self.host
+        
 
 
 class TenantHostsController(object):
 
-    def __init__(self, tenant_id):
-        self.tenant_id = tenant_id
+    def __init__(self, tenant):
+        self.tenant = tenant
 
     @expose('json', generic=True)
     def index(self):
-        tenant = find_tenant(tenant_id=self.tenant_id,
-                             when_not_found=_tenant_not_found)
-
-        return tenant.hosts
+        return self.tenant.hosts
 
     @expose('json')
     @index.when(method='POST')
     def new_host(self, hostname=None, ip_address=None):        
-        tenant = find_tenant(tenant_id=self.tenant_id,
-                             when_not_found=_tenant_not_found)
-
         # Check if the tenant already has a host with this hostname
-        for host in tenant.hosts:
+        for host in self.tenant.hosts:
             if host.hostname == hostname:
                 abort(400, 'Host with hostname {0} already exists with'
                            ' id={1}'.format(hostname, host.id))
 
         # Create the new profile for the host
-        new_host_profile = HostProfile(tenant.id,
+        new_host_profile = HostProfile(self.tenant.id,
                                        '{0}-profile'.format(hostname))
 
         # Create the new host definition
         new_host = Host(hostname, ip_address, new_host_profile)
         
         db_session().add(new_host)
-        tenant.hosts.append(new_host)
+        self.tenant.hosts.append(new_host)
         db_session().flush()
 
         return new_host
 
     @expose()
     def _lookup(self, host_id, *remainder):
-        return HostController(host_id), remainder
+        host = find_host(host_id, when_not_found=_host_not_found)
+        return HostController(host), remainder
+
+
+class TenantHostProfilesController(object):
+
+    def __init__(self, tenant):
+        self.tenant = tenant
+
+    @expose('json', generic=True)
+    def index(self):
+        return self.tenant.profiles
+
+    @expose('json')
+    @index.when(method='POST')
+    def new_profile(self, name=None):        
+        # Check if the tenant already has a profile with this name
+        for profile in self.tenant.profiles:
+            if profile.name == name:
+                abort(400, 'Profile with name {0} already exists.'
+                                .format(hostname, host.id))
+
+        # Create the new profile for the host
+        new_host_profile = HostProfile(self.tenant.id, name)
+
+        self.tenant.profiles.append(new_host_profile)
+        db_session().add(new_host_profile)
+        db_session().flush()
+
+        return new_host_profile
+
+    @expose()
+    def _lookup(self, host_id, *remainder):
+        pass
 
 
 class TenantController(object):
 
-    def __init__(self, tenant_id):
-        self.tenant_id = tenant_id
-        self.hosts = TenantHostsController(tenant_id)
+    def __init__(self, tenant):
+        self.tenant = tenant
+        self.hosts = TenantHostsController(tenant)
+        self.profiles = TenantHostProfilesController(tenant)
 
     @expose('json')
     def index(self):
-        return find_tenant(tenant_id=self.tenant_id,
-                           when_not_found=_tenant_not_found)
+        return self.tenant
 
 
 class RootController(object):
@@ -105,7 +140,6 @@ class RootController(object):
         self.version = version
 
     @expose('json')
-    @expose(generic=True)
     def index(self):
         return 'homedoc'
 
@@ -124,8 +158,10 @@ class RootController(object):
         return new_tenant
 
     @expose()
-    def _lookup(self, tenant_name, *remainder):
-        return TenantController(tenant_name), remainder
+    def _lookup(self, tenant_id, *remainder):
+        tenant = find_tenant(tenant_id=tenant_id,
+                             when_not_found=_tenant_not_found)
+        return TenantController(tenant), remainder
 
 
 class VersionController(object):

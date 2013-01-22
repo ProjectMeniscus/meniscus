@@ -114,7 +114,7 @@ class RootController(object):
         tenant = find_tenant(tenant_id=tenant_id)
 
         if tenant:
-            abort(400, 'Tennant with tenant_id {0} '
+            abort(400, 'Tenant with tenant_id {0} '
                        'already exists'.format(tenant_id))
 
         new_tenant = Tenant(tenant_id)

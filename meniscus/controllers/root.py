@@ -13,11 +13,14 @@ def _host_not_found(): abort(404,'Unable to locate host.')
 def _profile_not_found(): abort(404,'Unable to locate host profile.')
 
 
-class HostProfilesController(object):
+class EventProducerController(object):
 
-    @expose()
-    def get(self, tenant_name, hostname):
-        abort(404)
+    def __init__(self, event_producer):
+        self.event_producer = event_producer
+
+    @expose('json')
+    def index(self):
+        return event_producer
 
     @expose()
     def set(self, tenant_name, hostname, profile_name):

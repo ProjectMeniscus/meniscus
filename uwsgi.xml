@@ -10,8 +10,8 @@
     <no-default-app />
     <memory-report/>
     
-    <pythonpath>./</pythonpath>
-    <module>meniscus.wsgi:application</module>
+    <pythonpath>./meniscus</pythonpath>
+    <module>meniscus.app:application</module>
     
     <!-- <mount>/=meniscus.wsgi:application</mount> -->
 </uwsgi>

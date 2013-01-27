@@ -4,15 +4,15 @@ TARGET_HOST="127.0.0.1"
 TARGET_PORT="8080"
 
 function add_tenant {
-    curl -v -X POST -d "tenant_id=${1}" "http://${TARGET_HOST}:${TARGET_PORT}/v1/tenant";
+    curl -v -H "Accept: application/json" -H "Content-type: application/json" -X POST -d "{\"tenant_id\":\"${1}\"}" "http://${TARGET_HOST}:${TARGET_PORT}/v1/tenant";
 }
 
 function remove_tenant {
-    curl -v -X DELETE "http://${TARGET_HOST}:${TARGET_PORT}/v1/${1}";
+    curl -v -H "Accept: application/json" -H "Content-type: application/json" -X DELETE "http://${TARGET_HOST}:${TARGET_PORT}/v1/tenant/${1}";
 }
 
 function add_profile {
-    curl -v -X POST -d "name=${2}" "http://${TARGET_HOST}:${TARGET_PORT}/v1/${1}/profiles";
+    curl -v -H "Accept: application/json" -H "Content-type: application/json" -X POST -d "{\"name\":\"${2}\"}" "http://${TARGET_HOST}:${TARGET_PORT}/v1/tenant/${1}/profiles";
 }
 
 function echo_usage {

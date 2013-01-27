@@ -67,7 +67,7 @@ class Host(Base):
     profile_id = Column(Integer, ForeignKey('hostprofile.id'))
     profile = relationship('HostProfile', uselist=False)
 
-    def __init__(self, hostname, ip_address, profile):
+    def __init__(self, hostname, ip_address, profile=None):
         self.hostname = hostname
         self.ip_address = ip_address
         self.profile = profile

@@ -137,7 +137,9 @@ class HostProfilesResource(ApiResource):
         self.db.commit()
 
         resp.status = falcon.HTTP_201
-        resp.set_header('Location', '/v1/{0}/profiles/{1}'.format(tenant_id, new_host_profile.id))
+        resp.set_header('Location',
+                        '/v1/{0}/profiles/{1}'
+                        .format(tenant_id, new_host_profile.id))
 
 
 class HostProfileResource(ApiResource):
@@ -151,6 +153,20 @@ class HostProfileResource(ApiResource):
 
         resp.status = falcon.HTTP_200
         resp.body = json.dumps(_format_host_profile(profile))
+
+
+class EventProducerResource(ApiResource):
+
+    def __init__(self, db_session):
+        self.db = db_session
+
+    def on_put(self, req, resp, tenant_id, profile_id):
+        profile = find_host_profile(self.db, id=profile_id,
+                         when_not_found=_profile_not_found)
+
+        body = load_body(req)
+        hostname = body['name']
+        ip_address = body['pattern']
 
 
 class HostsResource(ApiResource):
@@ -187,7 +203,9 @@ class HostsResource(ApiResource):
         self.db().commit()
 
         resp.status = falcon.HTTP_201
-        resp.set_header('Location', '/v1/{0}/hosts/{1}'.format(tenant_id, new_host.id))
+        resp.set_header('Location',
+                        '/v1/{0}/hosts/{1}'
+                        .format(tenant_id, new_host.id))
 
 
 class HostResource(ApiResource):

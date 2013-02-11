@@ -13,7 +13,7 @@ setup(
     author = '',
     author_email = '',
     install_requires = [
-        "pecan",
+        "falcon",
     ],
     test_suite = 'meniscus',
     zip_safe = False,

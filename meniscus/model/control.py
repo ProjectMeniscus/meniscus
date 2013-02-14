@@ -1,4 +1,5 @@
-from sqlalchemy import Table, Column, String, Integer, ForeignKey
+from sqlalchemy import Table, Column, String,
+from sqlalchemy import Integer, ForeignKey, Boolean
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.declarative import declarative_base, declared_attr
 
@@ -26,6 +27,9 @@ class EventProducer(Base):
 
     name = Column(String)
     pattern = Column(String)
+    durable = Column(Boolean)
+    encrypted = Column(Boolean)
+    
 
     def __init__(self, name, pattern):
         self.name = name

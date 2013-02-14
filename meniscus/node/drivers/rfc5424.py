@@ -1,8 +1,9 @@
 from datetime import datetime
+import re
+
 """
 A parser for the syslog rfc5424
 """
-import re
 
 
 class ParserError(Exception):

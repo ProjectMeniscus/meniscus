@@ -1,12 +1,29 @@
 from datetime import datetime
-from RFC5424 import *
+from meniscus.node.drivers.rfc5424 import *
 
 import unittest
 
-HAPPY_PATH_MESSAGE = '<46>1 2012-12-11T15:48:23.217459-06:00 tohru rsyslogd 6611 12512  [origin software="rsyslogd" swVersion="7.2.2" x-pid="12297" x-info="http://www.rsyslog.com"] [origin software="rsyslogd" swVersion="7.2.2" x-pid="12297" x-info="http://www.rsyslog.com"] start'
+def suite():
+    suite = unittest.TestSuite()
+    suite.addTest(unittest.makeSuite(FromTextToStructuredData))
+    suite.addTest(unittest.makeSuite(FromTextToSyslogMessage))
+    
+    return suite
+
+HAPPY_PATH_MESSAGE = ('<46>1 2012-12-11T15:48:23.217459-06:00 tohru '
+                     'rsyslogd 6611 12512  [origin software="rsyslogd" '
+                     'swVersion="7.2.2" x-pid="12297" '
+                     'x-info="http://www.rsyslog.com"] '
+                     '[origin software="rsyslogd" swVersion="7.2.2" '
+                     'x-pid="12297" x-info="http://www.rsyslog.com"] '
+                     'start')
+                     
 PARTIAL_MESSAGE = '<46>1 - - - - - - start'
 
-HAPPY_PATH_SD = '[origin software="rsyslogd" swVersion="7.2.2" x-pid="12297" x-info="http://www.rsyslog.com"] [origin software="rsyslogd" swVersion="7.2.2" x-pid="12297" x-info="http://www.rsyslog.com"] start'
+HAPPY_PATH_SD = ('[origin software="rsyslogd" swVersion="7.2.2" '
+                'x-pid="12297" x-info="http://www.rsyslog.com"] '
+                '[origin software="rsyslogd" swVersion="7.2.2" '
+                'x-pid="12297" x-info="http://www.rsyslog.com"] start')
 
 class FromTextToStructuredData(unittest.TestCase):
     
@@ -27,9 +44,12 @@ class FromTextToStructuredData(unittest.TestCase):
                 elif param == 'x-pid':
                     self.assertEqual(sd[param], '12297')
                 elif param == 'x-info':
-                    self.assertEqual(sd[param], 'http://www.rsyslog.com')
+                    self.assertEqual(sd[param],
+                                     'http://www.rsyslog.com')
                 else:
-                    self.fail('Unexpected structred data element: {0}="{1}"'.format(param, sd[param]))
+                    self.fail('Unexpected structred data '
+                              'element: {0}="{1}"'
+                              .format(param, sd[param]))
         return
 
 
@@ -47,7 +67,8 @@ class FromTextToSyslogMessage(unittest.TestCase):
         self.assertEqual(message.priority, '46')
         self.assertEqual(message.application, 'rsyslogd')
         self.assertEqual(message.process_id, '6611')
-        self.assertEqual(message.timestamp, datetime(2012, 12, 11, 9, 42, 23, 217459))
+        self.assertEqual(message.timestamp,
+                         datetime(2012, 12, 11, 9, 42, 23, 217459))
         self.assertEqual(message.message_id, '12512')
         self.assertEqual(message.message, 'start')
 
@@ -69,9 +90,6 @@ class FromTextToSyslogMessage(unittest.TestCase):
         self.assertEqual(message.message, 'start')
         
         self.assertEqual(len(message.structured_data), 0)
-    
-def main():
-    unittest.main()
 
 if __name__ == '__main__':
-    main()
+    unittest.main()

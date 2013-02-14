@@ -11,7 +11,7 @@
     <memory-report/>
     
     <pythonpath>./meniscus</pythonpath>
-    <module>meniscus.app:application</module>
+    <module>meniscus.api.tenant.app:application</module>
     
-    <!-- <mount>/=meniscus.wsgi:application</mount> -->
+    <!-- <mount>/=meniscus.api.tenant.app:application</mount> -->
 </uwsgi>

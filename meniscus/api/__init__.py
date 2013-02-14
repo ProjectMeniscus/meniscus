@@ -1,22 +1,28 @@
 import json
 import falcon
 
-from meniscus.model import init_model
+
+"""
+Base class for API resources
+"""
 
 class ApiResource(object):
     pass
 
 
-class VersionResource(ApiResource):
-
-    def on_get(self, req, resp):
-        resp.status = falcon.HTTP_200
-        resp.body = json.dumps({'v1': 'current'})
-
+"""
+Helper function for aborting an API request process. Useful for error
+reporting and expcetion handling.
+"""
 
 def abort(resp, status=falcon.HTTP_500, message=None):
     raise falcon.HTTPError(status, message)
 
+
+"""
+Helper function for loading an HTTP request body from JSON into a
+Python dictionary
+"""
 
 def load_body(req, required=[]):
     try:

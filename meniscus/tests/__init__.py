@@ -1,22 +1,13 @@
-import os
-from unittest import TestCase
-from pecan import set_config
-from pecan.testing import load_test_app
+import meniscus.tests.node.rfc5424_test
 
-__all__ = ['FunctionalTest']
+import unittest
 
-
-class FunctionalTest(TestCase):
-    """
-    Used for functional tests where you need to test your
-    literal application and its integration with the framework.
-    """
+def suite():
+    suite = unittest.TestSuite()
+    suite.addTest(rfc5424_test.suite())
     
-    def setUp(self):
-        self.app = load_test_app(os.path.join(
-            os.path.dirname(__file__),
-            'config.py'
-        ))
+    return suite
 
-    def tearDown(self):
-        set_config({}, overwrite=True)
+if __name__ == '__main__':
+    runner = unittest.TextTestRunner()
+    runner.run(suite())

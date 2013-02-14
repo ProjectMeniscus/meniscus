@@ -3,7 +3,7 @@ import falcon
 
 from meniscus.api import ApiResource, load_body, abort
 from meniscus.model.util import find_tenant, find_host, find_host_profile
-from meniscus.model.control import Tenant, Host, HostProfile
+from meniscus.model.tenant import Tenant, Host, HostProfile
 
 
 def _tenant_not_found():
@@ -66,6 +66,13 @@ def _format_hosts(hosts):
         formatted_hosts.append(_format_host(host))
         
     return formatted_hosts
+
+
+class VersionResource(ApiResource):
+
+    def on_get(self, req, resp):
+        resp.status = falcon.HTTP_200
+        resp.body = json.dumps({'v1': 'current'})
 
 
 class TenantResource(ApiResource):

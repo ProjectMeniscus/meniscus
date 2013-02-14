@@ -1,4 +1,4 @@
-from sqlalchemy import Table, Column, String,
+from sqlalchemy import Table, Column, String
 from sqlalchemy import Integer, ForeignKey, Boolean
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.ext.declarative import declarative_base, declared_attr

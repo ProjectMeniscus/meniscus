@@ -1,6 +1,6 @@
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
-from meniscus.model.control import Base, Tenant, Host, HostProfile
+from meniscus.model.tenant import Base, Tenant, Host, HostProfile
 
 def _empty_condition(): pass
 

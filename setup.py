@@ -15,7 +15,7 @@ setup(
     install_requires = [
         "falcon",
     ],
-    test_suite = 'meniscus',
+    test_suite = 'meniscus.tests',
     zip_safe = False,
     include_package_data = True,
     packages = find_packages(exclude=['ez_setup'])

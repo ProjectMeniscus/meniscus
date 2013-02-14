@@ -1,4 +1,3 @@
-from unittest import TestCase
 from webtest import TestApp
 from meniscus.tests import FunctionalTest
 

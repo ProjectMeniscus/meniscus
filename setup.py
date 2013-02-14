@@ -15,7 +15,6 @@ setup(
     install_requires = [
         "falcon",
         "wsgiref",
-        "SQLAlchemy",
         "uWSGI",
     ],
     test_suite = 'meniscus',

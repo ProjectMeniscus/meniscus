@@ -14,6 +14,8 @@ setup(
     author_email = '',
     install_requires = [
         "falcon",
+        "wsgiref",
+        "uWSGI",
     ],
     test_suite = 'meniscus.tests',
     zip_safe = False,

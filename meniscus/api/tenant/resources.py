@@ -27,9 +27,9 @@ def _format_tenant(tenant_proxy):
             'tenant_id': tenant_proxy.tenant_id}
 
 
-def _format_event_producer(event_producer):
-    return {'name': event_producers.name,
-            'pattern': event_producers.pattern}
+def _format_event_producer(event_producers):
+    return {'name': event_producers['name'],
+            'pattern': event_producers['pattern']}
 
 
 def _format_host_profile(profile):

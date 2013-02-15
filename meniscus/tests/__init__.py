@@ -1,10 +1,12 @@
 import meniscus.tests.node.rfc5424_test
+import meniscus.tests.api.tenant.resources_test
 
 import unittest
 
 def suite():
     suite = unittest.TestSuite()
     suite.addTest(rfc5424_test.suite())
+    suite.addTest(resources_test.suite())
 
     return suite
 

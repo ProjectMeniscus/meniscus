@@ -10,10 +10,11 @@ setup(
     name = 'meniscus',
     version = '0.1',
     description = '',
-    author = '',
+    author = 'Project Meniscus',
     author_email = '',
     install_requires = [
         "falcon",
+        "mock",
         "wsgiref",
         "uWSGI",
     ],

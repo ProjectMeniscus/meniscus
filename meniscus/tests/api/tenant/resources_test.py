@@ -1,11 +1,9 @@
 from datetime import datetime
-from meniscus.api.tenant.resources import _format_event_producer
-from meniscus.api.tenant.resources import _format_tenant
-from meniscus.api.tenant.resources import _format_host_profile
-from meniscus.api.tenant.resources import _format_host_profiles
-from meniscus.api.tenant.resources import _format_host
-from meniscus.api.tenant.resources import _format_hosts
+from meniscus.api.tenant.resources import *
 
+from mock import MagicMock
+
+import falcon
 import unittest
 
 
@@ -16,6 +14,18 @@ def suite():
     return suite
 
 
+class WhenTestingVersionResources(unittest.TestCase):
+
+    def test_getting_versrions(self):
+        req = MagicMock()
+        resp = MagicMock()
+        
+        resource = VersionResource()
+        resource.on_get(req, resp)
+
+        self.assertEqual(falcon.HTTP_200, resp.status)
+
+
 class WhenFormattingResponses(unittest.TestCase):
 
     def test_format_tenant(self):
@@ -23,7 +33,7 @@ class WhenFormattingResponses(unittest.TestCase):
                         'tenant_id': 'tenant id',
                         'should_never': 'see_mee'}
 
-        formatted_tenant = _format_tenant(tenant_proxy)
+        formatted_tenant = format_tenant(tenant_proxy)
 
         self.assertEqual(formatted_tenant['id'], 'identification')
 
@@ -36,7 +46,7 @@ class WhenFormattingResponses(unittest.TestCase):
                           'pattern': 'apache_cee',
                           'should_never': 'see_mee'}
 
-        formatted_event_producer = _format_event_producer(
+        formatted_event_producer = format_event_producer(
             event_producer)
 
         self.assertEqual(
@@ -59,7 +69,7 @@ class WhenFormattingResponses(unittest.TestCase):
                                         'pattern': 'apache_cee3',
                                         'superfluous': 'junk'}]}
 
-        formatted_profile = _format_host_profile(profile)
+        formatted_profile = format_host_profile(profile)
 
         self.assertEquals(formatted_profile['id'], 'profile id')
 
@@ -104,7 +114,7 @@ class WhenFormattingResponses(unittest.TestCase):
                                           'pattern': 'apache_cee23',
                                           'superfluous': 'junk'}]}]
 
-        formatted_profiles = _format_host_profiles(profiles)
+        formatted_profiles = format_host_profiles(profiles)
 
         for formatted_profile in formatted_profiles:
             self.assertTrue('id' in formatted_profile)
@@ -133,7 +143,7 @@ class WhenFormattingResponses(unittest.TestCase):
                                  'pattern': 'apache_cee3',
                                  'superfluous': 'junk'}]}}
 
-        formatted_host = _format_host(host)
+        formatted_host = format_host(host)
 
         self.assertEquals(formatted_host['id'], 'host_id00')
 
@@ -199,7 +209,7 @@ class WhenFormattingResponses(unittest.TestCase):
                                    'pattern': 'apache_cee3',
                                    'superfluous': 'junk'}]}}]
 
-        formatted_hosts = _format_hosts(hosts)
+        formatted_hosts = format_hosts(hosts)
 
         for formatted_host in formatted_hosts:
             self.assertTrue('id' in formatted_host)

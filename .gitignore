@@ -1,5 +1,5 @@
 build/
 .coverage
 *.pyc
-.idea/*
+.idea
 meniscus.egg-info

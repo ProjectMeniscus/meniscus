@@ -15,16 +15,16 @@ def _tenant_already_exists():
 
 
 def _host_not_found():
-    abort(falcon.HTTP_400,'Unable to locate host.')
+    abort(falcon.HTTP_400, 'Unable to locate host.')
 
 
 def _profile_not_found():
-    abort(falcon.HTTP_400,'Unable to locate host profile.')
+    abort(falcon.HTTP_400, 'Unable to locate host profile.')
 
 
 def _format_tenant(tenant_proxy):
-    return {'id': tenant_proxy.id,
-            'tenant_id': tenant_proxy.tenant_id}
+    return {'id': tenant_proxy['id'],
+            'tenant_id': tenant_proxy['tenant_id']}
 
 
 def _format_event_producer(event_producers):
@@ -35,11 +35,11 @@ def _format_event_producer(event_producers):
 def _format_host_profile(profile):
     event_producers = []
 
-    for event_producer in profile.event_producers:
+    for event_producer in profile['event_producers']:
         event_producers.append(_format_event_producer(event_producer))
     
-    return {'id': profile.id,
-            'name' : profile.name,
+    return {'id': profile['id'],
+            'name': profile['name'],
             'event_producers': event_producers}
 
 
@@ -53,10 +53,10 @@ def _format_host_profiles(profiles):
 
 
 def _format_host(host):
-    return {'id': host.id,
-            'hostname': host.hostname,
-            'ip_address': host.ip_address,
-            'profile': _format_host_profile(host.profile)}
+    return {'id': host['id'],
+            'hostname': host['hostname'],
+            'ip_address': host['ip_address'],
+            'profile': _format_host_profile(host['profile'])}
 
 
 def _format_hosts(hosts):
@@ -156,7 +156,7 @@ class HostProfileResource(ApiResource):
 
     def on_get(self, req, resp, tenant_id, profile_id):
         profile = find_host_profile(self.db, id=profile_id,
-                         when_not_found=_profile_not_found)
+                                    when_not_found=_profile_not_found)
 
         resp.status = falcon.HTTP_200
         resp.body = json.dumps(_format_host_profile(profile))
@@ -169,7 +169,7 @@ class EventProducerResource(ApiResource):
 
     def on_put(self, req, resp, tenant_id, profile_id):
         profile = find_host_profile(self.db, id=profile_id,
-                         when_not_found=_profile_not_found)
+                                    when_not_found=_profile_not_found)
 
         body = load_body(req)
         hostname = body['name']
@@ -235,7 +235,7 @@ class HostResource(ApiResource):
         profile_id = body['profile_id']
 
         profile = find_host_profile(self.db, id=profile_id,
-                         when_not_found=_profile_not_found)
+                                    when_not_found=_profile_not_found)
         host.profile = profile
         self.db.commit()
 

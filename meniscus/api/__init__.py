@@ -29,8 +29,8 @@ Python dictionary
 def load_body(req, required=[]):
     try:
         raw_json = req.stream.read()
-    except Exception as ex:
-        print ex
+
+    except Exception:
         abort(falcon.HTTP_500, 'Read Error')
 
     try:

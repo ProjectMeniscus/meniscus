@@ -22,48 +22,70 @@ def _profile_not_found():
     abort(falcon.HTTP_400, 'Unable to locate host profile.')
 
 
-def _format_tenant(tenant_proxy):
-    return {'id': tenant_proxy.id,
-            'tenant_id': tenant_proxy.tenant_id}
+def format_tenant(tenant):
+    if not isinstance(tenant, dict):
+        tenant = tenant.__dict__
+
+    return {'id': tenant['id'],
+            'tenant_id': tenant['tenant_id']}
 
 
-def _format_event_producer(event_producers):
+def format_event_producer(event_producers):
+    if not isinstance(event_producers, dict):
+        event_producers = event_producers.__dict__
+    
     return {'name': event_producers['name'],
             'pattern': event_producers['pattern']}
 
 
-def _format_host_profile(profile):
+def format_host_profile(profile):
     event_producers = []
 
-    for event_producer in profile.event_producers:
-        event_producers.append(_format_event_producer(event_producer))
+    if not isinstance(profile, dict):
+        profile = profile.__dict__
+
+    for event_producer in profile['event_producers']:
+        event_producers.append(format_event_producer(event_producer))
     
+<<<<<<< HEAD
     return {'id': profile.id,
             'name': profile.name,
+=======
+    return {'id': profile['id'],
+            'name': profile['name'],
+>>>>>>> upstream/master
             'event_producers': event_producers}
 
 
-def _format_host_profiles(profiles):
+def format_host_profiles(profiles):
     formatted_profiles = []
 
     for profile in profiles:
-        formatted_profiles.append(_format_host_profile(profile))
+        formatted_profiles.append(format_host_profile(profile))
         
     return formatted_profiles
 
 
-def _format_host(host):
-    return {'id': host.id,
-            'hostname': host.hostname,
-            'ip_address': host.ip_address,
-            'profile': _format_host_profile(host.profile)}
+def format_host(host):
+    if not isinstance(host, dict):
+        host = host.__dict__
+
+    if 'profile' in host:
+        host_profile = format_host_profile(host['profile'])
+    else:
+        host_profile = dict()
+    
+    return {'id': host['id'],
+            'hostname': host['hostname'],
+            'ip_address': host['ip_address'],
+            'profile': host_profile}
 
 
-def _format_hosts(hosts):
+def format_hosts(hosts):
     formatted_hosts = []
 
     for host in hosts:
-        formatted_hosts.append(_format_host(host))
+        formatted_hosts.append(format_host(host))
         
     return formatted_hosts
 
@@ -108,7 +130,7 @@ class UserResource(ApiResource):
                              when_not_found=_tenant_not_found)
 
         resp.status = falcon.HTTP_200
-        resp.body = json.dumps(_format_tenant(tenant))
+        resp.body = json.dumps(format_tenant(tenant))
 
     def on_delete(self, req, resp, tenant_id):
         tenant = find_tenant(self.db, tenant_id=tenant_id,
@@ -130,7 +152,7 @@ class HostProfilesResource(ApiResource):
                              when_not_found=_tenant_not_found)
 
         resp.status = falcon.HTTP_200
-        resp.body = json.dumps(_format_host_profiles(tenant.profiles))
+        resp.body = json.dumps(format_host_profiles(tenant.profiles))
 
     def on_post(self, req, resp, tenant_id):
         tenant = find_tenant(self.db, tenant_id=tenant_id,
@@ -168,7 +190,7 @@ class HostProfileResource(ApiResource):
                                     when_not_found=_profile_not_found)
 
         resp.status = falcon.HTTP_200
-        resp.body = json.dumps(_format_host_profile(profile))
+        resp.body = json.dumps(format_host_profile(profile))
 
     def on_delete(self, req, resp, tenant_id, profile_id):
         profile = find_host_profile(self.db, id=profile_id,
@@ -209,7 +231,7 @@ class HostsResource(ApiResource):
                              when_not_found=_tenant_not_found)
 
         resp.status = falcon.HTTP_200
-        resp.body = json.dumps(_format_hosts(tenant.hosts))
+        resp.body = json.dumps(format_hosts(tenant.hosts))
 
     def on_post(self, req, resp, tenant_id):
         tenant = find_tenant(self.db, tenant_id=tenant_id,
@@ -253,7 +275,7 @@ class HostResource(ApiResource):
                          when_not_found=_host_not_found)
 
         resp.status = falcon.HTTP_200
-        resp.body = json.dumps(_format_host(host))
+        resp.body = json.dumps(format_host(host))
 
     def on_put(self, req, resp, tenant_id, host_id):
         host = find_host(self.db, host_id,

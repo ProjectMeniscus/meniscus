@@ -1,4 +1,0 @@
-mock>=1.0.0
-falcon>=0
-uWSGI>=1.4.5
-wsgiref>=0.1.2

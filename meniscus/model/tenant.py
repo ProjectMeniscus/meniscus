@@ -51,7 +51,11 @@ class EventProducer(Base):
     encrypted = Column(Boolean)
     owner_id = Column(Integer, ForeignKey('tenant.id'))
 
-    def __init__(self, name, pattern, durable=False, encrypted=False):
+    def __init__(self, owner_id, name, pattern, durable,
+                 encrypted):
+
+        print durable
+        self.owner_id = owner_id
         self.name = name
         self.pattern = pattern
         self.durable = durable
@@ -89,7 +93,6 @@ class Host(Base):
 
     hostname = Column(String)
     ip_address = Column(String)
-
     profile_id = Column(Integer, ForeignKey('hostprofile.id'))
     profile = relationship('HostProfile', uselist=False)
 
@@ -114,8 +117,10 @@ class Tenant(Base):
     tenant_id = Column(String)
     hosts = relationship('Host', secondary=_registered_hosts)
     profiles = relationship('HostProfile')
+    event_producers = relationship('EventProducer')
 
-    def __init__(self, tenant_id, hosts=[], profiles=[]):
+    def __init__(self, tenant_id, hosts=[], profiles=[], event_producers=[]):
         self.tenant_id = tenant_id
         self.hosts = hosts
         self.profiles = profiles
+        self.event_producers = event_producers

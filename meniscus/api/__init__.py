@@ -2,31 +2,26 @@ import json
 import falcon
 
 
-"""
-Base class for API resources
-"""
-
-
 class ApiResource(object):
+    """
+    Base class for API resources
+    """
     pass
 
 
-"""
-Helper function for aborting an API request process. Useful for error
-reporting and expcetion handling.
-"""
-
-
 def abort( status=falcon.HTTP_500, message=None):
+    """
+    Helper function for aborting an API request process. Useful for error
+    reporting and expcetion handling.
+    """
     raise falcon.HTTPError(status, message)
-
-"""
-Helper function for loading an HTTP request body from JSON into a
-Python dictionary
-"""
 
 
 def load_body(req, required=[]):
+    """
+    Helper function for loading an HTTP request body from JSON into a
+    Python dictionary
+    """
     try:
         raw_json = req.stream.read()
 

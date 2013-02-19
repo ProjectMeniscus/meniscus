@@ -3,7 +3,7 @@ import falcon
 
 from meniscus.api import ApiResource, load_body, abort
 from meniscus.model.util import find_tenant, find_host, find_host_profile
-from meniscus.model.tenant import Tenant, Host, HostProfile
+from meniscus.model.tenant import Tenant, Host, HostProfile, EventProducer
 
 
 def _tenant_not_found():
@@ -30,12 +30,21 @@ def format_tenant(tenant):
             'tenant_id': tenant['tenant_id']}
 
 
-def format_event_producer(event_producers):
-    if not isinstance(event_producers, dict):
-        event_producers = event_producers.__dict__
+def format_event_producer(event_producer):
+    if not isinstance(event_producer, dict):
+        event_producer = event_producer.__dict__
     
-    return {'name': event_producers['name'],
-            'pattern': event_producers['pattern']}
+    return {'name': event_producer['name'],
+            'pattern': event_producer['pattern']}
+
+
+def format_event_producers(event_producers):
+    formatted_event_producers = []
+
+    for event_producer in event_producers:
+        formatted_event_producers.append(format_event_producer(event_producer))
+
+    return formatted_event_producers
 
 
 def format_host_profile(profile):
@@ -46,14 +55,9 @@ def format_host_profile(profile):
 
     for event_producer in profile['event_producers']:
         event_producers.append(format_event_producer(event_producer))
-    
-<<<<<<< HEAD
-    return {'id': profile.id,
-            'name': profile.name,
-=======
+
     return {'id': profile['id'],
             'name': profile['name'],
->>>>>>> upstream/master
             'event_producers': event_producers}
 
 
@@ -206,6 +210,55 @@ class EventProducersResource(ApiResource):
     def __init__(self, db_session):
         self.db = db_session
 
+    def on_get(self, req, resp, tenant_id):
+        tenant = find_tenant(self.db, tenant_id=tenant_id,
+                             when_not_found=_tenant_not_found)
+
+        resp.status = falcon.HTTP_200
+        resp.body = json.dumps(format_event_producers(tenant.event_producers))
+
+    def on_post(self, req, resp, tenant_id):
+        tenant = find_tenant(self.db, tenant_id=tenant_id,
+                             when_not_found=_tenant_not_found)
+
+        body = load_body(req)
+        event_producer_name = body['name']
+        event_producer_pattern = body['pattern']
+
+        #if durable or encrypted aren't specified, set to False
+        if 'durable' in body.keys():
+            event_producer_durable = body['durable']
+        else:
+            event_producer_durable = False
+
+        if 'encrypted' in body.keys():
+            event_producer_encrypted = body['encrypted']
+        else:
+            event_producer_encrypted = False
+
+        # Check if the event_producer already has a profile with this name
+        for event_producer in tenant.event_producers:
+            if event_producer.name == event_producer_name:
+                abort(falcon.HTTP_400,
+                      'Producer {0} with name {1} already exists.'
+                      .format(event_producer.id, event_producer.name))
+
+        # Create the new profile for the host
+        new_event_producer = EventProducer(tenant.id, event_producer_name,
+                                           event_producer_pattern,
+                                           event_producer_durable,
+                                           event_producer_encrypted)
+
+        tenant.event_producers.append(new_event_producer)
+
+        self.db.add(new_event_producer)
+        self.db.commit()
+
+        resp.status = falcon.HTTP_201
+        resp.set_header('Location',
+                        '/v1/{0}/producers/{1}'
+                        .format(tenant_id, new_event_producer.id))
+
 
 class EventProducerResource(ApiResource):
 
@@ -241,10 +294,17 @@ class HostsResource(ApiResource):
         hostname = body['hostname']
         ip_address = body['ip_address']
 
-        #lookup the  profile by id
-        profile_id = body['profile_id']
-        profile = find_host_profile(self.db, id=profile_id,
-                                    when_not_found=_profile_not_found)
+        #if profile id is not in post message, then use a null profile
+        if 'profile_id' in body.keys():
+            profile_id = body['profile_id']
+        else:
+            profile_id = None
+            profile = None
+
+        #if profile id is in post message, then make sure it is valid profile
+        if profile_id:
+            profile = find_host_profile(self.db, id=profile_id,
+                                        when_not_found=_profile_not_found)
 
         # Check if the tenant already has a host with this hostname
         for host in tenant.hosts:

@@ -22,18 +22,27 @@ def _profile_not_found():
     abort(falcon.HTTP_400, 'Unable to locate host profile.')
 
 
-def format_tenant(tenant_proxy):
-    return {'id': tenant_proxy['id'],
-            'tenant_id': tenant_proxy['tenant_id']}
+def format_tenant(tenant):
+    if not isinstance(tenant, dict):
+        tenant = tenant.__dict__
+
+    return {'id': tenant['id'],
+            'tenant_id': tenant['tenant_id']}
 
 
 def format_event_producer(event_producers):
+    if not isinstance(event_producers, dict):
+        event_producers = event_producers.__dict__
+    
     return {'name': event_producers['name'],
             'pattern': event_producers['pattern']}
 
 
 def format_host_profile(profile):
     event_producers = []
+
+    if not isinstance(profile, dict):
+        profile = profile.__dict__
 
     for event_producer in profile['event_producers']:
         event_producers.append(format_event_producer(event_producer))
@@ -53,10 +62,18 @@ def format_host_profiles(profiles):
 
 
 def format_host(host):
+    if not isinstance(host, dict):
+        host = host.__dict__
+
+    if 'profile' in host:
+        host_profile = format_host_profile(host['profile'])
+    else:
+        host_profile = dict()
+    
     return {'id': host['id'],
             'hostname': host['hostname'],
             'ip_address': host['ip_address'],
-            'profile': format_host_profile(host['profile'])}
+            'profile': host_profile}
 
 
 def format_hosts(hosts):

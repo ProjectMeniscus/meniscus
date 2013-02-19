@@ -16,11 +16,31 @@ class Persisted(object):
 Base = declarative_base(cls=Persisted)
 
 
+# class EventProducer(Base):
+#     """
+#     An event producer is a nicer way of describing a parsing template
+#     for a producer of events. Event producer definitions should be
+#     reusable and not specific to any one host. While this may not
+#     always be the case, it should be considered for each event producer
+#     described.
+#     """
+#
+#     name = Column(String)
+#     pattern = Column(String)
+#     durable = Column(Boolean)
+#     encrypted = Column(Boolean)
+#
+#
+#     def __init__(self, name, pattern):
+#         self.name = name
+#         self.pattern = pattern
+
+
 class EventProducer(Base):
     """
     An event producer is a nicer way of describing a parsing template
     for a producer of events. Event producer definitions should be
-    resuable and not specific to any one host. While this may not
+    reusable and not specific to any one host. While this may not
     always be the case, it should be considered for each event producer
     described.
     """
@@ -29,16 +49,18 @@ class EventProducer(Base):
     pattern = Column(String)
     durable = Column(Boolean)
     encrypted = Column(Boolean)
-    
+    owner_id = Column(Integer, ForeignKey('tenant.id'))
 
-    def __init__(self, name, pattern):
+    def __init__(self, name, pattern, durable=False, encrypted=False):
         self.name = name
         self.pattern = pattern
+        self.durable = durable
+        self.encrypted = encrypted
 
 
 class HostProfile(Base):
     """
-    Host profiles are resuable collections of event producers with an
+    Host profiles are reusable collections of event producers with an
     associated, unique name for lookup.
     """
     _assigned_producers = Table(
@@ -61,7 +83,7 @@ class HostProfile(Base):
 
 class Host(Base):
     """
-    Hosts represent a single, addressible entity in a logical tennat
+    Hosts represent a single, addressable entity in a logical tenant
     environment.
     """
 
@@ -79,7 +101,7 @@ class Host(Base):
 
 class Tenant(Base):
     """
-    Tenants are users of the environemnts being monitored for
+    Tenants are users of the environments being monitored for
     application events.
     """
     _registered_hosts = Table(

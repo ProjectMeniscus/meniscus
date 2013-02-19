@@ -15,11 +15,11 @@ def _tenant_already_exists():
 
 
 def _host_not_found():
-    abort(falcon.HTTP_400,'Unable to locate host.')
+    abort(falcon.HTTP_400, 'Unable to locate host.')
 
 
 def _profile_not_found():
-    abort(falcon.HTTP_400,'Unable to locate host profile.')
+    abort(falcon.HTTP_400, 'Unable to locate host profile.')
 
 
 def _format_tenant(tenant_proxy):
@@ -39,7 +39,7 @@ def _format_host_profile(profile):
         event_producers.append(_format_event_producer(event_producer))
     
     return {'id': profile.id,
-            'name' : profile.name,
+            'name': profile.name,
             'event_producers': event_producers}
 
 
@@ -83,19 +83,19 @@ class TenantResource(ApiResource):
     def on_post(self, req, resp):
         body = load_body(req)
         tenant_id = body['tenant_id']
-        
+
         tenant = find_tenant(self.db, tenant_id=tenant_id)
 
         if tenant:
             abort(falcon.HTTP_400, 'Tenant with tenant_id {0} '
-                                   'already exists'.format(tenant_id))
+                  'already exists'.format(tenant_id))
 
         new_tenant = Tenant(tenant_id)
         self.db.add(new_tenant)
         self.db.commit()
         
         resp.status = falcon.HTTP_201
-        resp.set_header('Location', '/v1/{0}'.format(tenant_id))
+        resp.set_header('Location', '/v1/tenant/{0}'.format(tenant_id))
 
 
 class UserResource(ApiResource):
@@ -109,6 +109,15 @@ class UserResource(ApiResource):
 
         resp.status = falcon.HTTP_200
         resp.body = json.dumps(_format_tenant(tenant))
+
+    def on_delete(self, req, resp, tenant_id):
+        tenant = find_tenant(self.db, tenant_id=tenant_id,
+                             when_not_found=_tenant_not_found)
+
+        self.db.delete(tenant)
+        self.db.commit()
+
+        resp.status = falcon.HTTP_200
 
 
 class HostProfilesResource(ApiResource):
@@ -133,8 +142,8 @@ class HostProfilesResource(ApiResource):
         # Check if the tenant already has a profile with this name
         for profile in tenant.profiles:
             if profile.name == profile_name:
-                abort(400, 'Profile with name {0} already exists.'
-                                .format(profile.name, profile.id))
+                abort(falcon.HTTP_400, 'Profile with name {0} already exists.'
+                      .format(profile.name, profile.id))
 
         # Create the new profile for the host
         new_host_profile = HostProfile(tenant.id, profile_name)
@@ -156,10 +165,24 @@ class HostProfileResource(ApiResource):
 
     def on_get(self, req, resp, tenant_id, profile_id):
         profile = find_host_profile(self.db, id=profile_id,
-                         when_not_found=_profile_not_found)
+                                    when_not_found=_profile_not_found)
 
         resp.status = falcon.HTTP_200
         resp.body = json.dumps(_format_host_profile(profile))
+
+    def on_delete(self, req, resp, tenant_id, profile_id):
+        profile = find_host_profile(self.db, id=profile_id,
+                                    when_not_found=_profile_not_found)
+
+        self.db.delete(profile)
+        self.db.commit()
+
+        resp.status = falcon.HTTP_200
+
+
+class EventProducersResource(ApiResource):
+    def __init__(self, db_session):
+        self.db = db_session
 
 
 class EventProducerResource(ApiResource):
@@ -169,7 +192,7 @@ class EventProducerResource(ApiResource):
 
     def on_put(self, req, resp, tenant_id, profile_id):
         profile = find_host_profile(self.db, id=profile_id,
-                         when_not_found=_profile_not_found)
+                                    when_not_found=_profile_not_found)
 
         body = load_body(req)
         hostname = body['name']
@@ -195,15 +218,20 @@ class HostsResource(ApiResource):
         body = load_body(req)
         hostname = body['hostname']
         ip_address = body['ip_address']
-        
+
+        #lookup the  profile by id
+        profile_id = body['profile_id']
+        profile = find_host_profile(self.db, id=profile_id,
+                                    when_not_found=_profile_not_found)
+
         # Check if the tenant already has a host with this hostname
         for host in tenant.hosts:
             if host.hostname == hostname:
-                abort(400, 'Host with hostname {0} already exists with'
-                           ' id={1}'.format(hostname, host.id))
+                abort(falcon.HTTP_400, 'Host with hostname {0} already exists with'
+                      ' id={1}'.format(hostname, host.id))
 
         # Create the new host definition
-        new_host = Host(hostname, ip_address)
+        new_host = Host(hostname, ip_address, profile)
         
         self.db.add(new_host)
         tenant.hosts.append(new_host)
@@ -235,8 +263,16 @@ class HostResource(ApiResource):
         profile_id = body['profile_id']
 
         profile = find_host_profile(self.db, id=profile_id,
-                         when_not_found=_profile_not_found)
+                                    when_not_found=_profile_not_found)
         host.profile = profile
         self.db.commit()
 
+        resp.status = falcon.HTTP_200
+
+    def on_delete(self, req, resp, tenant_id, host_id):
+        host = find_host(self.db, host_id,
+                         when_not_found=_host_not_found)
+
+        self.db.delete(host)
+        self.db().commit()
         resp.status = falcon.HTTP_200

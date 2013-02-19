@@ -4,7 +4,7 @@ TARGET_HOST="127.0.0.1"
 TARGET_PORT="8080"
 
 function add_tenant {
-    curl -v -H "Accept: application/json" -H "Content-type: application/json" -X POST -d "{\"tenant_id\":\"${1}\"}" "http://${TARGET_HOST}:${TARGET_PORT}/v1/tenant";
+    curl -vv -H "Accept: application/json" -H "Content-type: application/json" -X POST -d "{\"tenant_id\":\"${1}\"}" "http://${TARGET_HOST}:${TARGET_PORT}/v1/tenant";
 }
 
 function remove_tenant {

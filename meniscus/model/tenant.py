@@ -79,7 +79,10 @@ class HostProfile(Base):
     event_producers = relationship('EventProducer',
                                    secondary=_assigned_producers)
 
-    def __init__(self, owner_id, name, event_producers=[]):
+    def __init__(self, owner_id, name, event_producers=None):
+        if not event_producers:
+            event_producers = []
+
         self.owner_id = owner_id
         self.name = name
         self.event_producers = event_producers

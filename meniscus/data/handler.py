@@ -22,22 +22,10 @@ HANDLER_OPTIONS = [
 
 get_config().register_opts(HANDLER_OPTIONS, group=datasource_group)
 
-
-# Handler registration
-_DATASOURCE_HANDLERS = DatasourceHandlerManager()
-
+# Connection status values
 STATUS_NEW = 'NEW'
 STATUS_CONNECTED = 'CONNTECTED'
 STATUS_CLOSED = 'CLOSED'
-
-
-def datasource_handler(conf):
-    handler_def = _DATASOURCE_HANDLERS[conf.handler_name]
-    return handler_def(conf)
-
-
-def register_handler(handler_name, handler_def):
-    _DATASOURCE_HANDLERS.register(handler_name, handler_def)
 
 
 class DatasourceHandlerManager():
@@ -73,3 +61,15 @@ class DatasourceHandler():
 
     def delete(self, object_name, object_id):
         raise NotImplementedError
+
+
+# Handler registration
+_DATASOURCE_HANDLERS = DatasourceHandlerManager()
+
+def datasource_handler(conf):
+    handler_def = _DATASOURCE_HANDLERS[conf.datasource.handler_name]
+    return handler_def(conf)
+
+
+def register_handler(handler_name, handler_def):
+    _DATASOURCE_HANDLERS.register(handler_name, handler_def)

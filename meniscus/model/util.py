@@ -1,6 +1,6 @@
 from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 
-from meniscus.model.tenant import Base, Tenant, Host, HostProfile, EventProducer
+from meniscus.model.tenant import Tenant, Host, HostProfile, EventProducer
 
 
 def _empty_condition(): pass
@@ -50,6 +50,7 @@ def find_event_producer(db_session, id=None, name=None,
                         when_not_found=_empty_condition,
                         when_multiple_found=_empty_condition):
     try:
+
         if id:
             return db_session.query(EventProducer).filter_by(id=id).one()
         elif name:

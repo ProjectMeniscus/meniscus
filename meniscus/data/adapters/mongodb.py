@@ -2,7 +2,7 @@ import pymongo
 
 from oslo.config import cfg
 from meniscus.config import get_config
-from meniscus.data.adapters.handler import *
+from meniscus.data.adapters import handler
 
 # MongoDB configuration options
 mongodb_group = cfg.OptGroup(name='mongodb', title='MongoDB Options')

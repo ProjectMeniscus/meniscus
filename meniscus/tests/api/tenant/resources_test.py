@@ -10,6 +10,7 @@ import unittest
 def suite():
     suite = unittest.TestSuite()
     suite.addTest(WhenFormattingResponses())
+    suite.addTest(WhenTestingVersionResources())
 
     return suite
 

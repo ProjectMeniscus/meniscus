@@ -3,5 +3,5 @@
 ```bash
 git clone "https://github.com/ProjectMeniscus/meniscus.git"
 cd meniscus
-uwsgi -x uwsgi.xml
+uwsgi --ini uwsgi.ini
 ```

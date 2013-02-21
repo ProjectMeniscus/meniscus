@@ -118,11 +118,10 @@ class HostProfilesResource(ApiResource):
                                                      id=event_producer_id,
                                                      when_not_found=
                                                      _producer_not_found)
-
-            if event_producer in tenant.event_producers:
-                new_host_profile.event_producers.append(event_producer)
-            else:
-                _producer_not_found()
+                if event_producer in tenant.event_producers:
+                    new_host_profile.event_producers.append(event_producer)
+                else:
+                    _producer_not_found()
 
         self.db.add(new_host_profile)
         self.db.commit()
@@ -183,6 +182,8 @@ class HostProfileResource(ApiResource):
                 #abort if any of the event_producers being passed in are not
                 # valid event_producers for this tenant
                 for producer_id in producer_ids:
+
+
                     if producer_id not in \
                             [p.id for p in tenant.event_producers]:
                         _producer_not_found()
@@ -195,11 +196,10 @@ class HostProfileResource(ApiResource):
 
                 #see if the incoming event_producers are missing from the
                 # profile, and
-                for id in producer_ids:
-                    if id not in [p.id for p in profile.event_producers]:
-                        profile.event_producers.add(
-                            next(p for p in tenant.event_producers
-                                 if p.id == id))
+                for pid in producer_ids:
+                    if pid not in [p.id for p in profile.event_producers]:
+                        profile.event_producers.append(
+                            [p for p in tenant.event_producers if p.id == pid][0])
 
             else:
                 profile.event_producers = []
@@ -309,9 +309,10 @@ class EventProducerResource(ApiResource):
                              when_not_found=_tenant_not_found)
 
         #verify the event_producer exists
-        event_producer = find_event_producer(self.db, id=event_producer_id,
+        event_producer = find_event_producer(self.db,
+                                             id=event_producer_id,
                                              when_not_found=
-                                             _producer_not_found())
+                                             _producer_not_found)
 
         #verify the event_producer belongs to the tenant
         if not event_producer in tenant.event_producers:
@@ -322,12 +323,15 @@ class EventProducerResource(ApiResource):
         #if a key is present, update the event_producer with the value
         if 'name' in body.keys():
             event_producer.name = body['name']
+
         if 'pattern' in body.keys():
             event_producer.pattern = body['pattern']
+
         if 'durable' in body.keys():
             event_producer.durable = body['durable']
+
         if 'encrypted' in body.keys():
-            event_producer.pattern = body['encrypted']
+            event_producer.encrypted = body['encrypted']
 
         self.db.commit()
 
@@ -339,9 +343,10 @@ class EventProducerResource(ApiResource):
                              when_not_found=_tenant_not_found)
 
         #verify the event_producer exists
-        event_producer = find_event_producer(self.db, event_producer_id,
+        event_producer = find_event_producer(self.db,
+                                             id=event_producer_id,
                                              when_not_found=
-                                             _producer_not_found())
+                                             _producer_not_found)
 
         #verify the event_producer belongs to the tenant
         if not event_producer in tenant.event_producers:

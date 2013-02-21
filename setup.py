@@ -17,6 +17,7 @@ setup(
         "mock",
         "wsgiref",
         "uWSGI",
+        "pymongo",
     ],
     test_suite = 'meniscus.tests',
     zip_safe = False,

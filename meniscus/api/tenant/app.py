@@ -50,7 +50,7 @@ host = HostResource(db_session())
 application = api = falcon.API()
 
 api.add_route('/', versions)
-api.add_route('/v1/', tenant)
+api.add_route('/v1', tenant)
 api.add_route('/v1/{tenant_id}', user)
 api.add_route('/v1/{tenant_id}/profiles', profiles)
 api.add_route('/v1/{tenant_id}/profiles/{profile_id}', profile)

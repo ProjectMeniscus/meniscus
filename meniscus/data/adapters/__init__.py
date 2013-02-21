@@ -1,3 +1,3 @@
-from meniscus.data.adapters import mongodb
+from meniscus.data.adapters.mongodb import register_mongodb
 
-mongodb.register()
+register_mongodb()

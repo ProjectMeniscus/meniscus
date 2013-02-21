@@ -1,2 +1,11 @@
+[datasource]
+handler_name = mongodb
+
+[mongodb]
+mongo_servers = localhost:27017
+database = test
+username = test
+password = test
+
 [test]
-should_pass=true
+should_pass = true

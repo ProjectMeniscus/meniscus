@@ -28,6 +28,12 @@ STATUS_CONNECTED = 'CONNTECTED'
 STATUS_CLOSED = 'CLOSED'
 
 
+class DatabaseHandlerError(Exception):
+
+    def __init__(self, msg):
+        self.msg = msg
+
+
 class DatasourceHandlerManager():
 
     def __init__(self):
@@ -53,13 +59,16 @@ class DatasourceHandler():
     def close(self):
         raise NotImplementedError
 
-    def get(self, object_name, object_id):
+    def find(self, object_name, query_filter=dict()):
         raise NotImplementedError
 
-    def put(self, object_name, update_object):
+    def find_one(self, object_name, query_filter=dict()):
         raise NotImplementedError
 
-    def delete(self, object_name, object_id):
+    def put(self, object_name, document=dict()):
+        raise NotImplementedError
+
+    def delete(self, object_name, query_filter=dict()):
         raise NotImplementedError
 
 
@@ -67,7 +76,7 @@ class DatasourceHandler():
 _DATASOURCE_HANDLERS = DatasourceHandlerManager()
 
 def datasource_handler(conf):
-    handler_def = _DATASOURCE_HANDLERS[conf.datasource.handler_name]
+    handler_def = _DATASOURCE_HANDLERS.get(conf.datasource.handler_name)
     return handler_def(conf)
 
 

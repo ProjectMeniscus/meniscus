@@ -17,12 +17,12 @@ CFG_TEST_OPTIONS = [
                )
 ]
 
-
 def suite():
     suite = unittest.TestSuite()
     suite.addTest(WhenConfiguring())
 
     return suite
+
 
 class WhenConfiguring(unittest.TestCase):
 

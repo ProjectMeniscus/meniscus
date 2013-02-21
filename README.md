@@ -2,8 +2,6 @@
 
 [![Build Status](http://166.78.108.142:8080/job/Meniscus/badge/icon)](http://166.78.108.142:8080/job/Meniscus/)
 
-```
-
 Meniscus is a Python based system for event collection, transit and processing in the large. It's primary use case is for large-scale Cloud logging, but can be used in many other scenarios including usage reporting and API tracing.
 
 There is lots of documentation in the Wiki linked below. For additional help or questions, jump on the [mailing list](https://groups.google.com/forum/#!forum/meniscus) or ask on StackOverflow with the #meniscus tag. 

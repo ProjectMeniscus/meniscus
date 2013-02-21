@@ -1,4 +1,5 @@
 import unittest
+import os
 
 from meniscus.config import init_config, get_config
 
@@ -18,6 +19,11 @@ class WhenConnectingToLiveMongoDB(unittest.TestCase):
     def setUp(self):
         init_config(['--config-file', 'meniscus.cfg.example'])
 
+    @unittest.skipIf('RUN_INTEGRATION' not in os.environ or
+                     os.environ['RUN_INTEGRATION'] == False,
+                     'Integration tests are not enabled. Enable them by '
+                     'setting the environment variable "RUN_INTEGRATION"'
+                     'to true.')
     def test_mongodb_adapter(self):
         conf = get_config()
         handler = datasource_handler(conf)

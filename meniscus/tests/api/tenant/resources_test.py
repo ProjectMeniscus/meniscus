@@ -36,5 +36,33 @@ class WhenTestingVersionResource(unittest.TestCase):
         self.assertEqual('current', parsed_body['v1'])
 
 
+class WhenCreatingTenantsUsingTenantResource(unittest.TestCase):
+
+    def setUp(self):
+        db_filter = MagicMock()
+        db_filter.one.return_value = Tenant('tenant_id')
+
+        db_query = MagicMock()
+        db_query.filter_by.return_value = db_filter
+
+        self.db_session = MagicMock()
+        self.db_session.query.return_value = db_query
+
+        self.stream = MagicMock()
+        self.stream.read.return_value = u'{ "tenant_id" : "1234" }'
+        
+        self.req = MagicMock()
+        self.req.stream = self.stream
+        
+        self.resp = MagicMock()
+        self.resource = TenantResource(self.db_session)
+
+    def test_should_throw_exception_for_tenants_that_exist(self):
+        with self.assertRaises(falcon.HTTPError):
+            self.resource.on_post(self.req, self.resp)
+
+        self.db_session.query.assert_called_once_with(Tenant)
+
+
 if __name__ == '__main__':
     unittest.main()

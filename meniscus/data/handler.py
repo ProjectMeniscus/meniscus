@@ -59,6 +59,15 @@ class DatasourceHandler():
     def close(self):
         raise NotImplementedError
 
+    def create_sequence(self, sequence_name):
+        raise NotImplementedError
+    
+    def delete_sequence(self, sequence_name):
+        raise NotImplementedError
+
+    def next_sequence(self, sequence_name):
+        raise NotImplementedError
+
     def find(self, object_name, query_filter=dict()):
         raise NotImplementedError
 
@@ -68,7 +77,10 @@ class DatasourceHandler():
     def put(self, object_name, document=dict()):
         raise NotImplementedError
 
-    def delete(self, object_name, query_filter=dict()):
+    def update(self, object_name, document=dict()):
+        raise NotImplementedError
+
+    def delete(self, object_name, query_filter=dict(), limit_one=False):
         raise NotImplementedError
 
 

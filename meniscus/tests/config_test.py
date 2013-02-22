@@ -27,7 +27,7 @@ def suite():
 class WhenConfiguring(unittest.TestCase):
 
     def test_loading(self):
-        init_config(['--config-file', 'meniscus.cfg.example'])
+        init_config(['--config-file', 'etc/meniscus/meniscus.conf'])
         
         conf = get_config()
         conf.register_group(test_group)

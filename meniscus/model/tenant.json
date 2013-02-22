@@ -1,0 +1,40 @@
+{
+    "tenant": {
+        "tenant_id": "12345",
+        "hosts": [
+            {
+                "id": 121,
+                "hostname": "ws-n01",
+                "ip_address_v4": "127.0.0.1",
+                "ip_address_v6": "::1",
+                "profile": 122
+            }
+        ],
+        "profiles": [
+            {
+                "id": 122,
+                "name": "test",
+                "event_producers": [
+                    123,
+                    124
+                ]
+            }
+        ],
+        "event_producers": [
+            {
+                "id": 123,
+                "name": "apache",
+                "pattern": "apache2.cee",
+                "durable": false,
+                "encrypted": false
+            },
+            {
+                "id": 124,
+                "name": "system.auth",
+                "pattern": "auth_log.cee",
+                "durable": false,
+                "encrypted": false
+            }
+        ]
+    }
+}

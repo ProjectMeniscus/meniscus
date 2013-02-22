@@ -18,7 +18,6 @@ In highly diverse, clustered environments like those seen in many OpenStack depl
 * [Development Environment Set Up](https://github.com/ProjectMeniscus/meniscus/wiki/Creating-a-development-environment-to-work-with-Meniscus)
 * [API Documentation](https://github.com/ProjectMeniscus/meniscus/wiki/Tenant-API)
 * [Technology & standards](https://github.com/ProjectMeniscus/meniscus/wiki/Technology-and-Standards)
-* Comparison with existing logging systems
 * FAQ
 
 ## Current Plans

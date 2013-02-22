@@ -3,7 +3,8 @@ from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
 from meniscus.model.tenant import Tenant, Host, HostProfile, EventProducer
 
 
-def _empty_condition(): pass
+def _empty_condition():
+    pass
 
 
 def find_tenant(db_session, id=None, tenant_id=None,

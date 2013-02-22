@@ -9,7 +9,7 @@ class ApiResource(object):
     pass
 
 
-def abort( status=falcon.HTTP_500, message=None):
+def abort(status=falcon.HTTP_500, message=None):
     """
     Helper function for aborting an API request process. Useful for error
     reporting and expcetion handling.
@@ -31,7 +31,6 @@ def load_body(req, required=[]):
     try:
         parsed_body = json.loads(raw_json, 'utf-8')
     except ValueError as ve:
-        print ve
         abort(falcon.HTTP_400, 'Malformed JSON')
         
     return parsed_body

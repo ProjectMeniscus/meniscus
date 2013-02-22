@@ -82,11 +82,11 @@ class MongoDatasourceHandler(DatasourceHandler):
             {'name': sequence_name}, {'$inc': {'seq': 1}})['seq']
 
     def find(self, object_name, query_filter=dict()):
-        self._check_connection()        
+        self._check_connection()
         return self.database[object_name].find(query_filter)
 
     def find_one(self, object_name, query_filter=dict()):
-        self._check_connection()        
+        self._check_connection()
         return self.database[object_name].find_one(query_filter)
 
     def put(self, object_name, document=dict()):

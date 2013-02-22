@@ -1,4 +1,4 @@
-falcon>=0
+falcon
 uWSGI>=1.4.5
 wsgiref>=0.1.2
 pymongo>=2.4.2

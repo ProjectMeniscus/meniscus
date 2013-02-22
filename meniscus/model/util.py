@@ -14,7 +14,8 @@ def find_tenant(db_session, id=None, tenant_id=None,
         if id:
             return db_session.query(Tenant).filter_by(id=id).one()
         elif tenant_id:
-            return db_session.query(Tenant).filter_by(tenant_id=tenant_id).one()
+            return db_session.query(Tenant).filter_by(
+                tenant_id=tenant_id).one()
     except NoResultFound:
         when_not_found()
     except MultipleResultsFound:

@@ -26,7 +26,7 @@ class WhenConnectingToLiveMongoDB(unittest.TestCase):
         self.handler.close()
 
     @unittest.skipIf('RUN_INTEGRATION' not in os.environ or
-                     os.environ['RUN_INTEGRATION'] == False,
+                     os.environ['RUN_INTEGRATION'] is False,
                      'Integration tests are not enabled. Enable them by '
                      'setting the environment variable "RUN_INTEGRATION"'
                      'to true.')
@@ -37,10 +37,10 @@ class WhenConnectingToLiveMongoDB(unittest.TestCase):
         self.handler.put('test', {'name': 'test_2', 'value': 4})
         self.handler.put('test', {'name': 'test_2', 'value': 5})
         self.handler.put('test', {'name': 'test_2', 'value': 6})
-        
+
         test_obj = self.handler.find_one('test', {'name': 'test_1'})
         self.assertEqual(1, test_obj['value'])
-        
+
         self.handler.delete('test', {'name': 'test_1'})
         test_obj = self.handler.find_one('test', {'name': 'test_1'})
         self.assertFalse(test_obj)
@@ -53,7 +53,7 @@ class WhenConnectingToLiveMongoDB(unittest.TestCase):
         self.assertEqual(0, test_objs.count())
 
     @unittest.skipIf('RUN_INTEGRATION' not in os.environ or
-                     os.environ['RUN_INTEGRATION'] == False,
+                     os.environ['RUN_INTEGRATION'] is False,
                      'Integration tests are not enabled. Enable them by '
                      'setting the environment variable "RUN_INTEGRATION"'
                      'to true.')
@@ -64,7 +64,7 @@ class WhenConnectingToLiveMongoDB(unittest.TestCase):
         seq_val = self.handler.next_sequence_value('test')
         self.assertEqual(2, seq_val)
         #self.handler.delete_sequence('test')
-        
+
         #seq_doc = self.handler.find_one('sequence', {'name': 'test'})
         #self.assertFalse(seq_doc)
 

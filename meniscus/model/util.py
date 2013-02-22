@@ -35,7 +35,6 @@ def find_tenant(ds_handler, tenant_id):
     tenant = Tenant(tenant_dict['tenant_id'], hosts, profiles, event_producers,
                     tenant_dict['_id'])
 
-
     return tenant
 
 

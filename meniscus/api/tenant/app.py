@@ -10,12 +10,12 @@ from meniscus.model.tenant import Base
 """
 Locally scoped db session
 """
-_Session = scoped_session(sessionmaker())
+_session = scoped_session(sessionmaker())
 _engine = None
 
 
 def db_session():
-    return _Session
+    return _session
 
 
 def _engine_from_config(configuration):
@@ -28,7 +28,7 @@ def _engine_from_config(configuration):
 def init_tenant_model():
     _engine = _engine_from_config(config['sqlalchemy'])
     Base.metadata.create_all(_engine)
-    _Session.bind = _engine
+    _session.bind = _engine
 
 
 # Initialize the data model

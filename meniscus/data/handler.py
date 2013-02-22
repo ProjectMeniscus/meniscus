@@ -48,10 +48,10 @@ class DatasourceHandlerManager():
 
 class DatasourceHandler():
 
-    status = STATUS_NEW
+    datasource_status = STATUS_NEW
 
     def status(self):
-        return self.status
+        return self.datasource_status
 
     def connect(self):
         raise NotImplementedError

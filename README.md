@@ -15,6 +15,7 @@ In highly diverse, clustered environments like those seen in many OpenStack depl
 ## Getting Started
 
 * Installation
+* [API Documentation](https://github.com/ProjectMeniscus/meniscus/wiki/Tenant-API)
 * [Technology & standards](https://github.com/ProjectMeniscus/meniscus/wiki/Technology-and-Standards)
 * Comparison with existing logging systems
 * FAQ

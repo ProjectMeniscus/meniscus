@@ -6,7 +6,7 @@ Meniscus is a Python based system for event collection, transit and processing i
 
 There is lots of documentation in the Wiki linked below. For additional help or questions, jump on the [mailing list](https://groups.google.com/forum/#!forum/meniscus) or ask on StackOverflow with the #meniscus tag. 
 
-## The problem at a glance
+## The Problem
 
 Software systems produce events but often do so in non-uniform ways. A system may log information to a file in a grammar that requires comprehension to extract meaning from the output. A system may also send events to other systems in a structured manner such as REST. Other systems may event output events directly into a database for storage or pass them to a queue for distribution to interested consumers.
 

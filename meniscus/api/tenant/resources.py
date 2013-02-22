@@ -36,8 +36,8 @@ class VersionResource(ApiResource):
 
 class TenantResource(ApiResource):
 
-    def __init__(self, db_session):
-        self.db = db_session
+    def __init__(self, db_handler):
+        self.db = db_handler
 
     def on_post(self, req, resp):
         body = load_body(req)
@@ -49,7 +49,7 @@ class TenantResource(ApiResource):
             abort(falcon.HTTP_400, 'Tenant with tenant_id {0} '
                   'already exists'.format(tenant_id))
 
-        new_tenant = Tenant(tenant_id)
+        new_tenant = Tenant(tenant_id).format()
         self.db.add(new_tenant)
         self.db.commit()
         

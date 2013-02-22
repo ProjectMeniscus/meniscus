@@ -5,7 +5,7 @@ from meniscus.api.tenant.resources import *
 from config import config
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy.orm import scoped_session, sessionmaker
-from meniscus.model.tenant import Base
+
 
 """
 Locally scoped db session

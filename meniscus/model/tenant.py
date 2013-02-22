@@ -1,22 +1,6 @@
-from sqlalchemy import Table, Column, String
-from sqlalchemy import Integer, ForeignKey, Boolean
-from sqlalchemy.orm import relationship, backref
-from sqlalchemy.ext.declarative import declarative_base, declared_attr
 
 
-class Persisted(object):
-    
-    id = Column(Integer, primary_key=True)
-    
-    @declared_attr
-    def __tablename__(self):
-        return self.__name__.lower()
-
-
-Base = declarative_base(cls=Persisted)
-
-
-class EventProducer(Base):
+class EventProducer():
     """
     An event producer is a nicer way of describing a parsing template
     for a producer of events. Event producer definitions should be
@@ -25,108 +9,92 @@ class EventProducer(Base):
     described.
     """
 
-    name = Column(String)
-    pattern = Column(String)
-    durable = Column(Boolean)
-    encrypted = Column(Boolean)
-    owner_id = Column(Integer, ForeignKey('tenant.id'))
-
-    def __init__(self, owner_id, name, pattern, durable,
+    def __init__(self, _id, name, pattern, durable,
                  encrypted):
-
-        self.owner_id = owner_id
+        self._id = _id
         self.name = name
         self.pattern = pattern
         self.durable = durable
         self.encrypted = encrypted
 
+    def get_id(self):
+        return self._id
+
     def format(self):
-        return {'id': self.id, 'name': self.name, 'pattern': self.pattern,
+        return {'id': self._id, 'name': self.name, 'pattern': self.pattern,
                 'durable': self.durable, 'encrypted': self.encrypted}
 
 
-class HostProfile(Base):
+class HostProfile():
     """
     Host profiles are reusable collections of event producers with an
     associated, unique name for lookup.
     """
-    _assigned_producers = Table(
-        'profile_assigned_producer', Base.metadata,
-        Column('event_producer_id', Integer,
-               ForeignKey('eventproducer.id')),
-        Column('host_profile_id', Integer,
-               ForeignKey('hostprofile.id')))
 
-    name = Column(String)
-    owner_id = Column(Integer, ForeignKey('tenant.id'))
-    event_producers = relationship('EventProducer',
-                                   secondary=_assigned_producers)
+    def __init__(self, _id, name, event_producer_ids):
+        if not event_producer_ids:
+            event_producer_ids = []
 
-    def __init__(self, owner_id, name, event_producers=None):
-        if not event_producers:
-            event_producers = []
-
-        self.owner_id = owner_id
+        self._id = _id
         self.name = name
-        self.event_producers = event_producers
+        self.event_producers = event_producer_ids
+
+    def get_id(self):
+        return self._id
 
     def format(self):
-        return {'id': self.id,
+        return {'id': self._id,
                 'name': self.name,
-                'event_producers':
-                [ep.format() for ep in self.event_producers]}
+                'event_producers': self.event_producers}
 
 
-class Host(Base):
+class Host():
     """
     Hosts represent a single, addressable entity in a logical tenant
     environment.
     """
 
-    hostname = Column(String)
-    ip_address = Column(String)
-    profile_id = Column(Integer, ForeignKey('hostprofile.id'))
-    profile = relationship('HostProfile', uselist=False)
-
-    def __init__(self, hostname, ip_address, profile=None):
+    def __init__(self, _id, hostname, ip_address_v4, ip_address_v6,
+                 profile_id):
+        self._id = _id
         self.hostname = hostname
-        self.ip_address = ip_address
-        self.profile = profile
+        self.ip_address_v4 = ip_address_v4
+        self.ip_address_v6 = ip_address_v6
+        self.profile = profile_id
+
+    def get_id(self):
+        return self._id
 
     def format(self):
-        if self.profile:
-            profile = self.profile.format()
-        else:
-            profile = None
-        return {'id': self.id,
+
+        return {'id': self._id,
                 'hostname': self.hostname,
-                'ip_address': self.ip_address,
-                'profile': profile}
+                'ip_address_v4': self.ip_address_v4,
+                'ip_address_v6': self.ip_address_v6,
+                'profile': self.profile}
 
 
-class Tenant(Base):
+class Tenant():
     """
     Tenants are users of the environments being monitored for
     application events.
     """
-    _registered_hosts = Table(
-        'registered_hosts', Base.metadata,
-        Column('tenant_id', Integer,
-               ForeignKey('tenant.id')),
-        Column('host_id', Integer,
-               ForeignKey('host.id')))
 
-    tenant_id = Column(String)
-    hosts = relationship('Host', secondary=_registered_hosts)
-    profiles = relationship('HostProfile')
-    event_producers = relationship('EventProducer')
-
-    def __init__(self, tenant_id, hosts=[], profiles=[], event_producers=[]):
+    def __init__(self, tenant_id, hosts=[], profiles=[], event_producers=[],
+                 _id=None):
+        self._id = _id
         self.tenant_id = tenant_id
         self.hosts = hosts
         self.profiles = profiles
         self.event_producers = event_producers
 
+    def get_id(self):
+        return self._id
+
     def format(self):
-        return {'id': self.id,
-                'tenant_id': self.tenant_id}
+        return {'tenant':
+                {'tenant_id': self.tenant_id,
+                'hosts': [h.format() for h in self.hosts],
+                'profiles': [p.format() for p in self.profiles],
+                'event_producers': [p.format() for p in self.event_producers]}
+                }

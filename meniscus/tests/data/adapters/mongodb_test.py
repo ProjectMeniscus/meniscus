@@ -29,14 +29,30 @@ class WhenConnectingToLiveMongoDB(unittest.TestCase):
         handler = datasource_handler(conf)
         handler.connect()
 
-        handler.put('test', {'name': 'test', 'value': 1})
-        test_obj = handler.find_one('test', {'name': 'test'})
+        handler.put('test', {'name': 'test_1', 'value': 1})
+        handler.put('test', {'name': 'test_2', 'value': 2})
+        handler.put('test', {'name': 'test_2', 'value': 3})
+        handler.put('test', {'name': 'test_2', 'value': 4})
+        handler.put('test', {'name': 'test_2', 'value': 5})
+        handler.put('test', {'name': 'test_2', 'value': 6})
+        
+        test_obj = handler.find_one('test', {'name': 'test_1'})
         self.assertEqual(1, test_obj['value'])
         
-        handler.delete('test', {'name': 'test'})
-        test_obj = handler.find_one('test', {'name': 'test'})
+        handler.delete('test', {'name': 'test_1'})
+        test_obj = handler.find_one('test', {'name': 'test_1'})
         self.assertFalse(test_obj)
-        
+
+        test_objs = handler.find('test', {'name': 'test_2'})
+        self.assertEqual(5, test_objs.count())
+
+        for obj in test_objs:
+            print obj
+
+        handler.delete('test', {'name': 'test_2'})
+        test_objs = handler.find('test', {'name': 'test_2'})
+        self.assertEqual(0, test_objs.count())
+                
         handler.close()
 
 

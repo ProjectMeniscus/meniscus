@@ -66,11 +66,11 @@ class MongoDatasourceHandler(DatasourceHandler):
         self.status = STATUS_CLOSED
 
     def find(self, object_name, query_filter=dict()):
-        self._check_connection()        
+        self._check_connection()
         return self.database[object_name].find(query_filter)
 
     def find_one(self, object_name, query_filter=dict()):
-        self._check_connection()        
+        self._check_connection()
         return self.database[object_name].find_one(query_filter)
 
     def put(self, object_name, document=dict()):

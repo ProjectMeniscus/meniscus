@@ -32,7 +32,7 @@ The entirely of Meniscus can be broken down into six distinct operational functi
 5. Complex Event Processing
 6. Analytics
 
-Depending on how these are combined, the offering can be used for application logging, usage calculation, performance monitoring or any other event management operation.
+Depending on how these are combined, the offering can be used for application logging, usage calculation, performance monitoring or any other event management operation. More information on these areas can be found [on the wiki](https://github.com/ProjectMeniscus/meniscus/wiki/Operational-Functions).
 
 ## Design Goals
 

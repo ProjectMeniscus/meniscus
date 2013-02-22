@@ -10,7 +10,6 @@ def find_tenant(ds_handler, tenant_id):
     Retrieves a dictionary describing a tenant object and its Hosts, Profiles,
     and eventProducers and maps them to a tenant object
     """
-    ds_handler.connect()
 
     # get the tenant dictionary form the data source
     tenant_dict = ds_handler.find_one('tenant', {'tenant_id': tenant_id})
@@ -36,12 +35,11 @@ def find_tenant(ds_handler, tenant_id):
     tenant = Tenant(tenant_dict['tenant_id'], hosts, profiles, event_producers,
                     tenant_dict['_id'])
 
-    ds_handler.close()
 
     return tenant
 
 
-def find_host(tenant,host_id):
+def find_host(tenant, host_id):
     for host in tenant.hosts:
         if host_id == host.get_id():
             return host

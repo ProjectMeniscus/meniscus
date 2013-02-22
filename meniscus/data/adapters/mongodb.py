@@ -65,6 +65,22 @@ class MongoDatasourceHandler(DatasourceHandler):
         self.connection.close()
         self.status = STATUS_CLOSED
 
+    def create_sequence(self, sequence_name):
+        self._check_connection()
+        sequence = self.find_one('counters', {'name': sequence_name})
+
+        if not sequence:
+            self.put('counters', {'name': sequence_name, 'seq': 1})
+
+    def delete_sequence(self, sequence_name):
+        self._check_connection()
+        self.delete('counters', {'name': sequence_name})
+
+    def next_sequence_value(self, sequence_name):
+        self._check_connection()
+        return self.database['counters'].find_and_modify(
+            {'name': sequence_name}, {'$inc': {'seq': 1}})['seq']
+
     def find(self, object_name, query_filter=dict()):
         self._check_connection()
         return self.database[object_name].find(query_filter)
@@ -77,7 +93,10 @@ class MongoDatasourceHandler(DatasourceHandler):
         self._check_connection()
         self.database[object_name].insert(document)
 
-    def delete(self, object_name, query_filter=dict()):
+    def update(self, object_name, object_id, document=dict()):
+        raise NotImplementedError
+
+    def delete(self, object_name, query_filter=dict(), limit_one=False):
         self.database[object_name].remove(query_filter, True)
 
 

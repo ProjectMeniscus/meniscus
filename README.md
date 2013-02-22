@@ -4,7 +4,7 @@
 
 Meniscus is a Python based system for event collection, transit and processing in the large. It's primary use case is for large-scale Cloud logging, but can be used in many other scenarios including usage reporting and API tracing.
 
-There is lots of documentation in the [Github Wiki](https://github.com/ProjectMeniscus/meniscus/wiki). For additional help or questions, jump on the [mailing list](https://groups.google.com/forum/#!forum/meniscus) or ask on StackOverflow with the #meniscus tag. 
+There is lots of documentation in the [Github Wiki](https://github.com/ProjectMeniscus/meniscus/wiki). For additional help or questions, jump on the [mailing list](https://groups.google.com/forum/#!forum/meniscus) or ask on StackOverflow with the [#meniscus](http://stackoverflow.com/questions/tagged/meniscus) tag. 
 
 ## The Problem
 

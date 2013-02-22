@@ -15,7 +15,7 @@ In highly diverse, clustered environments like those seen in many OpenStack depl
 ## Getting Started
 
 * Installation
-* Technology & standards
+* [Technology & standards](https://github.com/ProjectMeniscus/meniscus/wiki/Technology-and-Standards)
 * Comparison with existing logging systems
 * FAQ
 
@@ -42,6 +42,6 @@ Depending on how these are combined, the offering can be used for application lo
 * Design for platform efficiency, durability and scalability.
 * Provide administrators with text search capability of all events processed and stored for a given tenant.
 * Provide well formed a set of API specifications for configuration and administration.
-* Provide common sinks for already existing systems such as Ceilometer [11].
+* Provide common sinks for already existing systems such as [Ceilometer](https://wiki.openstack.org/wiki/Ceilometer).
 * The architecture must be resilient to multiple failures.
 * Must support end-to-end run-time mutability.

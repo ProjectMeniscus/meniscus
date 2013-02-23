@@ -52,7 +52,7 @@ class TenantResource(ApiResource):
         new_tenant = Tenant(tenant_id)
         self.db.add(new_tenant)
         self.db.commit()
-        
+
         resp.status = falcon.HTTP_201
         resp.set_header('Location', '/v1/{0}'.format(tenant_id))
 
@@ -80,7 +80,7 @@ class UserResource(ApiResource):
 
 
 class HostProfilesResource(ApiResource):
-    
+
     def __init__(self, db_session):
         self.db = db_session
 
@@ -133,7 +133,7 @@ class HostProfilesResource(ApiResource):
 
 
 class HostProfileResource(ApiResource):
-    
+
     def __init__(self, db_session):
         self.db = db_session
 
@@ -183,7 +183,6 @@ class HostProfileResource(ApiResource):
                 # valid event_producers for this tenant
                 for producer_id in producer_ids:
 
-
                     if producer_id not in \
                             [p.id for p in tenant.event_producers]:
                         _producer_not_found()
@@ -199,7 +198,8 @@ class HostProfileResource(ApiResource):
                 for pid in producer_ids:
                     if pid not in [p.id for p in profile.event_producers]:
                         profile.event_producers.append(
-                            [p for p in tenant.event_producers if p.id == pid][0])
+                            [p for p in tenant.event_producers
+                             if p.id == pid][0])
 
             else:
                 profile.event_producers = []
@@ -359,7 +359,7 @@ class EventProducerResource(ApiResource):
 
 
 class HostsResource(ApiResource):
-    
+
     def __init__(self, db_session):
         self.db = db_session
 
@@ -399,7 +399,7 @@ class HostsResource(ApiResource):
 
         # Create the new host definition
         new_host = Host(hostname, ip_address, profile)
-        
+
         self.db.add(new_host)
         tenant.hosts.append(new_host)
         self.db().commit()
@@ -411,7 +411,7 @@ class HostsResource(ApiResource):
 
 
 class HostResource(ApiResource):
-    
+
     def __init__(self, db_session):
         self.db = db_session
 

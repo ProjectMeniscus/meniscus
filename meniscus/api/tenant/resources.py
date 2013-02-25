@@ -11,10 +11,6 @@ def _tenant_not_found():
     abort(falcon.HTTP_404, 'Unable to locate tenant.')
 
 
-def _tenant_already_exists():
-    abort(falcon.HTTP_400, 'Tenant already exists.')
-
-
 def _host_not_found():
     abort(falcon.HTTP_400, 'Unable to locate host.')
 
@@ -89,8 +85,8 @@ class HostProfilesResource(ApiResource):
         self.db = db_handler
 
     def on_get(self, req, resp, tenant_id):
+        #ensure the tenant exists
         tenant = find_tenant(self.db, tenant_id=tenant_id)
-
         if not tenant:
             _tenant_not_found()
 
@@ -121,16 +117,14 @@ class HostProfilesResource(ApiResource):
             event_producer_ids = body['event_producer_ids']
 
             for event_producer_id in event_producer_ids:
-                event_producer = find_event_producer(self.db,
+                event_producer = find_event_producer(tenant,
                                                      producer_id=
                                                      event_producer_id)
                 if not event_producer:
                     _producer_not_found()
 
-                if event_producer in tenant.event_producers:
-                    new_host_profile.event_producers.append(event_producer)
                 else:
-                    _producer_not_found()
+                    new_host_profile.event_producers.append(event_producer)
 
         tenant.profiles.append(new_host_profile)
         self.db.update(tenant.format())

@@ -9,8 +9,8 @@ class EventProducer():
     described.
     """
 
-    def __init__(self, _id, name, pattern, durable,
-                 encrypted):
+    def __init__(self, _id, name, pattern, durable=False,
+                 encrypted=False):
         self._id = _id
         self.name = name
         self.pattern = pattern

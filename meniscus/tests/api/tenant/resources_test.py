@@ -73,5 +73,64 @@ class WhenTestingTenantResource(unittest.TestCase):
         self.assertEquals(falcon.HTTP_201, self.resp.status)
 
 
+class WhenTestingUserResource(unittest.TestCase):
+
+    def setUp(self):
+        db_filter = MagicMock()
+        db_filter.one.return_value = Tenant('tenant_id')
+
+        db_query = MagicMock()
+        db_query.filter_by.return_value = db_filter
+
+        self.db_session = MagicMock()
+        self.db_session.query.return_value = db_query
+
+        self.stream = MagicMock()
+
+        self.req = MagicMock()
+        self.req.stream = self.stream
+
+        self.resp = MagicMock()
+        self.resource = UserResource(self.db_session)
+
+        self.tenant_id = '1234'
+        self.tenant_not_found = MagicMock(return_value=None)
+        self.tenant_found = MagicMock(return_value=Tenant(self.tenant_id))
+
+    def test_should_throw_exception_for_tenants_not_found_on_get(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_not_found):
+            with self.assertRaises(falcon.HTTPError):
+                self.resource.on_get(self.req, self.resp, self.tenant_id)
+
+    def test_should_return_200_on_get(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            self.resource.on_get(self.req, self.resp, self.tenant_id)
+        self.assertEquals(falcon.HTTP_200, self.resp.status)
+
+    def test_should_return_tenant_json_on_get(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            self.resource.on_get(self.req, self.resp, self.tenant_id)
+
+        parsed_body = json.loads(self.resp.body)
+
+        self.assertTrue('tenant' in parsed_body)
+        self.assertTrue('tenant_id' in parsed_body['tenant'])
+        self.assertEqual(self.tenant_id, parsed_body['tenant']['tenant_id'])
+
+    def test_should_throw_exception_for_tenants_not_found_on_delete(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_not_found):
+            with self.assertRaises(falcon.HTTPError):
+                self.resource.on_delete(self.req, self.resp, self.tenant_id)
+
+    def test_should_return_200_on_delete(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            self.resource.on_delete(self.req, self.resp, self.tenant_id)
+        self.assertEquals(falcon.HTTP_200, self.resp.status)
+
 if __name__ == '__main__':
     unittest.main()

@@ -1,8 +1,8 @@
-from datetime import datetime
 from meniscus.api.tenant.resources import *
 from meniscus.model.tenant import Tenant, Host, HostProfile
 
 from mock import MagicMock
+from mock import patch
 
 import falcon
 import unittest
@@ -35,7 +35,7 @@ class WhenTestingVersionResource(unittest.TestCase):
         self.assertEqual('current', parsed_body['v1'])
 
 
-class WhenCreatingTenantsUsingTenantResource(unittest.TestCase):
+class WhenTestingTenantResource(unittest.TestCase):
 
     def setUp(self):
         db_filter = MagicMock()
@@ -56,11 +56,21 @@ class WhenCreatingTenantsUsingTenantResource(unittest.TestCase):
         self.resp = MagicMock()
         self.resource = TenantResource(self.db_session)
 
-    def test_should_throw_exception_for_tenants_that_exist(self):
-        with self.assertRaises(falcon.HTTPError):
+        self.tenant_not_found = MagicMock(return_value=None)
+        self.tenant_found = MagicMock(return_value=Tenant('1234'))
+
+    def test_should_throw_exception_for_tenants_that_exist_on_post(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            with self.assertRaises(falcon.HTTPError):
+                self.resource.on_post(self.req, self.resp)
+
+    def test_should_return_201_on_post(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_not_found):
             self.resource.on_post(self.req, self.resp)
 
-        self.db_session.query.assert_called_once_with(Tenant)
+        self.assertEquals(falcon.HTTP_201, self.resp.status)
 
 
 if __name__ == '__main__':

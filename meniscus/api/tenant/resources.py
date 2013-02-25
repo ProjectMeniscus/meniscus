@@ -43,8 +43,8 @@ class TenantResource(ApiResource):
         body = load_body(req)
         tenant_id = body['tenant_id']
 
+        #validate that tenant does not already exists
         tenant = find_tenant(self.db, tenant_id=tenant_id)
-
         if tenant:
             abort(falcon.HTTP_400, 'Tenant with tenant_id {0} '
                   'already exists'.format(tenant_id))

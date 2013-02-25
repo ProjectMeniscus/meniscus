@@ -41,6 +41,14 @@ class WhenConnectingToLiveMongoDB(unittest.TestCase):
         test_obj = self.handler.find_one('test', {'name': 'test_1'})
         self.assertEqual(1, test_obj['value'])
 
+        obj_id = test_obj['_id']
+        test_obj['value'] = 10
+        self.handler.update('test', test_obj)
+
+        test_obj = self.handler.find_one('test', {'name': 'test_1'})
+        self.assertEqual(10, test_obj['value'])
+        self.assertEqual(obj_id, test_obj['_id'])
+        
         self.handler.delete('test', {'name': 'test_1'})
         test_obj = self.handler.find_one('test', {'name': 'test_1'})
         self.assertFalse(test_obj)
@@ -63,10 +71,10 @@ class WhenConnectingToLiveMongoDB(unittest.TestCase):
         self.assertEqual(1, seq_val)
         seq_val = self.handler.next_sequence_value('test')
         self.assertEqual(2, seq_val)
-        #self.handler.delete_sequence('test')
+        self.handler.delete_sequence('test')
 
-        #seq_doc = self.handler.find_one('sequence', {'name': 'test'})
-        #self.assertFalse(seq_doc)
+        seq_doc = self.handler.find_one('sequence', {'name': 'test'})
+        self.assertFalse(seq_doc)
 
 
 if __name__ == '__main__':

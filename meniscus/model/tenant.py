@@ -31,7 +31,7 @@ class HostProfile():
     associated, unique name for lookup.
     """
 
-    def __init__(self, _id, name, event_producer_ids):
+    def __init__(self, _id, name, event_producer_ids=[]):
         if not event_producer_ids:
             event_producer_ids = []
 

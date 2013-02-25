@@ -38,25 +38,40 @@ def find_tenant(ds_handler, tenant_id):
     return tenant
 
 
-def find_host(tenant, host_id):
-    for host in tenant.hosts:
-        if host_id == host.get_id():
-            return host
+def find_host(tenant, host_id=None, host_name=None):
+    if host_id:
+        for host in tenant.hosts:
+            if host_id == host.get_id():
+                return host
+    if host_name:
+        for host in tenant.hosts:
+            if host_name == host.hostname:
+                return host
+    return None
+
+
+def find_host_profile(tenant, profile_id=None, profile_name=None):
+    if profile_id:
+        for profile in tenant.profiles:
+            if profile_id == profile.get_id():
+                return profile
+    if profile_name:
+        for profile in tenant.profiles:
+            if profile_name == profile.name:
+                return profile
 
     return None
 
 
-def find_host_profile(tenant, profile_id):
-    for profile in tenant.profiles:
-        if profile_id == profile.get_id():
-            return profile
+def find_event_producer(tenant, producer_id=None, producer_name=None):
+    if producer_id:
+        for producer in tenant.event_producers:
+            if producer_id == producer.get_id():
+                return producer
 
-    return None
-
-
-def find_event_producer(tenant, producer_id):
-    for producer in tenant.event_producers:
-        if producer_id == producer.get_id():
-            return producer
+    if producer_name:
+        for producer in tenant.event_producers:
+            if producer_name == producer.name:
+                return producer
 
     return None

@@ -49,9 +49,8 @@ class TenantResource(ApiResource):
             abort(falcon.HTTP_400, 'Tenant with tenant_id {0} '
                   'already exists'.format(tenant_id))
 
-        new_tenant = Tenant(tenant_id).format()
-        self.db.add(new_tenant)
-        self.db.commit()
+        new_tenant = Tenant(tenant_id)
+        self.db.put(new_tenant.format())
         
         resp.status = falcon.HTTP_201
         resp.set_header('Location', '/v1/{0}'.format(tenant_id))
@@ -59,19 +58,24 @@ class TenantResource(ApiResource):
 
 class UserResource(ApiResource):
 
-    def __init__(self, db_session):
-        self.db = db_session
+    def __init__(self, db_handler):
+        self.db = db_handler
 
     def on_get(self, req, resp, tenant_id):
-        tenant = find_tenant(self.db, tenant_id=tenant_id,
-                             when_not_found=_tenant_not_found)
+
+        tenant = find_tenant(self.db, tenant_id=tenant_id)
+
+        if not tenant:
+            _tenant_not_found()
 
         resp.status = falcon.HTTP_200
         resp.body = json.dumps(tenant.format())
 
     def on_delete(self, req, resp, tenant_id):
-        tenant = find_tenant(self.db, tenant_id=tenant_id,
-                             when_not_found=_tenant_not_found)
+        tenant = find_tenant(self.db, tenant_id=tenant_id)
+
+        if not tenant:
+            _tenant_not_found()
 
         self.db.delete(tenant)
         self.db.commit()
@@ -81,12 +85,14 @@ class UserResource(ApiResource):
 
 class HostProfilesResource(ApiResource):
     
-    def __init__(self, db_session):
-        self.db = db_session
+    def __init__(self, db_handler):
+        self.db = db_handler
 
     def on_get(self, req, resp, tenant_id):
-        tenant = find_tenant(self.db, tenant_id=tenant_id,
-                             when_not_found=_tenant_not_found)
+        tenant = find_tenant(self.db, tenant_id=tenant_id)
+
+        if not tenant:
+            _tenant_not_found()
 
         resp.status = falcon.HTTP_200
 
@@ -94,8 +100,10 @@ class HostProfilesResource(ApiResource):
         resp.body = json.dumps([p.format() for p in tenant.profiles])
 
     def on_post(self, req, resp, tenant_id):
-        tenant = find_tenant(self.db, tenant_id=tenant_id,
-                             when_not_found=_tenant_not_found)
+        tenant = find_tenant(self.db, tenant_id=tenant_id)
+
+        if not tenant:
+            _tenant_not_found()
 
         body = load_body(req)
         profile_name = body['name']
@@ -104,50 +112,50 @@ class HostProfilesResource(ApiResource):
         for profile in tenant.profiles:
             if profile.name == profile_name:
                 abort(falcon.HTTP_400, 'Profile with name {0} already exists.'
-                      .format(profile.name, profile.id))
+                      .format(profile.name, profile.get_id()))
 
         # Create the new profile for the host
-        new_host_profile = HostProfile(tenant.id, profile_name)
-        tenant.profiles.append(new_host_profile)
+        new_host_profile = HostProfile(self.db.nextsequence, profile_name)
 
         if 'event_producer_ids' in body.keys():
             event_producer_ids = body['event_producer_ids']
 
             for event_producer_id in event_producer_ids:
                 event_producer = find_event_producer(self.db,
-                                                     id=event_producer_id,
-                                                     when_not_found=
-                                                     _producer_not_found)
+                                                     producer_id=
+                                                     event_producer_id)
+                if not event_producer:
+                    _producer_not_found()
+
                 if event_producer in tenant.event_producers:
                     new_host_profile.event_producers.append(event_producer)
                 else:
                     _producer_not_found()
 
-        self.db.add(new_host_profile)
-        self.db.commit()
+        tenant.profiles.append(new_host_profile)
+        self.db.update(tenant.format())
 
         resp.status = falcon.HTTP_201
         resp.set_header('Location',
                         '/v1/{0}/profiles/{1}'
-                        .format(tenant_id, new_host_profile.id))
+                        .format(tenant_id, new_host_profile.get_id()))
 
 
 class HostProfileResource(ApiResource):
     
-    def __init__(self, db_session):
-        self.db = db_session
+    def __init__(self, db_handler):
+        self.db = db_handler
 
     def on_get(self, req, resp, tenant_id, profile_id):
         #verify the tenant exists
-        tenant = find_tenant(self.db, tenant_id=tenant_id,
-                             when_not_found=_tenant_not_found)
+        tenant = find_tenant(self.db, tenant_id=tenant_id)
 
-        #verify the profile exists
-        profile = find_host_profile(self.db, id=profile_id,
-                                    when_not_found=_profile_not_found)
+        if not tenant:
+            _tenant_not_found()
 
-        #verify the profile belongs to the tenant
-        if not profile in tenant.profiles:
+        #verify the profile exists and belongs to the tenant
+        profile = find_host_profile(self.db, profile_id=profile_id)
+        if not profile:
             _profile_not_found()
 
         resp.status = falcon.HTTP_200
@@ -155,15 +163,13 @@ class HostProfileResource(ApiResource):
 
     def on_put(self, req, resp, tenant_id, profile_id):
         #verify the tenant exists
-        tenant = find_tenant(self.db, tenant_id=tenant_id,
-                             when_not_found=_tenant_not_found)
+        tenant = find_tenant(self.db, tenant_id=tenant_id)
+        if not tenant:
+            _tenant_not_found()
 
-        #verify the profile exists
-        profile = find_host_profile(self.db, id=profile_id,
-                                    when_not_found=_profile_not_found)
-
-        #verify the profile belongs to the tenant
-        if not profile in tenant.profiles:
+        #verify the profile exists and belongs to the tenant
+        profile = find_host_profile(self.db, profile_id=profile_id)
+        if not profile:
             _profile_not_found()
 
         #load the message
@@ -182,7 +188,6 @@ class HostProfileResource(ApiResource):
                 #abort if any of the event_producers being passed in are not
                 # valid event_producers for this tenant
                 for producer_id in producer_ids:
-
 
                     if producer_id not in \
                             [p.id for p in tenant.event_producers]:
@@ -209,8 +214,10 @@ class HostProfileResource(ApiResource):
 
     def on_delete(self, req, resp, tenant_id, profile_id):
         #verify the tenant exists
-        tenant = find_tenant(self.db, tenant_id=tenant_id,
-                             when_not_found=_tenant_not_found)
+        tenant = find_tenant(self.db, tenant_id=tenant_id)
+
+        if not tenant:
+            _tenant_not_found()
 
         #verify the profile exists
         profile = find_host_profile(self.db, id=profile_id,
@@ -227,19 +234,23 @@ class HostProfileResource(ApiResource):
 
 
 class EventProducersResource(ApiResource):
-    def __init__(self, db_session):
-        self.db = db_session
+    def __init__(self, db_handler):
+        self.db = db_handler
 
     def on_get(self, req, resp, tenant_id):
-        tenant = find_tenant(self.db, tenant_id=tenant_id,
-                             when_not_found=_tenant_not_found)
+        tenant = find_tenant(self.db, tenant_id=tenant_id)
+
+        if not tenant:
+            _tenant_not_found()
 
         resp.status = falcon.HTTP_200
         resp.body = json.dumps([p.format() for p in tenant.event_producers])
 
     def on_post(self, req, resp, tenant_id):
-        tenant = find_tenant(self.db, tenant_id=tenant_id,
-                             when_not_found=_tenant_not_found)
+        tenant = find_tenant(self.db, tenant_id=tenant_id)
+
+        if not tenant:
+            _tenant_not_found()
 
         body = load_body(req)
         event_producer_name = body['name']
@@ -281,14 +292,16 @@ class EventProducersResource(ApiResource):
 
 class EventProducerResource(ApiResource):
 
-    def __init__(self, db_session):
-        self.db = db_session
+    def __init__(self, db_handler):
+        self.db = db_handler
 
     def on_get(self, req, resp, tenant_id, event_producer_id):
         #verify the tenant exists
 
-        tenant = find_tenant(self.db, tenant_id=tenant_id,
-                             when_not_found=_tenant_not_found)
+        tenant = find_tenant(self.db, tenant_id=tenant_id)
+
+        if not tenant:
+            _tenant_not_found()
 
         #verify the event_producer exists
         event_producer = find_event_producer(self.db,
@@ -360,8 +373,8 @@ class EventProducerResource(ApiResource):
 
 class HostsResource(ApiResource):
     
-    def __init__(self, db_session):
-        self.db = db_session
+    def __init__(self, db_handler):
+        self.db = db_handler
 
     def on_get(self, req, resp, tenant_id):
         tenant = find_tenant(self.db, tenant_id=tenant_id,
@@ -412,13 +425,15 @@ class HostsResource(ApiResource):
 
 class HostResource(ApiResource):
     
-    def __init__(self, db_session):
-        self.db = db_session
+    def __init__(self, db_handler):
+        self.db = db_handler
 
     def on_get(self, req, resp, tenant_id, host_id):
         #verify the tenant exists
-        tenant = find_tenant(self.db, tenant_id=tenant_id,
-                             when_not_found=_tenant_not_found)
+        tenant = find_tenant(self.db, tenant_id=tenant_id)
+
+        if not tenant:
+            _tenant_not_found()
 
         #verify the hosts exists
         host = find_host(self.db, host_id,
@@ -433,8 +448,10 @@ class HostResource(ApiResource):
 
     def on_put(self, req, resp, tenant_id, host_id):
         #verify the tenant exists
-        tenant = find_tenant(self.db, tenant_id=tenant_id,
-                             when_not_found=_tenant_not_found)
+        tenant = find_tenant(self.db, tenant_id=tenant_id)
+
+        if not tenant:
+            _tenant_not_found()
 
         #verify the hosts exists
         host = find_host(self.db, host_id,
@@ -473,8 +490,10 @@ class HostResource(ApiResource):
 
     def on_delete(self, req, resp, tenant_id, host_id):
         #verify the tenant exists
-        tenant = find_tenant(self.db, tenant_id=tenant_id,
-                             when_not_found=_tenant_not_found)
+        tenant = find_tenant(self.db, tenant_id=tenant_id)
+
+        if not tenant:
+            _tenant_not_found()
 
         #verify the hosts exists
         host = find_host(self.db, host_id,

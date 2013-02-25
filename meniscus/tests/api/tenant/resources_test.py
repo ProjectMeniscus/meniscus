@@ -30,7 +30,7 @@ class WhenTestingVersionResource(unittest.TestCase):
         self.resource.on_get(self.req, self.resp)
 
         parsed_body = json.loads(self.resp.body)
-        
+
         self.assertTrue('v1' in parsed_body)
         self.assertEqual('current', parsed_body['v1'])
 
@@ -49,10 +49,10 @@ class WhenCreatingTenantsUsingTenantResource(unittest.TestCase):
 
         self.stream = MagicMock()
         self.stream.read.return_value = u'{ "tenant_id" : "1234" }'
-        
+
         self.req = MagicMock()
         self.req.stream = self.stream
-        
+
         self.resp = MagicMock()
         self.resource = TenantResource(self.db_session)
 

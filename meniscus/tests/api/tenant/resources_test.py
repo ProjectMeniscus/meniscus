@@ -479,15 +479,6 @@ class WhenTestingEventProducerResource(TestingTenantApiBase):
                 self.resource.on_put(self.req, self.resp, self.tenant_id,
                                      self.producer_id)
 
-    def test_should_throw_exception_for_invalid_producers_on_put(self):
-        self.stream.read.return_value = \
-            u'{ "name" : "profile99", "event_producer_ids":[1,2]}'
-        with patch('meniscus.api.tenant.resources.find_tenant',
-                   self.tenant_found):
-            with self.assertRaises(falcon.HTTPError):
-                self.resource.on_put(self.req, self.resp, self.tenant_id,
-                                     self.producer_id)
-
     def test_should_return_200_on_put(self):
         self.stream.read.return_value = u'{ "name" : "producer1", ' \
                                         u'"pattern": "syslog", ' \

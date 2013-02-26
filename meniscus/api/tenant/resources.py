@@ -316,7 +316,15 @@ class EventProducerResource(ApiResource):
         body = load_body(req)
 
         #if a key is present, update the event_producer with the value
-        if 'name' in body.keys():
+        if 'name' in body.keys() and event_producer.name != body['name']:
+            #if the tenant already has a profile with this name then abort
+            duplicate_producer = \
+                find_event_producer(tenant,  producer_name=body['name'])
+            if duplicate_producer:
+                abort(falcon.HTTP_400,
+                      'EventProducer with name {0} already exists with id={1}.'
+                      .format(duplicate_producer.name,
+                              duplicate_producer.get_id()))
             event_producer.name = body['name']
 
         if 'pattern' in body.keys():

@@ -482,7 +482,7 @@ class WhenTestingEventProducerResource(TestingTenantApiBase):
                                      self.producer_id)
 
     def test_should_return_200_on_put(self):
-        self.stream.read.return_value = u'{ "name" : "producer1", ' \
+        self.stream.read.return_value = u'{ "name" : "producer32", ' \
                                         u'"pattern": "syslog", ' \
                                         u'"durable": true, ' \
                                         u'"encrypted": false }'
@@ -514,7 +514,7 @@ class WhenTestingEventProducerResource(TestingTenantApiBase):
         self.assertEquals(falcon.HTTP_200, self.resp.status)
 
 
-class WhenTestingHostResource(TestingTenantApiBase):
+class WhenTestingHostsResource(TestingTenantApiBase):
 
     def setResource(self):
         self.resource = HostsResource(self.db_handler)
@@ -563,8 +563,8 @@ class WhenTestingHostResource(TestingTenantApiBase):
 
     def test_should_throw_exception_for_profile_not_found_on_post(self):
         self.stream.read.return_value = \
-            u'{ "hostname" : "host1", ' \
-            u'"ip_address_v4": "192.168.1.1", "profile": 999 }'
+            u'{ "hostname" : "host77", ' \
+            u'"ip_address_v4": "192.168.1.1", "profile_id": 999 }'
         with patch('meniscus.api.tenant.resources.find_tenant',
                    self.tenant_found):
             with self.assertRaises(falcon.HTTPError):
@@ -579,14 +579,134 @@ class WhenTestingHostResource(TestingTenantApiBase):
             self.resource.on_post(self.req, self.resp, self.tenant_id)
         self.assertEquals(falcon.HTTP_201, self.resp.status)
 
-    def test_should_return_201_on_post_with_profile(self):
+    def test_should_return_201_on_post(self):
         self.stream.read.return_value = \
             u'{ "hostname" : "host77", ' \
-            u'"ip_address_v4": "192.168.1.1", "profile": 123 }'
+            u'"ip_address_v4": "192.168.1.1", ' \
+            u'"ip_address_v6": "2001:0db8:85a3:0042:1000:8a2e:0370:7334", ' \
+            u'"profile_id": 123 }'
         with patch('meniscus.api.tenant.resources.find_tenant',
                    self.tenant_found):
             self.resource.on_post(self.req, self.resp, self.tenant_id)
         self.assertEquals(falcon.HTTP_201, self.resp.status)
+
+
+class WhenTestingHostResource(TestingTenantApiBase):
+
+    def setResource(self):
+        self.resource = HostResource(self.db_handler)
+
+    def test_should_throw_exception_for_tenants_not_found_on_get(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_not_found):
+            with self.assertRaises(falcon.HTTPError):
+                self.resource.on_get(self.req, self.resp, self.tenant_id,
+                                     self.host_id)
+
+    def test_should_throw_exception_for_profile_not_found_on_get(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            with self.assertRaises(falcon.HTTPError):
+                self.resource.on_get(self.req, self.resp, self.tenant_id,
+                                     self.not_valid_host_id)
+
+    def test_should_return_200_on_get(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            self.resource.on_get(self.req, self.resp, self.tenant_id,
+                                 self.host_id)
+        self.assertEquals(falcon.HTTP_200, self.resp.status)
+
+    def test_should_return_host_json_on_get(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            self.resource.on_get(self.req, self.resp, self.tenant_id,
+                                 self.host_id)
+
+        parsed_body = json.loads(self.resp.body)
+
+        self.assertTrue('id' in parsed_body.keys())
+        self.assertTrue('hostname' in parsed_body.keys())
+        self.assertTrue('ip_address_v4' in parsed_body.keys())
+        self.assertTrue('ip_address_v6' in parsed_body.keys())
+        self.assertTrue('profile' in parsed_body.keys())
+
+    def test_should_throw_exception_for_tenants_not_found_on_put(self):
+        self.stream.read.return_value = u'{ "hostname" : "host1" }'
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_not_found):
+            with self.assertRaises(falcon.HTTPError):
+                self.resource.on_put(self.req, self.resp, self.tenant_id,
+                                     self.host_id)
+
+    def test_should_throw_exception_for_host_not_found_on_put(self):
+        self.stream.read.return_value = \
+            u'{ "hostname" : "host77", ' \
+            u'"ip_address_v4": "192.168.1.1", ' \
+            u'"ip_address_v6": "2001:0db8:85a3:0042:1000:8a2e:0370:7334", ' \
+            u'"profile_id": 123 }'
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            with self.assertRaises(falcon.HTTPError):
+                self.resource.on_put(self.req, self.resp, self.tenant_id,
+                                     self.not_valid_host_id)
+
+    def test_should_throw_exception_for_host_duplicate_name_on_put(self):
+        self.stream.read.return_value = \
+            u'{ "hostname" : "host2", ' \
+            u'"ip_address_v4": "192.168.1.1", ' \
+            u'"ip_address_v6": "2001:0db8:85a3:0042:1000:8a2e:0370:7334", ' \
+            u'"profile_id": 123 }'
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            with self.assertRaises(falcon.HTTPError):
+                self.resource.on_put(self.req, self.resp, self.tenant_id,
+                                     self.host_id)
+
+    def test_should_throw_exception_for_invalid_profile_on_put(self):
+        self.stream.read.return_value = \
+            u'{ "hostname" : "host1", ' \
+            u'"ip_address_v4": "192.168.1.1", ' \
+            u'"ip_address_v6": "2001:0db8:85a3:0042:1000:8a2e:0370:7334", ' \
+            u'"profile_id": 999 }'
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            with self.assertRaises(falcon.HTTPError):
+                self.resource.on_put(self.req, self.resp, self.tenant_id,
+                                     self.host_id)
+
+    def test_should_return_200_on_put(self):
+        self.stream.read.return_value = \
+            u'{ "hostname" : "host77", ' \
+            u'"ip_address_v4": "192.168.1.1", ' \
+            u'"ip_address_v6": "2001:0db8:85a3:0042:1000:8a2e:0370:7334", ' \
+            u'"profile_id": 123 }'
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            self.resource.on_put(self.req, self.resp, self.tenant_id,
+                                 self.host_id)
+        self.assertEquals(falcon.HTTP_200, self.resp.status)
+
+    def test_should_throw_exception_for_tenants_not_found_on_delete(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_not_found):
+            with self.assertRaises(falcon.HTTPError):
+                self.resource.on_delete(self.req, self.resp, self.tenant_id,
+                                        self.host_id)
+
+    def test_should_throw_exception_for_host_not_found_on_delete(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            with self.assertRaises(falcon.HTTPError):
+                self.resource.on_delete(self.req, self.resp, self.tenant_id,
+                                        self.not_valid_host_id)
+
+    def test_should_return_200_on_delete(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            self.resource.on_delete(self.req, self.resp, self.tenant_id,
+                                    self.host_id)
+        self.assertEquals(falcon.HTTP_200, self.resp.status)
 
 
 if __name__ == '__main__':

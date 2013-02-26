@@ -44,9 +44,11 @@ class TestingTenantApiBase(unittest.TestCase):
         self.producers = [EventProducer(432, 'producer1', 'syslog'),
                           EventProducer(433, 'producer2', 'syslog')]
 
-        self.hosts = [Host('765', 'host1', ip_address_v4='192.168.1.1',
+        self.host_id = 765
+        self.not_valid_host_id = 888
+        self.hosts = [Host(765, 'host1', ip_address_v4='192.168.1.1',
                            profile_id=123),
-                      Host('766', 'host2', ip_address_v4='192.168.2.1',
+                      Host(766, 'host2', ip_address_v4='192.168.2.1',
                            profile_id=456)]
 
         self.tenant_id = '1234'
@@ -512,10 +514,10 @@ class WhenTestingEventProducerResource(TestingTenantApiBase):
         self.assertEquals(falcon.HTTP_200, self.resp.status)
 
 
-class WhenTestingHostProfilesResource(TestingTenantApiBase):
+class WhenTestingHostResource(TestingTenantApiBase):
 
     def setResource(self):
-        self.resource = HostProfilesResource(self.db_handler)
+        self.resource = HostsResource(self.db_handler)
 
     def test_should_throw_exception_for_tenants_not_found_on_get(self):
         with patch('meniscus.api.tenant.resources.find_tenant',
@@ -529,7 +531,7 @@ class WhenTestingHostProfilesResource(TestingTenantApiBase):
             self.resource.on_get(self.req, self.resp, self.tenant_id)
         self.assertEquals(falcon.HTTP_200, self.resp.status)
 
-    def test_should_return_profiles_json_on_get(self):
+    def test_should_return_host_json_on_get(self):
         with patch('meniscus.api.tenant.resources.find_tenant',
                    self.tenant_found):
             self.resource.on_get(self.req, self.resp, self.tenant_id)
@@ -540,42 +542,47 @@ class WhenTestingHostProfilesResource(TestingTenantApiBase):
 
         for profile in parsed_body:
             self.assertTrue('id' in profile.keys())
-            self.assertTrue('name' in profile.keys())
-            self.assertTrue('event_producers' in profile.keys())
+            self.assertTrue('hostname' in profile.keys())
+            self.assertTrue('ip_address_v4' in profile.keys())
+            self.assertTrue('ip_address_v6' in profile.keys())
+            self.assertTrue('profile' in profile.keys())
 
     def test_should_throw_exception_for_tenants_not_found_on_post(self):
-        self.stream.read.return_value = u'{ "name" : "profile1" }'
+        self.stream.read.return_value = u'{ "hostname" : "host1" }'
         with patch('meniscus.api.tenant.resources.find_tenant',
                    self.tenant_not_found):
             with self.assertRaises(falcon.HTTPError):
                 self.resource.on_post(self.req, self.resp, self.tenant_id)
 
     def test_should_throw_exception_for_profile_found_on_post(self):
-        self.stream.read.return_value = u'{ "name" : "profile1" }'
+        self.stream.read.return_value = u'{ "hostname" : "host1" }'
         with patch('meniscus.api.tenant.resources.find_tenant',
                    self.tenant_found):
             with self.assertRaises(falcon.HTTPError):
                 self.resource.on_post(self.req, self.resp, self.tenant_id)
 
-    def test_should_throw_exception_for_producer_not_found_on_post(self):
+    def test_should_throw_exception_for_profile_not_found_on_post(self):
         self.stream.read.return_value = \
-            u'{ "name" : "profile99", "event_producer_ids":[1,2]}'
+            u'{ "hostname" : "host1", ' \
+            u'"ip_address_v4": "192.168.1.1", "profile": 999 }'
         with patch('meniscus.api.tenant.resources.find_tenant',
                    self.tenant_found):
             with self.assertRaises(falcon.HTTPError):
                 self.resource.on_post(self.req, self.resp, self.tenant_id)
 
-    def test_should_return_201_on_post_no_event_producers(self):
+    def test_should_return_201_on_post_no_profile(self):
         self.stream.read.return_value = \
-            u'{ "name" : "profile99", "event_producer_ids":[]}'
+            u'{ "hostname" : "host77", ' \
+            u'"ip_address_v4": "192.168.1.1" }'
         with patch('meniscus.api.tenant.resources.find_tenant',
                    self.tenant_found):
             self.resource.on_post(self.req, self.resp, self.tenant_id)
         self.assertEquals(falcon.HTTP_201, self.resp.status)
 
-    def test_should_return_201_on_post_with_event_producers(self):
+    def test_should_return_201_on_post_with_profile(self):
         self.stream.read.return_value = \
-            u'{ "name" : "profile99", "event_producer_ids":[432]}'
+            u'{ "hostname" : "host77", ' \
+            u'"ip_address_v4": "192.168.1.1", "profile": 123 }'
         with patch('meniscus.api.tenant.resources.find_tenant',
                    self.tenant_found):
             self.resource.on_post(self.req, self.resp, self.tenant_id)

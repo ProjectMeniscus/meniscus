@@ -394,8 +394,8 @@ class HostsResource(ApiResource):
         for host in tenant.hosts:
             if host.hostname == hostname:
                 abort(falcon.HTTP_400,
-                      'Host with hostname {0} already exists with'
-                      ' id={1}'.format(hostname, host.id))
+                      'Host with hostname {0} already exists with id={1}'
+                      .format(hostname, host.get_id()))
 
         ip_address_v4 = None
         if 'ip_address_v4' in body.keys():

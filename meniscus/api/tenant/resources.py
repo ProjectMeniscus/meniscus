@@ -11,10 +11,6 @@ def _tenant_not_found():
     abort(falcon.HTTP_404, 'Unable to locate tenant.')
 
 
-def _tenant_already_exists():
-    abort(falcon.HTTP_400, 'Tenant already exists.')
-
-
 def _host_not_found():
     abort(falcon.HTTP_400, 'Unable to locate host.')
 
@@ -36,57 +32,63 @@ class VersionResource(ApiResource):
 
 class TenantResource(ApiResource):
 
-    def __init__(self, db_session):
-        self.db = db_session
+    def __init__(self, db_handler):
+        self.db = db_handler
 
     def on_post(self, req, resp):
         body = load_body(req)
         tenant_id = body['tenant_id']
 
+        #validate that tenant does not already exists
         tenant = find_tenant(self.db, tenant_id=tenant_id)
-
         if tenant:
             abort(falcon.HTTP_400, 'Tenant with tenant_id {0} '
                   'already exists'.format(tenant_id))
 
         new_tenant = Tenant(tenant_id)
-        self.db.add(new_tenant)
-        self.db.commit()
 
+        self.db.put('tenant', new_tenant.format())
+        self.db.create_sequence(new_tenant.tenant_id)
         resp.status = falcon.HTTP_201
         resp.set_header('Location', '/v1/{0}'.format(tenant_id))
 
 
 class UserResource(ApiResource):
 
-    def __init__(self, db_session):
-        self.db = db_session
+    def __init__(self, db_handler):
+        self.db = db_handler
 
     def on_get(self, req, resp, tenant_id):
-        tenant = find_tenant(self.db, tenant_id=tenant_id,
-                             when_not_found=_tenant_not_found)
+
+        tenant = find_tenant(self.db, tenant_id=tenant_id)
+
+        if not tenant:
+            _tenant_not_found()
 
         resp.status = falcon.HTTP_200
         resp.body = json.dumps(tenant.format())
 
     def on_delete(self, req, resp, tenant_id):
-        tenant = find_tenant(self.db, tenant_id=tenant_id,
-                             when_not_found=_tenant_not_found)
+        tenant = find_tenant(self.db, tenant_id=tenant_id)
 
-        self.db.delete(tenant)
-        self.db.commit()
+        if not tenant:
+            _tenant_not_found()
 
+        self.db.delete('tenant', {'_id': tenant.get_id()})
+        self.db.delete_sequence(tenant.tenant_id)
         resp.status = falcon.HTTP_200
 
 
 class HostProfilesResource(ApiResource):
-
-    def __init__(self, db_session):
-        self.db = db_session
+    
+    def __init__(self, db_handler):
+        self.db = db_handler
 
     def on_get(self, req, resp, tenant_id):
-        tenant = find_tenant(self.db, tenant_id=tenant_id,
-                             when_not_found=_tenant_not_found)
+        #ensure the tenant exists
+        tenant = find_tenant(self.db, tenant_id=tenant_id)
+        if not tenant:
+            _tenant_not_found()
 
         resp.status = falcon.HTTP_200
 
@@ -95,59 +97,62 @@ class HostProfilesResource(ApiResource):
 
     def on_post(self, req, resp, tenant_id):
         body = load_body(req)
+
+        tenant = find_tenant(self.db, tenant_id=tenant_id)
+
+        if not tenant:
+            _tenant_not_found()
+
         profile_name = body['name']
 
-        tenant = find_tenant(self.db, tenant_id=tenant_id,
-                             when_not_found=_tenant_not_found)
-
         # Check if the tenant already has a profile with this name
-        for profile in tenant.profiles:
-            if profile.name == profile_name:
-                abort(falcon.HTTP_400, 'Profile with name {0} already exists.'
-                      .format(profile.name, profile.id))
+        profile = find_host_profile(tenant, profile_name=profile_name)
+        if profile:
+            abort(falcon.HTTP_400,
+                  'Profile with name {0} already exists with id={1}.'
+                  .format(profile.name, profile.get_id()))
 
         # Create the new profile for the host
-        new_host_profile = HostProfile(tenant.id, profile_name)
-        tenant.profiles.append(new_host_profile)
+        new_host_profile = HostProfile(
+            self.db.next_sequence_value(tenant.tenant_id), profile_name)
 
         if 'event_producer_ids' in body.keys():
-            event_producer_ids = body['event_producer_ids']
+            producer_ids = body['event_producer_ids']
 
-            for event_producer_id in event_producer_ids:
-                event_producer = find_event_producer(self.db,
-                                                     id=event_producer_id,
-                                                     when_not_found=
-                                                     _producer_not_found)
-                if event_producer in tenant.event_producers:
-                    new_host_profile.event_producers.append(event_producer)
-                else:
+            for producer_id in producer_ids:
+
+                #abort if any of the event_producers being passed in are not
+                # valid event_producers for this tenant
+                if not find_event_producer(tenant, producer_id=producer_id):
                     _producer_not_found()
 
-        self.db.add(new_host_profile)
-        self.db.commit()
+            #update the list of event_producers
+            new_host_profile.event_producers = producer_ids
+
+        tenant.profiles.append(new_host_profile)
+        self.db.update('tenant', tenant.format_for_save())
 
         resp.status = falcon.HTTP_201
         resp.set_header('Location',
                         '/v1/{0}/profiles/{1}'
-                        .format(tenant_id, new_host_profile.id))
+                        .format(tenant_id, new_host_profile.get_id()))
 
 
 class HostProfileResource(ApiResource):
-
-    def __init__(self, db_session):
-        self.db = db_session
+    
+    def __init__(self, db_handler):
+        self.db = db_handler
 
     def on_get(self, req, resp, tenant_id, profile_id):
         #verify the tenant exists
-        tenant = find_tenant(self.db, tenant_id=tenant_id,
-                             when_not_found=_tenant_not_found)
+        tenant = find_tenant(self.db, tenant_id=tenant_id)
 
-        #verify the profile exists
-        profile = find_host_profile(self.db, id=profile_id,
-                                    when_not_found=_profile_not_found)
+        if not tenant:
+            _tenant_not_found()
 
-        #verify the profile belongs to the tenant
-        if not profile in tenant.profiles:
+        #verify the profile exists and belongs to the tenant
+        profile = find_host_profile(tenant, profile_id=profile_id)
+        if not profile:
             _profile_not_found()
 
         resp.status = falcon.HTTP_200
@@ -158,87 +163,88 @@ class HostProfileResource(ApiResource):
         body = load_body(req)
 
         #verify the tenant exists
-        tenant = find_tenant(self.db, tenant_id=tenant_id,
-                             when_not_found=_tenant_not_found)
+        tenant = find_tenant(self.db, tenant_id=tenant_id)
+        if not tenant:
+            _tenant_not_found()
 
-        #verify the profile exists
-        profile = find_host_profile(self.db, id=profile_id,
-                                    when_not_found=_profile_not_found)
-
-        #verify the profile belongs to the tenant
-        if not profile in tenant.profiles:
+        #verify the profile exists and belongs to the tenant
+        profile = find_host_profile(tenant, profile_id=profile_id)
+        if not profile:
             _profile_not_found()
 
         #if attributes are present in message, update the profile
-        if 'name' in body.keys():
+        if 'name' in body.keys() and body['name'] != profile.name:
+            #if the tenant already has a profile with this name then abort
+            duplicate_profile = find_host_profile(tenant,
+                                                  profile_name=body['name'])
+            if duplicate_profile:
+                abort(falcon.HTTP_400,
+                      'Profile with name {0} already exists with id={1}.'
+                      .format(duplicate_profile.name,
+                              duplicate_profile.get_id()))
+
             profile.name = body['name']
 
         if 'event_producer_ids' in body.keys():
             producer_ids = body['event_producer_ids']
 
-            # if the put is changing event producers
-            if producer_ids:
+            for producer_id in producer_ids:
 
                 #abort if any of the event_producers being passed in are not
                 # valid event_producers for this tenant
-                for producer_id in producer_ids:
 
-                    if producer_id not in \
-                            [p.id for p in tenant.event_producers]:
-                        _producer_not_found()
+                if not find_event_producer(tenant, producer_id=producer_id):
+                    _producer_not_found()
 
-                #remove any event producers from the profile
-                # that aren't in list of event_producers being passed in
-                for producer in profile.event_producers:
-                    if producer.id not in producer_ids:
-                        profile.event_producers.remove(producer)
+            #update the list of event_producers
+            profile.event_producers = producer_ids
 
-                #see if the incoming event_producers are missing from the
-                # profile, and
-                for pid in producer_ids:
-                    if pid not in [p.id for p in profile.event_producers]:
-                        profile.event_producers.append(
-                            [p for p in tenant.event_producers
-                             if p.id == pid][0])
-
-            else:
-                profile.event_producers = []
-
-        self.db.commit()
+        self.db.update('tenant', tenant.format_for_save())
         resp.status = falcon.HTTP_200
 
     def on_delete(self, req, resp, tenant_id, profile_id):
         #verify the tenant exists
-        tenant = find_tenant(self.db, tenant_id=tenant_id,
-                             when_not_found=_tenant_not_found)
+        tenant = find_tenant(self.db, tenant_id=tenant_id)
 
-        #verify the profile exists
-        profile = find_host_profile(self.db, id=profile_id,
-                                    when_not_found=_profile_not_found)
+        if not tenant:
+            _tenant_not_found()
 
-        #verify the profile belongs to the tenant
-        if not profile in tenant.profiles:
+        #verify the profile exists and belongs to the tenant
+        profile = find_host_profile(tenant, profile_id=profile_id)
+        if not profile:
             _profile_not_found()
 
-        self.db.delete(profile)
-        self.db.commit()
+        #remove any references to the profile being deleted
+        tenant.profiles.remove(profile)
+        for host in tenant.hosts:
+            if host.profile == profile.get_id():
+                host.profile = None
+
+        self.db.update('tenant', tenant.format_for_save())
 
         resp.status = falcon.HTTP_200
 
 
 class EventProducersResource(ApiResource):
-    def __init__(self, db_session):
-        self.db = db_session
+    def __init__(self, db_handler):
+        self.db = db_handler
 
     def on_get(self, req, resp, tenant_id):
-        tenant = find_tenant(self.db, tenant_id=tenant_id,
-                             when_not_found=_tenant_not_found)
+        tenant = find_tenant(self.db, tenant_id=tenant_id)
+
+        if not tenant:
+            _tenant_not_found()
 
         resp.status = falcon.HTTP_200
         resp.body = json.dumps([p.format() for p in tenant.event_producers])
 
     def on_post(self, req, resp, tenant_id):
         body = load_body(req)
+        tenant = find_tenant(self.db, tenant_id=tenant_id)
+
+        if not tenant:
+            _tenant_not_found()
+
         event_producer_name = body['name']
         event_producer_pattern = body['pattern']
 
@@ -256,48 +262,47 @@ class EventProducersResource(ApiResource):
         else:
             event_producer_encrypted = False
 
-        # Check if the event_producer already has a profile with this name
-        for event_producer in tenant.event_producers:
-            if event_producer.name == event_producer_name:
-                abort(falcon.HTTP_400,
-                      'Producer {0} with name {1} already exists.'
-                      .format(event_producer.id, event_producer.name))
+        # Check if the tenant already has an event producer with this name
+        producer = find_event_producer(tenant,
+                                       producer_name=event_producer_name)
+        if producer:
+            abort(falcon.HTTP_400,
+                  'Event producer with name {0} already exists with id={1}.'
+                  .format(producer.name, producer.get_id()))
 
         # Create the new profile for the host
-        new_event_producer = EventProducer(tenant.id, event_producer_name,
-                                           event_producer_pattern,
-                                           event_producer_durable,
-                                           event_producer_encrypted)
+        new_event_producer = EventProducer(
+            self.db.next_sequence_value(tenant.tenant_id),
+            event_producer_name,
+            event_producer_pattern,
+            event_producer_durable,
+            event_producer_encrypted)
 
-        self.db.add(new_event_producer)
         tenant.event_producers.append(new_event_producer)
-        self.db.commit()
+        self.db.update('tenant', tenant.format_for_save())
 
         resp.status = falcon.HTTP_201
         resp.set_header('Location',
                         '/v1/{0}/producers/{1}'
-                        .format(tenant_id, new_event_producer.id))
+                        .format(tenant_id, new_event_producer.get_id()))
 
 
 class EventProducerResource(ApiResource):
 
-    def __init__(self, db_session):
-        self.db = db_session
+    def __init__(self, db_handler):
+        self.db = db_handler
 
     def on_get(self, req, resp, tenant_id, event_producer_id):
         #verify the tenant exists
+        tenant = find_tenant(self.db, tenant_id=tenant_id)
 
-        tenant = find_tenant(self.db, tenant_id=tenant_id,
-                             when_not_found=_tenant_not_found)
+        if not tenant:
+            _tenant_not_found()
 
-        #verify the event_producer exists
-        event_producer = find_event_producer(self.db,
-                                             id=event_producer_id,
-                                             when_not_found=
-                                             _producer_not_found)
-
-        #verify the event_producer belongs to the tenant
-        if not event_producer in tenant.event_producers:
+        #verify the event_producer exists and belongs to the tenant
+        event_producer = find_event_producer(tenant,
+                                             producer_id=event_producer_id)
+        if not event_producer:
             _producer_not_found()
 
         resp.status = falcon.HTTP_200
@@ -307,21 +312,27 @@ class EventProducerResource(ApiResource):
         body = load_body(req)
 
         #verify the tenant exists
-        tenant = find_tenant(self.db, tenant_id=tenant_id,
-                             when_not_found=_tenant_not_found)
+        tenant = find_tenant(self.db, tenant_id=tenant_id)
 
-        #verify the event_producer exists
-        event_producer = find_event_producer(self.db,
-                                             id=event_producer_id,
-                                             when_not_found=
-                                             _producer_not_found)
+        if not tenant:
+            _tenant_not_found()
 
-        #verify the event_producer belongs to the tenant
-        if not event_producer in tenant.event_producers:
+        #verify the event_producer exists and belongs to the tenant
+        event_producer = find_event_producer(tenant,
+                                             producer_id=event_producer_id)
+        if not event_producer:
             _producer_not_found()
 
         #if a key is present, update the event_producer with the value
-        if 'name' in body.keys():
+        if 'name' in body.keys() and event_producer.name != body['name']:
+            #if the tenant already has a profile with this name then abort
+            duplicate_producer = \
+                find_event_producer(tenant,  producer_name=body['name'])
+            if duplicate_producer:
+                abort(falcon.HTTP_400,
+                      'EventProducer with name {0} already exists with id={1}.'
+                      .format(duplicate_producer.name,
+                              duplicate_producer.get_id()))
             event_producer.name = body['name']
 
         if 'pattern' in body.keys():
@@ -333,27 +344,30 @@ class EventProducerResource(ApiResource):
         if 'encrypted' in body.keys():
             event_producer.encrypted = body['encrypted']
 
-        self.db.commit()
+        self.db.update('tenant', tenant.format_for_save())
 
         resp.status = falcon.HTTP_200
 
     def on_delete(self, req, resp, tenant_id, event_producer_id):
         #verify the tenant exists
-        tenant = find_tenant(self.db, tenant_id=tenant_id,
-                             when_not_found=_tenant_not_found)
+        tenant = find_tenant(self.db, tenant_id=tenant_id)
 
-        #verify the event_producer exists
-        event_producer = find_event_producer(self.db,
-                                             id=event_producer_id,
-                                             when_not_found=
-                                             _producer_not_found)
+        if not tenant:
+            _tenant_not_found()
 
-        #verify the event_producer belongs to the tenant
-        if not event_producer in tenant.event_producers:
+        #verify the event_producer exists and belongs to the tenant
+        event_producer = find_event_producer(tenant,
+                                             producer_id=event_producer_id)
+        if not event_producer:
             _producer_not_found()
 
-        self.db.delete(event_producer)
-        self.db.commit()
+        #remove any references to the event producer being deleted
+        tenant.event_producers.remove(event_producer)
+        for profile in tenant.profiles:
+            if event_producer.get_id() in profile.event_producers:
+                profile.event_producers.remove(event_producer.get_id())
+
+        self.db.update('tenant', tenant.format_for_save())
 
         resp.status = falcon.HTTP_200
 
@@ -364,8 +378,11 @@ class HostsResource(ApiResource):
         self.db = db_session
 
     def on_get(self, req, resp, tenant_id):
-        tenant = find_tenant(self.db, tenant_id=tenant_id,
-                             when_not_found=_tenant_not_found)
+        #verify the tenant exists
+        tenant = find_tenant(self.db, tenant_id=tenant_id)
+
+        if not tenant:
+            _tenant_not_found()
 
         resp.status = falcon.HTTP_200
         resp.body = json.dumps([h.format() for h in tenant.hosts])
@@ -373,60 +390,71 @@ class HostsResource(ApiResource):
     def on_post(self, req, resp, tenant_id):
         body = load_body(req)
 
-        tenant = find_tenant(self.db, tenant_id=tenant_id,
-                             when_not_found=_tenant_not_found)
+        #verify the tenant exists
+        tenant = find_tenant(self.db, tenant_id=tenant_id)
+
+        if not tenant:
+            _tenant_not_found()
 
         hostname = body['hostname']
-        ip_address = body['ip_address']
-
-        #if profile id is not in post message, then use a null profile
-        if 'profile_id' in body.keys():
-            profile_id = body['profile_id']
-        else:
-            profile_id = None
-            profile = None
-
-        #if profile id is in post message, then make sure it is valid profile
-        if profile_id:
-            profile = find_host_profile(self.db, id=profile_id,
-                                        when_not_found=_profile_not_found)
 
         # Check if the tenant already has a host with this hostname
         for host in tenant.hosts:
             if host.hostname == hostname:
                 abort(falcon.HTTP_400,
-                      'Host with hostname {0} already exists with'
-                      ' id={1}'.format(hostname, host.id))
+                      'Host with hostname {0} already exists with id={1}'
+                      .format(hostname, host.get_id()))
+
+        ip_address_v4 = None
+        if 'ip_address_v4' in body.keys():
+            ip_address_v4 = body['ip_address_v4']
+
+        ip_address_v6 = None
+        if 'ip_address_v6' in body.keys():
+            ip_address_v6 = body['ip_address_v6']
+
+        profile_id = None
+        #if profile id is not in post message, then use a null profile
+        if 'profile_id' in body.keys():
+            profile_id = body['profile_id']
+
+        #if profile id is in post message, then make sure it is valid profile
+        if profile_id:
+            #verify the profile exists and belongs to the tenant
+            profile = find_host_profile(tenant, profile_id=profile_id)
+            if not profile:
+                _profile_not_found()
 
         # Create the new host definition
-        new_host = Host(hostname, ip_address, profile)
+        new_host = Host(
+            self.db.next_sequence_value(tenant.tenant_id),
+            hostname, ip_address_v4,
+            ip_address_v6, profile_id)
 
-        self.db.add(new_host)
         tenant.hosts.append(new_host)
-        self.db().commit()
+        self.db.update('tenant', tenant.format_for_save())
 
         resp.status = falcon.HTTP_201
         resp.set_header('Location',
                         '/v1/{0}/hosts/{1}'
-                        .format(tenant_id, new_host.id))
+                        .format(tenant_id, new_host.get_id))
 
 
 class HostResource(ApiResource):
 
-    def __init__(self, db_session):
-        self.db = db_session
+    def __init__(self, db_handler):
+        self.db = db_handler
 
     def on_get(self, req, resp, tenant_id, host_id):
         #verify the tenant exists
-        tenant = find_tenant(self.db, tenant_id=tenant_id,
-                             when_not_found=_tenant_not_found)
+        tenant = find_tenant(self.db, tenant_id=tenant_id)
 
-        #verify the hosts exists
-        host = find_host(self.db, host_id,
-                         when_not_found=_host_not_found)
+        if not tenant:
+            _tenant_not_found()
 
-        #verify the host belongs to the tenant
-        if not host in tenant.hosts:
+        #verify the hosts exists and belongs to the tenant
+        host = find_host(tenant, host_id=host_id)
+        if not host:
             _host_not_found()
 
         resp.status = falcon.HTTP_200
@@ -436,55 +464,60 @@ class HostResource(ApiResource):
         body = load_body(req)
 
         #verify the tenant exists
-        tenant = find_tenant(self.db, tenant_id=tenant_id,
-                             when_not_found=_tenant_not_found)
+        tenant = find_tenant(self.db, tenant_id=tenant_id)
 
-        #verify the hosts exists
-        host = find_host(self.db, host_id,
-                         when_not_found=_host_not_found)
+        if not tenant:
+            _tenant_not_found()
 
-        #verify the host belongs to the tenant
-        if not host in tenant.hosts:
+        #verify the hosts exists and belongs to the tenant
+        host = find_host(tenant, host_id=host_id)
+        if not host:
             _host_not_found()
 
-        if 'hostname' in body.keys():
-            host.hostname = body['hostname']
+        if 'hostname' in body.keys() and host.hostname != body['hostname']:
+            # Check if the tenant already has a host with this hostname
+            hostname = body['hostname']
+            for duplicate_host in tenant.hosts:
+                if duplicate_host.hostname == hostname:
+                    abort(falcon.HTTP_400,
+                          'Host with hostname {0} already exists with'
+                          ' id={1}'.format(hostname, duplicate_host.get_id()))
+            host.hostname = hostname
 
-        if 'ip_address' in body.keys():
-            host.ip_address = body['ip_address']
+        if 'ip_address_v4' in body.keys():
+            host.ip_address_v4 = body['ip_address_v4']
+
+        if 'ip_address_v6' in body.keys():
+            host.ip_address_v6 = body['ip_address_v6']
 
         if 'profile_id' in body.keys():
             profile_id = body['profile_id']
 
-            #if profile_id has a new value,
-            # find the profile and assign it to the host
-            if profile_id:
-                profile = find_host_profile(self.db, id=profile_id,
-                                            when_not_found=_profile_not_found)
-                host.profile = profile
+            #verify the profile exists and belongs to the tenant
+            profile = find_host_profile(tenant, profile_id=profile_id)
+            if not profile:
+                _profile_not_found()
 
-            #if the profile id key passed an empty value,
-            # then remove the profile form the host
-            else:
-                host.profile = None
+            host.profile = profile_id
 
-        self.db.commit()
+        self.db.update('tenant', tenant.format_for_save())
 
         resp.status = falcon.HTTP_200
 
     def on_delete(self, req, resp, tenant_id, host_id):
         #verify the tenant exists
-        tenant = find_tenant(self.db, tenant_id=tenant_id,
-                             when_not_found=_tenant_not_found)
+        tenant = find_tenant(self.db, tenant_id=tenant_id)
 
-        #verify the hosts exists
-        host = find_host(self.db, host_id,
-                         when_not_found=_host_not_found)
+        if not tenant:
+            _tenant_not_found()
 
-        #verify the host belongs to the tenant
-        if not host in tenant.hosts:
+        #verify the hosts exists and belongs to the tenant
+        host = find_host(tenant, host_id=host_id)
+        if not host:
             _host_not_found()
 
-        self.db.delete(host)
-        self.db().commit()
+        #delete the host
+        tenant.hosts.remove(host)
+        self.db.update('tenant', tenant.format_for_save())
+
         resp.status = falcon.HTTP_200

@@ -1,63 +1,77 @@
-from sqlalchemy.orm.exc import NoResultFound, MultipleResultsFound
-
 from meniscus.model.tenant import Tenant, Host, HostProfile, EventProducer
 
 
 def _empty_condition():
-    pass
+    raise NotImplementedError
 
 
-def find_tenant(db_session, id=None, tenant_id=None,
-                when_not_found=_empty_condition,
-                when_multiple_found=_empty_condition):
-    try:
-        if id:
-            return db_session.query(Tenant).filter_by(id=id).one()
-        elif tenant_id:
-            return db_session.query(Tenant).filter_by(
-                tenant_id=tenant_id).one()
-    except NoResultFound:
-        when_not_found()
-    except MultipleResultsFound:
-        when_multiple_found()
+def find_tenant(ds_handler, tenant_id):
+    """
+Retrieves a dictionary describing a tenant object and its Hosts, Profiles,
+and eventProducers and maps them to a tenant object
+"""
+
+    # get the tenant dictionary form the data source
+    tenant_dict = ds_handler.find_one('tenant', {'tenant_id': tenant_id})
+
+    if not tenant_dict:
+        return None
+
+    #Create a list of Host objects from the dictionary
+    hosts = [Host(
+        h['id'], h['hostname'], h['ip_address_v4'],
+        h['ip_address_v6'], h['profile']) for h in tenant_dict['hosts']]
+
+    #Create a list of Profile objects from the dictionary
+    profiles = [HostProfile(p['id'], p['name'], p['event_producers'])
+                for p in tenant_dict['profiles']]
+
+    #Create a list of EventProducer objects from the dictionary
+    event_producers = [EventProducer(
+        e['id'], e['name'], e['pattern'], e['durable'], e['encrypted'])
+                       for e in tenant_dict['event_producers']]
+
+    #Create the parent tenant object
+    tenant = Tenant(tenant_dict['tenant_id'], hosts, profiles, event_producers,
+                    tenant_dict['_id'])
+
+    return tenant
+
+
+def find_host(tenant, host_id=None, host_name=None):
+    if host_id:
+        for host in tenant.hosts:
+            if host_id == host.get_id():
+                return host
+    if host_name:
+        for host in tenant.hosts:
+            if host_name == host.hostname:
+                return host
+    return None
+
+
+def find_host_profile(tenant, profile_id=None, profile_name=None):
+    if profile_id:
+        for profile in tenant.profiles:
+            if profile_id == profile.get_id():
+                return profile
+    if profile_name:
+        for profile in tenant.profiles:
+            if profile_name == profile.name:
+                return profile
 
     return None
 
 
-def find_host(db_session, id, when_not_found=_empty_condition,
-              when_multiple_found=_empty_condition):
-    try:
-        return db_session.query(Host).filter_by(id=id).one()
-    except NoResultFound:
-        when_not_found()
-    except MultipleResultsFound:
-        when_multiple_found()
+def find_event_producer(tenant, producer_id=None, producer_name=None):
+    if producer_id:
+        for producer in tenant.event_producers:
+            if producer_id == producer.get_id():
+                return producer
 
+    if producer_name:
+        for producer in tenant.event_producers:
+            if producer_name == producer.name:
+                return producer
 
-def find_host_profile(db_session, id=None, name=None,
-                      when_not_found=_empty_condition,
-                      when_multiple_found=_empty_condition):
-    try:
-        if id:
-            return db_session.query(HostProfile).filter_by(id=id).one()
-        elif name:
-            return db_session.query(HostProfile).filter_by(name=name).one()
-    except NoResultFound:
-        when_not_found()
-    except MultipleResultsFound:
-        when_multiple_found()
-
-
-def find_event_producer(db_session, id=None, name=None,
-                        when_not_found=_empty_condition,
-                        when_multiple_found=_empty_condition):
-    try:
-
-        if id:
-            return db_session.query(EventProducer).filter_by(id=id).one()
-        elif name:
-            return db_session.query(EventProducer).filter_by(name=name).one()
-    except NoResultFound:
-        when_not_found()
-    except MultipleResultsFound:
-        when_multiple_found()
+    return None

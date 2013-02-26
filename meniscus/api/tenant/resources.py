@@ -105,10 +105,11 @@ class HostProfilesResource(ApiResource):
         profile_name = body['name']
 
         # Check if the tenant already has a profile with this name
-        for profile in tenant.profiles:
-            if profile.name == profile_name:
-                abort(falcon.HTTP_400, 'Profile with name {0} already exists.'
-                      .format(profile.name, profile.get_id()))
+        profile = find_host_profile(tenant, profile_name=profile_name)
+        if profile:
+            abort(falcon.HTTP_400,
+                  'Profile with name {0} already exists with id={1}.'
+                  .format(profile.name, profile.get_id()))
 
         # Create the new profile for the host
         new_host_profile = HostProfile(self.db.nextsequence, profile_name)
@@ -148,7 +149,7 @@ class HostProfileResource(ApiResource):
             _tenant_not_found()
 
         #verify the profile exists and belongs to the tenant
-        profile = find_host_profile(self.db, profile_id=profile_id)
+        profile = find_host_profile(tenant, profile_id=profile_id)
         if not profile:
             _profile_not_found()
 
@@ -170,40 +171,32 @@ class HostProfileResource(ApiResource):
         body = load_body(req)
 
         #if attributes are present in message, update the profile
-        if 'name' in body.keys():
+        if 'name' in body.keys() and body['name'] != profile.name:
+            #if the tenant already has a profile with this name then abort
+            duplicate_profile = find_host_profile(tenant,
+                                                  profile_name=body['name'])
+            if duplicate_profile:
+                abort(falcon.HTTP_400,
+                      'Profile with name {0} already exists with id={1}.'
+                      .format(duplicate_profile.name,
+                              duplicate_profile.get_id()))
+
             profile.name = body['name']
 
         if 'event_producer_ids' in body.keys():
             producer_ids = body['event_producer_ids']
 
-            # if the put is changing event producers
-            if producer_ids:
+            for producer_id in producer_ids:
 
                 #abort if any of the event_producers being passed in are not
                 # valid event_producers for this tenant
-                for producer_id in producer_ids:
+                if not find_event_producer(tenant, producer_id=producer_id):
+                    _producer_not_found()
 
-                    if producer_id not in \
-                            [p.id for p in tenant.event_producers]:
-                        _producer_not_found()
+            #update the list of event_producers
+            profile.event_producers =  producer_ids
 
-                #remove any event producers from the profile
-                # that aren't in list of event_producers being passed in
-                for producer in profile.event_producers:
-                    if producer.id not in producer_ids:
-                        profile.event_producers.remove(producer)
-
-                #see if the incoming event_producers are missing from the
-                # profile, and
-                for pid in producer_ids:
-                    if pid not in [p.id for p in profile.event_producers]:
-                        profile.event_producers.append(
-                            [p for p in tenant.event_producers if p.id == pid][0])
-
-            else:
-                profile.event_producers = []
-
-        self.db.commit()
+        self.db.update(tenant)
         resp.status = falcon.HTTP_200
 
     def on_delete(self, req, resp, tenant_id, profile_id):

@@ -211,6 +211,11 @@ class HostProfileResource(ApiResource):
         if not profile:
             _profile_not_found()
 
+        #remove any references to the profile being deleted
+        tenant.profiles.remove(profile)
+        for host in tenant.hosts:
+            host.profiles.remove(host.get_id())
+
         self.db.update(tenant.format())
 
         resp.status = falcon.HTTP_200

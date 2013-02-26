@@ -38,14 +38,8 @@ class WhenTestingVersionResource(unittest.TestCase):
 class WhenTestingTenantResource(unittest.TestCase):
 
     def setUp(self):
-        db_filter = MagicMock()
-        db_filter.one.return_value = Tenant('tenant_id')
 
-        db_query = MagicMock()
-        db_query.filter_by.return_value = db_filter
-
-        self.db_session = MagicMock()
-        self.db_session.query.return_value = db_query
+        self.db_handler = MagicMock()
 
         self.stream = MagicMock()
         self.stream.read.return_value = u'{ "tenant_id" : "1234" }'
@@ -54,7 +48,7 @@ class WhenTestingTenantResource(unittest.TestCase):
         self.req.stream = self.stream
 
         self.resp = MagicMock()
-        self.resource = TenantResource(self.db_session)
+        self.resource = TenantResource(self.db_handler)
 
         self.tenant_not_found = MagicMock(return_value=None)
         self.tenant_found = MagicMock(return_value=Tenant('1234'))
@@ -76,14 +70,8 @@ class WhenTestingTenantResource(unittest.TestCase):
 class WhenTestingUserResource(unittest.TestCase):
 
     def setUp(self):
-        db_filter = MagicMock()
-        db_filter.one.return_value = Tenant('tenant_id')
 
-        db_query = MagicMock()
-        db_query.filter_by.return_value = db_filter
-
-        self.db_session = MagicMock()
-        self.db_session.query.return_value = db_query
+        self.db_handler = MagicMock()
 
         self.stream = MagicMock()
 
@@ -91,7 +79,7 @@ class WhenTestingUserResource(unittest.TestCase):
         self.req.stream = self.stream
 
         self.resp = MagicMock()
-        self.resource = UserResource(self.db_session)
+        self.resource = UserResource(self.db_handler)
 
         self.tenant_id = '1234'
         self.tenant_not_found = MagicMock(return_value=None)
@@ -136,14 +124,8 @@ class WhenTestingUserResource(unittest.TestCase):
 class WhenTestingHostProfilesResource(unittest.TestCase):
 
     def setUp(self):
-        db_filter = MagicMock()
-        db_filter.one.return_value = Tenant('tenant_id')
 
-        db_query = MagicMock()
-        db_query.filter_by.return_value = db_filter
-
-        self.db_session = MagicMock()
-        self.db_session.query.return_value = db_query
+        self.db_handler = MagicMock()
 
         self.stream = MagicMock()
 
@@ -151,7 +133,7 @@ class WhenTestingHostProfilesResource(unittest.TestCase):
         self.req.stream = self.stream
 
         self.resp = MagicMock()
-        self.resource = HostProfilesResource(self.db_session)
+        self.resource = HostProfilesResource(self.db_handler)
 
         self.profiles = [HostProfile(123, 'profile1'),
                          HostProfile(456, 'profile2')]
@@ -231,14 +213,8 @@ class WhenTestingHostProfilesResource(unittest.TestCase):
 class WhenTestingHostProfileResource(unittest.TestCase):
 
     def setUp(self):
-        db_filter = MagicMock()
-        db_filter.one.return_value = Tenant('tenant_id')
 
-        db_query = MagicMock()
-        db_query.filter_by.return_value = db_filter
-
-        self.db_session = MagicMock()
-        self.db_session.query.return_value = db_query
+        self.db_handler = MagicMock()
 
         self.stream = MagicMock()
 
@@ -246,7 +222,7 @@ class WhenTestingHostProfileResource(unittest.TestCase):
         self.req.stream = self.stream
 
         self.resp = MagicMock()
-        self.resource = HostProfileResource(self.db_session)
+        self.resource = HostProfileResource(self.db_handler)
 
         self.profile_id = 123
         self.not_valid_profile_id = 999

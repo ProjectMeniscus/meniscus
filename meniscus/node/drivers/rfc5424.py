@@ -267,5 +267,6 @@ class RFC5424MessageParser(object):
 
 PARSER = RFC5424MessageParser()
 
+
 def parse_rfc5424(self, msg):
     return PARSER.parse(msg)

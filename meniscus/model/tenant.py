@@ -5,9 +5,9 @@ from sqlalchemy.ext.declarative import declarative_base, declared_attr
 
 
 class Persisted(object):
-    
+
     id = Column(Integer, primary_key=True)
-    
+
     @declared_attr
     def __tablename__(self):
         return self.__name__.lower()

@@ -428,6 +428,10 @@ class WhenTestingEventProducerResource(TestingTenantApiBase):
         self.assertTrue('encrypted' in parsed_body.keys())
 
     def test_should_throw_exception_for_tenants_not_found_on_put(self):
+        self.stream.read.return_value = u'{ "name" : "producer1", ' \
+                                        u'"pattern": "syslog", ' \
+                                        u'"durable": true, ' \
+                                        u'"encrypted": false }'
         with patch('meniscus.api.tenant.resources.find_tenant',
                    self.tenant_not_found):
             with self.assertRaises(falcon.HTTPError):

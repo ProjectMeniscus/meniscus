@@ -1,11 +1,15 @@
 from meniscus.model.tenant import Tenant, Host, HostProfile, EventProducer
 
 
+def _empty_condition():
+    raise NotImplementedError
+
+
 def find_tenant(ds_handler, tenant_id):
     """
-    Retrieves a dictionary describing a tenant object and its Hosts, Profiles,
-    and eventProducers and maps them to a tenant object
-    """
+Retrieves a dictionary describing a tenant object and its Hosts, Profiles,
+and eventProducers and maps them to a tenant object
+"""
 
     # get the tenant dictionary form the data source
     tenant_dict = ds_handler.find_one('tenant', {'tenant_id': tenant_id})
@@ -25,7 +29,7 @@ def find_tenant(ds_handler, tenant_id):
     #Create a list of EventProducer objects from the dictionary
     event_producers = [EventProducer(
         e['id'], e['name'], e['pattern'], e['durable'], e['encrypted'])
-        for e in tenant_dict['event_producers']]
+                       for e in tenant_dict['event_producers']]
 
     #Create the parent tenant object
     tenant = Tenant(tenant_dict['tenant_id'], hosts, profiles, event_producers,

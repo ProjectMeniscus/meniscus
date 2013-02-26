@@ -1,11 +1,12 @@
 import falcon
 
 from meniscus.api.tenant.resources import *
+from meniscus.data import adapters
 from meniscus.data.handler import datasource_handler
 from meniscus.config import init_config, get_config
 
 
-init_config(['--config-file', 'meniscus.cfg'])
+init_config()
 conf = get_config()
 _handler = datasource_handler(conf)
 _handler.connect()

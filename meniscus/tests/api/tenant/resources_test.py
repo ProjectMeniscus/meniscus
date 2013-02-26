@@ -11,8 +11,54 @@ import unittest
 def suite():
     suite = unittest.TestSuite()
     suite.addTest(WhenTestingVersionResource())
-
+    suite.addTest(WhenTestingTenantResource())
+    suite.addTest(WhenTestingUserResource())
+    suite.addTest(WhenTestingHostProfilesResource())
+    suite.addTest(WhenTestingHostProfileResource())
+    suite.addTest(WhenTestingTenantResource())
     return suite
+
+
+class TestingTenantApiBase(unittest.TestCase):
+
+    def setUp(self):
+
+        self.db_handler = MagicMock()
+
+        self.stream = MagicMock()
+
+        self.req = MagicMock()
+        self.req.stream = self.stream
+
+        self.resp = MagicMock()
+
+        self.profile_id = 123
+        self.not_valid_profile_id = 999
+        self.profiles = [HostProfile(123, 'profile1',
+                                     event_producer_ids=[432, 433]),
+                         HostProfile(456, 'profile2',
+                                     event_producer_ids=[432, 433])]
+
+        self.producer_id = 432
+        self.not_valid_producer_id = 777
+        self.producers = [EventProducer(432, 'producer1', 'syslog'),
+                          EventProducer(433, 'producer2', 'syslog')]
+
+        self.hosts = [Host('765', 'host1', ip_address_v4='192.168.1.1',
+                           profile_id=123),
+                      Host('766', 'host2', ip_address_v4='192.168.2.1',
+                           profile_id=456)]
+
+        self.tenant_id = '1234'
+        self.tenant_not_found = MagicMock(return_value=None)
+        self.tenant_found = MagicMock(
+            return_value=Tenant(self.tenant_id, profiles=self.profiles,
+                                event_producers=self.producers,
+                                hosts=self.hosts))
+        self.setResource()
+
+    def setResource(self):
+        pass
 
 
 class WhenTestingVersionResource(unittest.TestCase):
@@ -42,7 +88,6 @@ class WhenTestingTenantResource(unittest.TestCase):
         self.db_handler = MagicMock()
 
         self.stream = MagicMock()
-        self.stream.read.return_value = u'{ "tenant_id" : "1234" }'
 
         self.req = MagicMock()
         self.req.stream = self.stream
@@ -54,12 +99,14 @@ class WhenTestingTenantResource(unittest.TestCase):
         self.tenant_found = MagicMock(return_value=Tenant('1234'))
 
     def test_should_throw_exception_for_tenants_that_exist_on_post(self):
+        self.stream.read.return_value = u'{ "tenant_id" : "1234" }'
         with patch('meniscus.api.tenant.resources.find_tenant',
                    self.tenant_found):
             with self.assertRaises(falcon.HTTPError):
                 self.resource.on_post(self.req, self.resp)
 
     def test_should_return_201_on_post(self):
+        self.stream.read.return_value = u'{ "tenant_id" : "1234" }'
         with patch('meniscus.api.tenant.resources.find_tenant',
                    self.tenant_not_found):
             self.resource.on_post(self.req, self.resp)
@@ -121,30 +168,10 @@ class WhenTestingUserResource(unittest.TestCase):
         self.assertEquals(falcon.HTTP_200, self.resp.status)
 
 
-class WhenTestingHostProfilesResource(unittest.TestCase):
+class WhenTestingHostProfilesResource(TestingTenantApiBase):
 
-    def setUp(self):
-
-        self.db_handler = MagicMock()
-
-        self.stream = MagicMock()
-
-        self.req = MagicMock()
-        self.req.stream = self.stream
-
-        self.resp = MagicMock()
+    def setResource(self):
         self.resource = HostProfilesResource(self.db_handler)
-
-        self.profiles = [HostProfile(123, 'profile1'),
-                         HostProfile(456, 'profile2')]
-
-        self.producers = [EventProducer(432, 'producer1', 'syslog')]
-
-        self.tenant_id = '1234'
-        self.tenant_not_found = MagicMock(return_value=None)
-        self.tenant_found = MagicMock(
-            return_value=Tenant(self.tenant_id, profiles=self.profiles,
-                                event_producers=self.producers))
 
     def test_should_throw_exception_for_tenants_not_found_on_get(self):
         with patch('meniscus.api.tenant.resources.find_tenant',
@@ -173,6 +200,7 @@ class WhenTestingHostProfilesResource(unittest.TestCase):
             self.assertTrue('event_producers' in profile.keys())
 
     def test_should_throw_exception_for_tenants_not_found_on_post(self):
+        self.stream.read.return_value = u'{ "name" : "profile1" }'
         with patch('meniscus.api.tenant.resources.find_tenant',
                    self.tenant_not_found):
             with self.assertRaises(falcon.HTTPError):
@@ -210,33 +238,10 @@ class WhenTestingHostProfilesResource(unittest.TestCase):
         self.assertEquals(falcon.HTTP_201, self.resp.status)
 
 
-class WhenTestingHostProfileResource(unittest.TestCase):
+class WhenTestingHostProfileResource(TestingTenantApiBase):
 
-    def setUp(self):
-
-        self.db_handler = MagicMock()
-
-        self.stream = MagicMock()
-
-        self.req = MagicMock()
-        self.req.stream = self.stream
-
-        self.resp = MagicMock()
+    def setResource(self):
         self.resource = HostProfileResource(self.db_handler)
-
-        self.profile_id = 123
-        self.not_valid_profile_id = 999
-        self.profiles = [HostProfile(123, 'profile1'),
-                         HostProfile(456, 'profile2')]
-
-        self.producers = [EventProducer(432, 'producer1', 'syslog'),
-                          EventProducer(433, 'producer2', 'syslog')]
-
-        self.tenant_id = '1234'
-        self.tenant_not_found = MagicMock(return_value=None)
-        self.tenant_found = MagicMock(
-            return_value=Tenant(self.tenant_id, profiles=self.profiles,
-                                event_producers=self.producers))
 
     def test_should_throw_exception_for_tenants_not_found_on_get(self):
         with patch('meniscus.api.tenant.resources.find_tenant',
@@ -272,6 +277,8 @@ class WhenTestingHostProfileResource(unittest.TestCase):
         self.assertTrue('event_producers' in parsed_body.keys())
 
     def test_should_throw_exception_for_tenants_not_found_on_put(self):
+        self.stream.read.return_value = \
+            u'{ "name" : "profile99", "event_producer_ids":[432]}'
         with patch('meniscus.api.tenant.resources.find_tenant',
                    self.tenant_not_found):
             with self.assertRaises(falcon.HTTPError):
@@ -279,6 +286,8 @@ class WhenTestingHostProfileResource(unittest.TestCase):
                                      self.profile_id)
 
     def test_should_throw_exception_for_profile_not_found_on_put(self):
+        self.stream.read.return_value = \
+            u'{ "name" : "profile99", "event_producer_ids":[432]}'
         with patch('meniscus.api.tenant.resources.find_tenant',
                    self.tenant_found):
             with self.assertRaises(falcon.HTTPError):
@@ -326,12 +335,191 @@ class WhenTestingHostProfileResource(unittest.TestCase):
                                      self.not_valid_profile_id)
 
     def test_should_return_200_on_delete(self):
-        self.stream.read.return_value = \
-            u'{ "name" : "profile99", "event_producer_ids":[432]}'
         with patch('meniscus.api.tenant.resources.find_tenant',
                    self.tenant_found):
                 self.resource.on_delete(self.req, self.resp, self.tenant_id,
                                         self.profile_id)
         self.assertEquals(falcon.HTTP_200, self.resp.status)
+
+
+class WhenTestingEventProducersResource(TestingTenantApiBase):
+
+    def setResource(self):
+        self.resource = EventProducersResource(self.db_handler)
+
+    def test_should_throw_exception_for_tenants_not_found_on_get(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_not_found):
+            with self.assertRaises(falcon.HTTPError):
+                self.resource.on_get(self.req, self.resp, self.tenant_id)
+
+    def test_should_return_200_on_get(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            self.resource.on_get(self.req, self.resp, self.tenant_id)
+        self.assertEquals(falcon.HTTP_200, self.resp.status)
+
+    def test_should_return_profiles_json_on_get(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            self.resource.on_get(self.req, self.resp, self.tenant_id)
+
+        parsed_body = json.loads(self.resp.body)
+
+        self.assertEqual(len(self.profiles), len(parsed_body))
+
+        for profile in parsed_body:
+            self.assertTrue('id' in profile.keys())
+            self.assertTrue('name' in profile.keys())
+            self.assertTrue('pattern' in profile.keys())
+            self.assertTrue('durable' in profile.keys())
+            self.assertTrue('encrypted' in profile.keys())
+
+    def test_should_throw_exception_for_tenants_not_found_on_post(self):
+        self.stream.read.return_value = u'{ "name" : "producer55", ' \
+                                        u'"pattern": "syslog" }'
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_not_found):
+            with self.assertRaises(falcon.HTTPError):
+                self.resource.on_post(self.req, self.resp, self.tenant_id)
+
+    def test_should_throw_exception_for_producer_found_on_post(self):
+        self.stream.read.return_value = u'{ "name" : "producer1", ' \
+                                        u'"pattern": "syslog" }'
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            with self.assertRaises(falcon.HTTPError):
+                self.resource.on_post(self.req, self.resp, self.tenant_id)
+
+    def test_should_return_201_on_post_no_optional_fields(self):
+        self.stream.read.return_value = u'{ "name" : "producer55", ' \
+                                        u'"pattern": "syslog" }'
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            self.resource.on_post(self.req, self.resp, self.tenant_id)
+        self.assertEquals(falcon.HTTP_201, self.resp.status)
+
+    def test_should_return_201_on_post(self):
+        self.stream.read.return_value = u'{ "name" : "producer55", ' \
+                                        u'"pattern": "syslog", ' \
+                                        u'"durable": true, ' \
+                                        u'"encrypted": false }'
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            self.resource.on_post(self.req, self.resp, self.tenant_id)
+        self.assertEquals(falcon.HTTP_201, self.resp.status)
+
+
+class WhenTestingEventProducerResource(TestingTenantApiBase):
+
+    def setResource(self):
+        self.resource = EventProducerResource(self.db_handler)
+
+    def test_should_throw_exception_for_tenants_not_found_on_get(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_not_found):
+            with self.assertRaises(falcon.HTTPError):
+                self.resource.on_get(self.req, self.resp, self.tenant_id,
+                                     self.producer_id)
+
+    def test_should_throw_exception_for_producer_not_found_on_get(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            with self.assertRaises(falcon.HTTPError):
+                self.resource.on_get(self.req, self.resp, self.tenant_id,
+                                     self.not_valid_producer_id)
+
+    def test_should_return_200_on_get(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            self.resource.on_get(self.req, self.resp, self.tenant_id,
+                                 self.producer_id)
+        self.assertEquals(falcon.HTTP_200, self.resp.status)
+
+    def test_should_return_producer_json_on_get(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            self.resource.on_get(self.req, self.resp, self.tenant_id,
+                                 self.producer_id)
+
+        parsed_body = json.loads(self.resp.body)
+
+        self.assertTrue('id' in parsed_body.keys())
+        self.assertTrue('name' in parsed_body.keys())
+        self.assertTrue('pattern' in parsed_body.keys())
+        self.assertTrue('durable' in parsed_body.keys())
+        self.assertTrue('encrypted' in parsed_body.keys())
+
+    def test_should_throw_exception_for_tenants_not_found_on_put(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_not_found):
+            with self.assertRaises(falcon.HTTPError):
+                self.resource.on_put(self.req, self.resp, self.tenant_id,
+                                     self.producer_id)
+
+    def test_should_throw_exception_for_producer_not_found_on_put(self):
+        self.stream.read.return_value = u'{ "name" : "producer55", ' \
+                                        u'"pattern": "syslog", ' \
+                                        u'"durable": true, ' \
+                                        u'"encrypted": false }'
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            with self.assertRaises(falcon.HTTPError):
+                self.resource.on_put(self.req, self.resp, self.tenant_id,
+                                     self.not_valid_producer_id)
+
+    def test_should_throw_exception_for_profile_duplicate_name_on_put(self):
+        self.stream.read.return_value = u'{ "name" : "producer2", ' \
+                                        u'"pattern": "syslog", ' \
+                                        u'"durable": true, ' \
+                                        u'"encrypted": false }'
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            with self.assertRaises(falcon.HTTPError):
+                self.resource.on_put(self.req, self.resp, self.tenant_id,
+                                     self.producer_id)
+
+    def test_should_throw_exception_for_invalid_producers_on_put(self):
+        self.stream.read.return_value = \
+            u'{ "name" : "profile99", "event_producer_ids":[1,2]}'
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            with self.assertRaises(falcon.HTTPError):
+                self.resource.on_put(self.req, self.resp, self.tenant_id,
+                                     self.producer_id)
+
+    def test_should_return_200_on_put(self):
+        self.stream.read.return_value = u'{ "name" : "producer1", ' \
+                                        u'"pattern": "syslog", ' \
+                                        u'"durable": true, ' \
+                                        u'"encrypted": false }'
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            self.resource.on_put(self.req, self.resp, self.tenant_id,
+                                 self.producer_id)
+        self.assertEquals(falcon.HTTP_200, self.resp.status)
+
+    def test_should_throw_exception_for_tenants_not_found_on_delete(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_not_found):
+            with self.assertRaises(falcon.HTTPError):
+                self.resource.on_delete(self.req, self.resp, self.tenant_id,
+                                        self.producer_id)
+
+    def test_should_throw_exception_for_producer_not_found_on_delete(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            with self.assertRaises(falcon.HTTPError):
+                self.resource.on_delete(self.req, self.resp, self.tenant_id,
+                                        self.not_valid_producer_id)
+
+    def test_should_return_200_on_delete(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            self.resource.on_delete(self.req, self.resp, self.tenant_id,
+                                    self.producer_id)
+        self.assertEquals(falcon.HTTP_200, self.resp.status)
+
+
 if __name__ == '__main__':
     unittest.main()

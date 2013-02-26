@@ -54,8 +54,8 @@ class Host():
     environment.
     """
 
-    def __init__(self, _id, hostname, ip_address_v4, ip_address_v6,
-                 profile_id):
+    def __init__(self, _id, hostname, ip_address_v4=None, ip_address_v6=None,
+                 profile_id=None):
         self._id = _id
         self.hostname = hostname
         self.ip_address_v4 = ip_address_v4

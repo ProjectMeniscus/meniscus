@@ -47,8 +47,8 @@ class TenantResource(ApiResource):
 
         new_tenant = Tenant(tenant_id)
 
-        self.db.put(new_tenant.format())
-
+        self.db.put('tenant', new_tenant.format())
+        self.db.create_sequence(new_tenant.tenant_id)
         resp.status = falcon.HTTP_201
         resp.set_header('Location', '/v1/{0}'.format(tenant_id))
 
@@ -74,9 +74,8 @@ class UserResource(ApiResource):
         if not tenant:
             _tenant_not_found()
 
-        self.db.delete(tenant)
-        self.db.commit()
-
+        self.db.delete('tenant', {'_id': tenant.get_id()})
+        self.db.delete_sequence(tenant.tenant_id)
         resp.status = falcon.HTTP_200
 
 
@@ -106,9 +105,6 @@ class HostProfilesResource(ApiResource):
 
         profile_name = body['name']
 
-        tenant = find_tenant(self.db, tenant_id=tenant_id,
-                             when_not_found=_tenant_not_found)
-
         # Check if the tenant already has a profile with this name
         profile = find_host_profile(tenant, profile_name=profile_name)
         if profile:
@@ -117,7 +113,8 @@ class HostProfilesResource(ApiResource):
                   .format(profile.name, profile.get_id()))
 
         # Create the new profile for the host
-        new_host_profile = HostProfile(self.db.nextsequence, profile_name)
+        new_host_profile = HostProfile(
+            self.db.next_sequence_value(tenant.tenant_id), profile_name)
 
         if 'event_producer_ids' in body.keys():
             producer_ids = body['event_producer_ids']
@@ -133,7 +130,7 @@ class HostProfilesResource(ApiResource):
             new_host_profile.event_producers = producer_ids
 
         tenant.profiles.append(new_host_profile)
-        self.db.update(tenant.format(), tenant.get_id())
+        self.db.update('tenant', tenant.format_for_save())
 
         resp.status = falcon.HTTP_201
         resp.set_header('Location',
@@ -202,7 +199,7 @@ class HostProfileResource(ApiResource):
             #update the list of event_producers
             profile.event_producers = producer_ids
 
-        self.db.update(tenant.format(), tenant.get_id())
+        self.db.update('tenant', tenant.format_for_save())
         resp.status = falcon.HTTP_200
 
     def on_delete(self, req, resp, tenant_id, profile_id):
@@ -223,7 +220,7 @@ class HostProfileResource(ApiResource):
             if host.profile == profile.get_id():
                 host.profile = None
 
-        self.db.update(tenant.format(), tenant.get_id())
+        self.db.update('tenant', tenant.format_for_save())
 
         resp.status = falcon.HTTP_200
 
@@ -274,14 +271,15 @@ class EventProducersResource(ApiResource):
                   .format(producer.name, producer.get_id()))
 
         # Create the new profile for the host
-        new_event_producer = EventProducer(self.db.nextsequence,
-                                           event_producer_name,
-                                           event_producer_pattern,
-                                           event_producer_durable,
-                                           event_producer_encrypted)
+        new_event_producer = EventProducer(
+            self.db.next_sequence_value(tenant.tenant_id),
+            event_producer_name,
+            event_producer_pattern,
+            event_producer_durable,
+            event_producer_encrypted)
 
         tenant.event_producers.append(new_event_producer)
-        self.db.update(tenant.format(), tenant.get_id())
+        self.db.update('tenant', tenant.format_for_save())
 
         resp.status = falcon.HTTP_201
         resp.set_header('Location',
@@ -346,7 +344,7 @@ class EventProducerResource(ApiResource):
         if 'encrypted' in body.keys():
             event_producer.encrypted = body['encrypted']
 
-        self.db.update(tenant.format(), tenant.get_id())
+        self.db.update('tenant', tenant.format_for_save())
 
         resp.status = falcon.HTTP_200
 
@@ -369,7 +367,7 @@ class EventProducerResource(ApiResource):
             if event_producer.get_id() in profile.event_producers:
                 profile.event_producers.remove(event_producer.get_id())
 
-        self.db.update(tenant.format(), tenant.get_id())
+        self.db.update('tenant', tenant.format_for_save())
 
         resp.status = falcon.HTTP_200
 
@@ -428,11 +426,13 @@ class HostsResource(ApiResource):
                 _profile_not_found()
 
         # Create the new host definition
-        new_host = Host(self.db.nextsequence, hostname, ip_address_v4,
-                        ip_address_v6, profile_id)
+        new_host = Host(
+            self.db.next_sequence_value(tenant.tenant_id),
+            hostname, ip_address_v4,
+            ip_address_v6, profile_id)
 
         tenant.hosts.append(new_host)
-        self.db.update(tenant.format(), tenant.get_id())
+        self.db.update('tenant', tenant.format_for_save())
 
         resp.status = falcon.HTTP_201
         resp.set_header('Location',
@@ -444,7 +444,6 @@ class HostResource(ApiResource):
 
     def __init__(self, db_handler):
         self.db = db_handler
-
 
     def on_get(self, req, resp, tenant_id, host_id):
         #verify the tenant exists
@@ -501,7 +500,7 @@ class HostResource(ApiResource):
 
             host.profile = profile_id
 
-        self.db.update(tenant.format(), tenant.get_id())
+        self.db.update('tenant', tenant.format_for_save())
 
         resp.status = falcon.HTTP_200
 
@@ -519,6 +518,6 @@ class HostResource(ApiResource):
 
         #delete the host
         tenant.hosts.remove(host)
-        self.db.update(tenant.format(), tenant.get_id())
+        self.db.update('tenant', tenant.format_for_save())
 
         resp.status = falcon.HTTP_200

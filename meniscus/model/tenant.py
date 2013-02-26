@@ -96,5 +96,11 @@ application events.
                     {'tenant_id': self.tenant_id,
                      'hosts': [h.format() for h in self.hosts],
                      'profiles': [p.format() for p in self.profiles],
-                     'event_producers': [p.format() for p in self.event_producers]}
+                     'event_producers':
+                         [p.format() for p in self.event_producers]}
         }
+
+    def format_for_save(self):
+        tenant_dict = self.format()
+        tenant_dict['tenant']['_id'] = self._id
+        return tenant_dict

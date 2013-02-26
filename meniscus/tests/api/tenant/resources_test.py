@@ -15,7 +15,10 @@ def suite():
     suite.addTest(WhenTestingUserResource())
     suite.addTest(WhenTestingHostProfilesResource())
     suite.addTest(WhenTestingHostProfileResource())
-    suite.addTest(WhenTestingTenantResource())
+    suite.addTest(WhenTestingEventProducersResource())
+    suite.addTest(WhenTestingEventProducerResource())
+    suite.addTest(WhenTestingHostsResource())
+    suite.addTest(WhenTestingHostResource())
     return suite
 
 

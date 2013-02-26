@@ -94,11 +94,11 @@ class HostProfilesResource(ApiResource):
         resp.body = json.dumps([p.format() for p in tenant.profiles])
 
     def on_post(self, req, resp, tenant_id):
-        tenant = find_tenant(self.db, tenant_id=tenant_id,
-                             when_not_found=_tenant_not_found)
-
         body = load_body(req)
         profile_name = body['name']
+
+        tenant = find_tenant(self.db, tenant_id=tenant_id,
+                             when_not_found=_tenant_not_found)
 
         # Check if the tenant already has a profile with this name
         for profile in tenant.profiles:
@@ -154,6 +154,9 @@ class HostProfileResource(ApiResource):
         resp.body = json.dumps(profile.format())
 
     def on_put(self, req, resp, tenant_id, profile_id):
+        #load the message
+        body = load_body(req)
+
         #verify the tenant exists
         tenant = find_tenant(self.db, tenant_id=tenant_id,
                              when_not_found=_tenant_not_found)
@@ -165,9 +168,6 @@ class HostProfileResource(ApiResource):
         #verify the profile belongs to the tenant
         if not profile in tenant.profiles:
             _profile_not_found()
-
-        #load the message
-        body = load_body(req)
 
         #if attributes are present in message, update the profile
         if 'name' in body.keys():
@@ -238,12 +238,12 @@ class EventProducersResource(ApiResource):
         resp.body = json.dumps([p.format() for p in tenant.event_producers])
 
     def on_post(self, req, resp, tenant_id):
-        tenant = find_tenant(self.db, tenant_id=tenant_id,
-                             when_not_found=_tenant_not_found)
-
         body = load_body(req)
         event_producer_name = body['name']
         event_producer_pattern = body['pattern']
+
+        tenant = find_tenant(self.db, tenant_id=tenant_id,
+                             when_not_found=_tenant_not_found)
 
         #if durable or encrypted aren't specified, set to False
         if 'durable' in body.keys():
@@ -304,6 +304,8 @@ class EventProducerResource(ApiResource):
         resp.body = json.dumps(event_producer.format())
 
     def on_put(self, req, resp, tenant_id, event_producer_id):
+        body = load_body(req)
+
         #verify the tenant exists
         tenant = find_tenant(self.db, tenant_id=tenant_id,
                              when_not_found=_tenant_not_found)
@@ -317,8 +319,6 @@ class EventProducerResource(ApiResource):
         #verify the event_producer belongs to the tenant
         if not event_producer in tenant.event_producers:
             _producer_not_found()
-
-        body = load_body(req)
 
         #if a key is present, update the event_producer with the value
         if 'name' in body.keys():
@@ -371,10 +371,11 @@ class HostsResource(ApiResource):
         resp.body = json.dumps([h.format() for h in tenant.hosts])
 
     def on_post(self, req, resp, tenant_id):
+        body = load_body(req)
+
         tenant = find_tenant(self.db, tenant_id=tenant_id,
                              when_not_found=_tenant_not_found)
 
-        body = load_body(req)
         hostname = body['hostname']
         ip_address = body['ip_address']
 
@@ -432,6 +433,8 @@ class HostResource(ApiResource):
         resp.body = json.dumps(host.format())
 
     def on_put(self, req, resp, tenant_id, host_id):
+        body = load_body(req)
+
         #verify the tenant exists
         tenant = find_tenant(self.db, tenant_id=tenant_id,
                              when_not_found=_tenant_not_found)
@@ -443,8 +446,6 @@ class HostResource(ApiResource):
         #verify the host belongs to the tenant
         if not host in tenant.hosts:
             _host_not_found()
-
-        body = load_body(req)
 
         if 'hostname' in body.keys():
             host.hostname = body['hostname']

@@ -216,6 +216,7 @@ class HostProfileResource(ApiResource):
         for host in tenant.hosts:
             if host.profile == profile.get_id():
                 host.profile = None
+
         self.db.update(tenant.format(), tenant.get_id())
 
         resp.status = falcon.HTTP_200
@@ -370,31 +371,24 @@ class HostsResource(ApiResource):
         self.db = db_handler
 
     def on_get(self, req, resp, tenant_id):
-        tenant = find_tenant(self.db, tenant_id=tenant_id,
-                             when_not_found=_tenant_not_found)
+        #verify the tenant exists
+        tenant = find_tenant(self.db, tenant_id=tenant_id)
+
+        if not tenant:
+            _tenant_not_found()
 
         resp.status = falcon.HTTP_200
         resp.body = json.dumps([h.format() for h in tenant.hosts])
 
     def on_post(self, req, resp, tenant_id):
-        tenant = find_tenant(self.db, tenant_id=tenant_id,
-                             when_not_found=_tenant_not_found)
+        #verify the tenant exists
+        tenant = find_tenant(self.db, tenant_id=tenant_id)
+
+        if not tenant:
+            _tenant_not_found()
 
         body = load_body(req)
         hostname = body['hostname']
-        ip_address = body['ip_address']
-
-        #if profile id is not in post message, then use a null profile
-        if 'profile_id' in body.keys():
-            profile_id = body['profile_id']
-        else:
-            profile_id = None
-            profile = None
-
-        #if profile id is in post message, then make sure it is valid profile
-        if profile_id:
-            profile = find_host_profile(self.db, id=profile_id,
-                                        when_not_found=_profile_not_found)
 
         # Check if the tenant already has a host with this hostname
         for host in tenant.hosts:
@@ -403,17 +397,37 @@ class HostsResource(ApiResource):
                       'Host with hostname {0} already exists with'
                       ' id={1}'.format(hostname, host.id))
 
+        ip_address_v4 = None
+        if 'ip_address_v4' in body.keys():
+            ip_address_v4 = body['ip_address_v4']
+
+        ip_address_v6 = None
+        if 'ip_address_v6' in body.keys():
+            ip_address_v6 = body['ip_address_v4']
+
+        profile_id = None
+        #if profile id is not in post message, then use a null profile
+        if 'profile_id' in body.keys():
+            profile_id = body['profile_id']
+
+        #if profile id is in post message, then make sure it is valid profile
+        if profile_id:
+            #verify the profile exists and belongs to the tenant
+            profile = find_host_profile(tenant, profile_id=profile_id)
+            if not profile:
+                _profile_not_found()
+
         # Create the new host definition
-        new_host = Host(hostname, ip_address, profile)
-        
-        self.db.add(new_host)
+        new_host = Host(self.db.nextsequence, hostname, ip_address_v4,
+                        ip_address_v6, profile_id)
+
         tenant.hosts.append(new_host)
-        self.db().commit()
+        self.db.update(tenant.format(), tenant.get_id())
 
         resp.status = falcon.HTTP_201
         resp.set_header('Location',
                         '/v1/{0}/hosts/{1}'
-                        .format(tenant_id, new_host.id))
+                        .format(tenant_id, new_host.get_id))
 
 
 class HostResource(ApiResource):
@@ -429,8 +443,9 @@ class HostResource(ApiResource):
             _tenant_not_found()
 
         #verify the hosts exists
-        host = find_host(self.db, host_id,
-                         when_not_found=_host_not_found)
+        host = find_host(tenant, host_id=host_id)
+        if not host:
+            _host_not_found()
 
         #verify the host belongs to the tenant
         if not host in tenant.hosts:
@@ -447,8 +462,9 @@ class HostResource(ApiResource):
             _tenant_not_found()
 
         #verify the hosts exists
-        host = find_host(self.db, host_id,
-                         when_not_found=_host_not_found)
+        host = find_host(tenant, host_id=host_id)
+        if not host:
+            _host_not_found()
 
         #verify the host belongs to the tenant
         if not host in tenant.hosts:
@@ -456,28 +472,33 @@ class HostResource(ApiResource):
 
         body = load_body(req)
 
-        if 'hostname' in body.keys():
-            host.hostname = body['hostname']
+        if 'hostname' in body.keys() and host.hostname != body['hostname']:
+            # Check if the tenant already has a host with this hostname
+            hostname = body['hostname']
+            for duplicate_host in tenant.hosts:
+                if duplicate_host.hostname == hostname:
+                    abort(falcon.HTTP_400,
+                          'Host with hostname {0} already exists with'
+                          ' id={1}'.format(hostname, host.id))
+            host.hostname = hostname
 
-        if 'ip_address' in body.keys():
-            host.ip_address = body['ip_address']
+        if 'ip_address_v4' in body.keys():
+            host.ip_address_v4 = body['ip_address_v4']
+
+        if 'ip_address_v6' in body.keys():
+            host.ip_address_v6 = body['ip_address_v6']
 
         if 'profile_id' in body.keys():
             profile_id = body['profile_id']
 
-            #if profile_id has a new value,
-            # find the profile and assign it to the host
-            if profile_id:
-                profile = find_host_profile(self.db, id=profile_id,
-                                            when_not_found=_profile_not_found)
-                host.profile = profile
+            #verify the profile exists and belongs to the tenant
+            profile = find_host_profile(tenant, profile_id=profile_id)
+            if not profile:
+                _profile_not_found()
 
-            #if the profile id key passed an empty value,
-            # then remove the profile form the host
-            else:
-                host.profile = None
+            host.profile = profile_id
 
-        self.db.commit()
+        self.db.update(tenant.format(), tenant.get_id())
 
         resp.status = falcon.HTTP_200
 
@@ -489,8 +510,9 @@ class HostResource(ApiResource):
             _tenant_not_found()
 
         #verify the hosts exists
-        host = find_host(self.db, host_id,
-                         when_not_found=_host_not_found)
+        host = find_host(tenant, host_id=host_id)
+        if not host:
+            _host_not_found()
 
         #verify the host belongs to the tenant
         if not host in tenant.hosts:

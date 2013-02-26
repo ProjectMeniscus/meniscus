@@ -512,5 +512,75 @@ class WhenTestingEventProducerResource(TestingTenantApiBase):
         self.assertEquals(falcon.HTTP_200, self.resp.status)
 
 
+class WhenTestingHostProfilesResource(TestingTenantApiBase):
+
+    def setResource(self):
+        self.resource = HostProfilesResource(self.db_handler)
+
+    def test_should_throw_exception_for_tenants_not_found_on_get(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_not_found):
+            with self.assertRaises(falcon.HTTPError):
+                self.resource.on_get(self.req, self.resp, self.tenant_id)
+
+    def test_should_return_200_on_get(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            self.resource.on_get(self.req, self.resp, self.tenant_id)
+        self.assertEquals(falcon.HTTP_200, self.resp.status)
+
+    def test_should_return_profiles_json_on_get(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            self.resource.on_get(self.req, self.resp, self.tenant_id)
+
+        parsed_body = json.loads(self.resp.body)
+
+        self.assertEqual(len(self.profiles), len(parsed_body))
+
+        for profile in parsed_body:
+            self.assertTrue('id' in profile.keys())
+            self.assertTrue('name' in profile.keys())
+            self.assertTrue('event_producers' in profile.keys())
+
+    def test_should_throw_exception_for_tenants_not_found_on_post(self):
+        self.stream.read.return_value = u'{ "name" : "profile1" }'
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_not_found):
+            with self.assertRaises(falcon.HTTPError):
+                self.resource.on_post(self.req, self.resp, self.tenant_id)
+
+    def test_should_throw_exception_for_profile_found_on_post(self):
+        self.stream.read.return_value = u'{ "name" : "profile1" }'
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            with self.assertRaises(falcon.HTTPError):
+                self.resource.on_post(self.req, self.resp, self.tenant_id)
+
+    def test_should_throw_exception_for_producer_not_found_on_post(self):
+        self.stream.read.return_value = \
+            u'{ "name" : "profile99", "event_producer_ids":[1,2]}'
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            with self.assertRaises(falcon.HTTPError):
+                self.resource.on_post(self.req, self.resp, self.tenant_id)
+
+    def test_should_return_201_on_post_no_event_producers(self):
+        self.stream.read.return_value = \
+            u'{ "name" : "profile99", "event_producer_ids":[]}'
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            self.resource.on_post(self.req, self.resp, self.tenant_id)
+        self.assertEquals(falcon.HTTP_201, self.resp.status)
+
+    def test_should_return_201_on_post_with_event_producers(self):
+        self.stream.read.return_value = \
+            u'{ "name" : "profile99", "event_producer_ids":[432]}'
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            self.resource.on_post(self.req, self.resp, self.tenant_id)
+        self.assertEquals(falcon.HTTP_201, self.resp.status)
+
+
 if __name__ == '__main__':
     unittest.main()

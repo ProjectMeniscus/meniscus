@@ -83,22 +83,10 @@ class WhenTestingVersionResource(unittest.TestCase):
         self.assertEqual('current', parsed_body['v1'])
 
 
-class WhenTestingTenantResource(unittest.TestCase):
+class WhenTestingTenantResource(TestingTenantApiBase):
 
-    def setUp(self):
-
-        self.db_handler = MagicMock()
-
-        self.stream = MagicMock()
-
-        self.req = MagicMock()
-        self.req.stream = self.stream
-
-        self.resp = MagicMock()
+    def setResource(self):
         self.resource = TenantResource(self.db_handler)
-
-        self.tenant_not_found = MagicMock(return_value=None)
-        self.tenant_found = MagicMock(return_value=Tenant('1234'))
 
     def test_should_throw_exception_for_tenants_that_exist_on_post(self):
         self.stream.read.return_value = u'{ "tenant_id" : "1234" }'
@@ -116,23 +104,10 @@ class WhenTestingTenantResource(unittest.TestCase):
         self.assertEquals(falcon.HTTP_201, self.resp.status)
 
 
-class WhenTestingUserResource(unittest.TestCase):
+class WhenTestingUserResource(TestingTenantApiBase):
 
-    def setUp(self):
-
-        self.db_handler = MagicMock()
-
-        self.stream = MagicMock()
-
-        self.req = MagicMock()
-        self.req.stream = self.stream
-
-        self.resp = MagicMock()
+    def setResource(self):
         self.resource = UserResource(self.db_handler)
-
-        self.tenant_id = '1234'
-        self.tenant_not_found = MagicMock(return_value=None)
-        self.tenant_found = MagicMock(return_value=Tenant(self.tenant_id))
 
     def test_should_throw_exception_for_tenants_not_found_on_get(self):
         with patch('meniscus.api.tenant.resources.find_tenant',

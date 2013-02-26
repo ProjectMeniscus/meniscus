@@ -1,6 +1,7 @@
 
 
 class EventProducer():
+
     """
     An event producer is a nicer way of describing a parsing template
     for a producer of events. Event producer definitions should be

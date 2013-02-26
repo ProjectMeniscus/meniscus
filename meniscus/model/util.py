@@ -1,10 +1,6 @@
 from meniscus.model.tenant import Tenant, Host, HostProfile, EventProducer
 
 
-def _empty_condition():
-    raise NotImplementedError
-
-
 def find_tenant(ds_handler, tenant_id):
     """
     Retrieves a dictionary describing a tenant object and its Hosts, Profiles,

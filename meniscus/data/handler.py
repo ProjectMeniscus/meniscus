@@ -2,22 +2,23 @@ from oslo.config import cfg
 from meniscus.config import get_config
 
 # Handler configuration options
-datasource_group = cfg.OptGroup(name='datasource', title='Datasource Configuration Options')
+datasource_group = cfg.OptGroup(name='datasource',
+                                title='Datasource Configuration Options')
 get_config().register_group(datasource_group)
 
 HANDLER_OPTIONS = [
-   cfg.StrOpt('handler_name',
+    cfg.StrOpt('handler_name',
                default='memory',
                help="""Sets the name of the handler to load for
                        datasource interactions. e.g. mongodb
                     """
                ),
-   cfg.BoolOpt('verbose',
-               default=False,
-               help="""Sets whether or not the datasource handlers
-                       should be verbose in their logging output.
+    cfg.BoolOpt('verbose',
+                default=False,
+                help="""Sets whether or not the datasource handlers
+                        should be verbose in their logging output.
                     """
-               )
+                )
 ]
 
 get_config().register_opts(HANDLER_OPTIONS, group=datasource_group)
@@ -61,7 +62,7 @@ class DatasourceHandler():
 
     def create_sequence(self, sequence_name):
         raise NotImplementedError
-    
+
     def delete_sequence(self, sequence_name):
         raise NotImplementedError
 
@@ -86,6 +87,7 @@ class DatasourceHandler():
 
 # Handler registration
 _DATASOURCE_HANDLERS = DatasourceHandlerManager()
+
 
 def datasource_handler(conf):
     handler_def = _DATASOURCE_HANDLERS.get(conf.datasource.handler_name)

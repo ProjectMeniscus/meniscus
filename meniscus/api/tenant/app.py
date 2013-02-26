@@ -21,7 +21,7 @@ def db_session():
 def _engine_from_config(configuration):
     configuration = dict(configuration)
     url = configuration.pop('url')
-    
+
     return create_engine(url, **configuration)
 
 

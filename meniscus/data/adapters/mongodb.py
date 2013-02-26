@@ -10,29 +10,25 @@ get_config().register_group(_mongodb_group)
 
 _MONGODB_OPTIONS = [
     cfg.ListOpt('mongo_servers',
-               default=['localhost:27017'],
-               help="""MongoDB servers to connect to.
-                    """
-               ),
-   cfg.StrOpt('database',
+                default=['localhost:27017'],
+                help="""MongoDB servers to connect to."""
+                ),
+    cfg.StrOpt('database',
                default='test',
-               help="""MongoDB database to use.
-                    """
+               help="""MongoDB database to use."""
                ),
-   cfg.StrOpt('username',
+    cfg.StrOpt('username',
                default='',
                help="""MongoDB username to use when authenticating.
                        If this value is left unset, then authentication
-                       against the MongoDB will not be utilized.
-                    """,
+                       against the MongoDB will not be utilized.""",
                secret=True
                ),
-   cfg.StrOpt('password',
+    cfg.StrOpt('password',
                default='',
                help="""MongoDB password to use when authenticating.
                        If this value is left unset, then authentication
-                       against the MongoDB will not be utilized.
-                    """,
+                       against the MongoDB will not be utilized.""",
                secret=True
                )
 ]
@@ -58,7 +54,7 @@ class MongoDatasourceHandler(DatasourceHandler):
 
         if self.username and self.password:
             self.database.authenticate(self.username, self.password)
-        
+
         self.status = STATUS_CONNECTED
 
     def close(self):
@@ -93,13 +89,20 @@ class MongoDatasourceHandler(DatasourceHandler):
         self._check_connection()
         self.database[object_name].insert(document)
 
-    def update(self, object_name, object_id, document=dict()):
-        raise NotImplementedError
+    def update(self, object_name, document=dict()):
+        self._check_connection()
+
+        if '_id' not in document:
+            raise DatabaseHandlerError(
+                'The document must have a field "_id" in its root in '
+                'order to perform an update operation.')
+        
+        self.database[object_name].save(document)
 
     def delete(self, object_name, query_filter=dict(), limit_one=False):
         self.database[object_name].remove(query_filter, True)
 
 
-# Registers this handler and make it available for use
 def register_mongodb():
+    """Registers this handler and makes it available for use"""
     register_handler('mongodb', MongoDatasourceHandler)

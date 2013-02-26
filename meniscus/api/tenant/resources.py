@@ -163,7 +163,7 @@ class HostProfileResource(ApiResource):
             _tenant_not_found()
 
         #verify the profile exists and belongs to the tenant
-        profile = find_host_profile(self.db, profile_id=profile_id)
+        profile = find_host_profile(tenant, profile_id=profile_id)
         if not profile:
             _profile_not_found()
 
@@ -196,7 +196,7 @@ class HostProfileResource(ApiResource):
             #update the list of event_producers
             profile.event_producers =  producer_ids
 
-        self.db.update(tenant)
+        self.db.update(tenant.format())
         resp.status = falcon.HTTP_200
 
     def on_delete(self, req, resp, tenant_id, profile_id):
@@ -206,16 +206,12 @@ class HostProfileResource(ApiResource):
         if not tenant:
             _tenant_not_found()
 
-        #verify the profile exists
-        profile = find_host_profile(self.db, id=profile_id,
-                                    when_not_found=_profile_not_found)
-
-        #verify the profile belongs to the tenant
-        if not profile in tenant.profiles:
+        #verify the profile exists and belongs to the tenant
+        profile = find_host_profile(tenant, profile_id=profile_id)
+        if not profile:
             _profile_not_found()
 
-        self.db.delete(profile)
-        self.db.commit()
+        self.db.update(tenant.format())
 
         resp.status = falcon.HTTP_200
 

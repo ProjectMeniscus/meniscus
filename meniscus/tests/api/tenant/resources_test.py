@@ -253,7 +253,8 @@ class WhenTestingHostProfileResource(unittest.TestCase):
         self.profiles = [HostProfile(123, 'profile1'),
                          HostProfile(456, 'profile2')]
 
-        self.producers = [EventProducer(432, 'producer1', 'syslog')]
+        self.producers = [EventProducer(432, 'producer1', 'syslog'),
+                          EventProducer(433, 'producer2', 'syslog')]
 
         self.tenant_id = '1234'
         self.tenant_not_found = MagicMock(return_value=None)
@@ -308,15 +309,15 @@ class WhenTestingHostProfileResource(unittest.TestCase):
                 self.resource.on_put(self.req, self.resp, self.tenant_id,
                                      self.not_valid_profile_id)
 
-    def test_should_throw_exception_for_profile_with_duplicate_name(self):
-        self.stream.read.return_value = u'{ "name" : "profile2" }'
+    def test_should_throw_exception_for_profile_duplicate_name_on_put(self):
+        self.req.stream.read.return_value = u'{ "name" : "profile2" }'
         with patch('meniscus.api.tenant.resources.find_tenant',
                    self.tenant_found):
             with self.assertRaises(falcon.HTTPError):
                 self.resource.on_put(self.req, self.resp, self.tenant_id,
                                      self.profile_id)
 
-    def test_should_throw_exception_for_invalid_producers(self):
+    def test_should_throw_exception_for_invalid_producers_on_put(self):
         self.stream.read.return_value = \
             u'{ "name" : "profile99", "event_producer_ids":[1,2]}'
         with patch('meniscus.api.tenant.resources.find_tenant',
@@ -327,13 +328,34 @@ class WhenTestingHostProfileResource(unittest.TestCase):
 
     def test_should_return_200_on_put(self):
         self.stream.read.return_value = \
-            u'{ "name" : "profile99", "event_producer_ids":[1,2]}'
+            u'{ "name" : "profile99", "event_producer_ids":[432]}'
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            self.resource.on_put(self.req, self.resp, self.tenant_id,
+                                 self.profile_id)
+        self.assertEquals(falcon.HTTP_200, self.resp.status)
+
+    def test_should_throw_exception_for_tenants_not_found_on_delete(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_not_found):
+            with self.assertRaises(falcon.HTTPError):
+                self.resource.on_delete(self.req, self.resp, self.tenant_id,
+                                     self.profile_id)
+
+    def test_should_throw_exception_for_profile_not_found_on_delete(self):
         with patch('meniscus.api.tenant.resources.find_tenant',
                    self.tenant_found):
             with self.assertRaises(falcon.HTTPError):
-                self.resource.on_put(self.req, self.resp, self.tenant_id,
-                                     self.profile_id)
+                self.resource.on_delete(self.req, self.resp, self.tenant_id,
+                                     self.not_valid_profile_id)
 
-    
+    def test_should_return_200_on_delete(self):
+        self.stream.read.return_value = \
+            u'{ "name" : "profile99", "event_producer_ids":[432]}'
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+                self.resource.on_delete(self.req, self.resp, self.tenant_id,
+                                        self.profile_id)
+        self.assertEquals(falcon.HTTP_200, self.resp.status)
 if __name__ == '__main__':
     unittest.main()

@@ -1,4 +1,4 @@
-from meniscus.node.drivers.rfc5424 import *
+from meniscus.worker.drivers.rfc5424 import *
 
 import time
 import cProfile

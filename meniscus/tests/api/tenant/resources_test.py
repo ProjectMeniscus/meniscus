@@ -1,5 +1,5 @@
 from meniscus.api.tenant.resources import *
-from meniscus.model.tenant import Tenant, Host, HostProfile
+from meniscus.data.model.tenant import Tenant, Host, HostProfile
 
 from mock import MagicMock
 from mock import patch

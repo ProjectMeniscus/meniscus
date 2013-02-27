@@ -1,0 +1,4 @@
+[worker_cfg]
+verbose=true
+personality='cfg_worker_personality'
+name='cfg_worker_name'

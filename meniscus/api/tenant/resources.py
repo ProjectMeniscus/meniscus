@@ -2,9 +2,9 @@ import json
 import falcon
 
 from meniscus.api import ApiResource, load_body, abort
-from meniscus.model.util import find_tenant, find_host, find_host_profile, \
+from meniscus.data.model.util import find_tenant, find_host, find_host_profile, \
     find_event_producer
-from meniscus.model.tenant import Tenant, Host, HostProfile, EventProducer
+from meniscus.data.model.tenant import Tenant, Host, HostProfile, EventProducer
 
 
 def _tenant_not_found():

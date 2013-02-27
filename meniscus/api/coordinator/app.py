@@ -1,7 +1,7 @@
 import falcon
 
 from meniscus.api.tenant.resources import VersionResource
-from meniscus.api.cfg.resources import NodeConfigurationResource
+from meniscus.api.coordinator.resources import NodeConfigurationResource
 #
 # from config import config
 # from sqlalchemy import create_engine, MetaData

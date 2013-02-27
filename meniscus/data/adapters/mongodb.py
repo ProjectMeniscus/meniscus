@@ -96,7 +96,7 @@ class MongoDatasourceHandler(DatasourceHandler):
             raise DatabaseHandlerError(
                 'The document must have a field "_id" in its root in '
                 'order to perform an update operation.')
-        
+
         self.database[object_name].save(document)
 
     def delete(self, object_name, query_filter=dict(), limit_one=False):

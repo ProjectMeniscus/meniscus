@@ -14,5 +14,3 @@ NODE_OPTIONS = [
 ]
 
 get_config().register_opts(NODE_OPTIONS, group=node_group)
-
-

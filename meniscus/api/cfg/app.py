@@ -45,4 +45,3 @@ application = api = falcon.API()
 
 api.add_route('/', versions)
 api.add_route('/v1/', node_cfg)
-

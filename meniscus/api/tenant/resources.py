@@ -8,18 +8,30 @@ from meniscus.model.tenant import Tenant, Host, HostProfile, EventProducer
 
 
 def _tenant_not_found():
+    """
+    sends an http 404 response to the caller
+    """
     abort(falcon.HTTP_404, 'Unable to locate tenant.')
 
 
 def _host_not_found():
+    """
+    sends an http 404 response to the caller
+    """
     abort(falcon.HTTP_400, 'Unable to locate host.')
 
 
 def _profile_not_found():
+    """
+    sends an http 404 response to the caller
+    """
     abort(falcon.HTTP_400, 'Unable to locate host profile.')
 
 
 def _producer_not_found():
+    """
+    sends an http 404 response to the caller
+    """
     abort(falcon.HTTP_400, 'Unable to locate event producer.')
 
 
@@ -80,7 +92,7 @@ class UserResource(ApiResource):
 
 
 class HostProfilesResource(ApiResource):
-    
+
     def __init__(self, db_handler):
         self.db = db_handler
 
@@ -140,7 +152,7 @@ class HostProfilesResource(ApiResource):
 
 
 class HostProfileResource(ApiResource):
-    
+
     def __init__(self, db_handler):
         self.db = db_handler
 

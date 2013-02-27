@@ -66,7 +66,7 @@ class UserResource(ApiResource):
             _tenant_not_found()
 
         resp.status = falcon.HTTP_200
-        resp.body = json.dumps(tenant.format())
+        resp.body = json.dumps({'tenant': tenant.format()})
 
     def on_delete(self, req, resp, tenant_id):
         tenant = find_tenant(self.db, tenant_id=tenant_id)
@@ -93,7 +93,8 @@ class HostProfilesResource(ApiResource):
         resp.status = falcon.HTTP_200
 
         #jsonify a list of formatted profiles
-        resp.body = json.dumps([p.format() for p in tenant.profiles])
+        resp.body = json.dumps({'profiles':
+                               [p.format() for p in tenant.profiles]})
 
     def on_post(self, req, resp, tenant_id):
         body = load_body(req)
@@ -156,7 +157,7 @@ class HostProfileResource(ApiResource):
             _profile_not_found()
 
         resp.status = falcon.HTTP_200
-        resp.body = json.dumps(profile.format())
+        resp.body = json.dumps({'profile': profile.format()})
 
     def on_put(self, req, resp, tenant_id, profile_id):
         #load the message
@@ -236,7 +237,8 @@ class EventProducersResource(ApiResource):
             _tenant_not_found()
 
         resp.status = falcon.HTTP_200
-        resp.body = json.dumps([p.format() for p in tenant.event_producers])
+        resp.body = json.dumps({'event_producers':
+                               [p.format() for p in tenant.event_producers]})
 
     def on_post(self, req, resp, tenant_id):
         body = load_body(req)
@@ -247,9 +249,6 @@ class EventProducersResource(ApiResource):
 
         event_producer_name = body['name']
         event_producer_pattern = body['pattern']
-
-        tenant = find_tenant(self.db, tenant_id=tenant_id,
-                             when_not_found=_tenant_not_found)
 
         #if durable or encrypted aren't specified, set to False
         if 'durable' in body.keys():
@@ -306,7 +305,7 @@ class EventProducerResource(ApiResource):
             _producer_not_found()
 
         resp.status = falcon.HTTP_200
-        resp.body = json.dumps(event_producer.format())
+        resp.body = json.dumps({'event_producer': event_producer.format()})
 
     def on_put(self, req, resp, tenant_id, event_producer_id):
         body = load_body(req)
@@ -385,7 +384,7 @@ class HostsResource(ApiResource):
             _tenant_not_found()
 
         resp.status = falcon.HTTP_200
-        resp.body = json.dumps([h.format() for h in tenant.hosts])
+        resp.body = json.dumps({'hosts': [h.format() for h in tenant.hosts]})
 
     def on_post(self, req, resp, tenant_id):
         body = load_body(req)
@@ -437,7 +436,7 @@ class HostsResource(ApiResource):
         resp.status = falcon.HTTP_201
         resp.set_header('Location',
                         '/v1/{0}/hosts/{1}'
-                        .format(tenant_id, new_host.get_id))
+                        .format(tenant_id, new_host.get_id()))
 
 
 class HostResource(ApiResource):
@@ -458,7 +457,7 @@ class HostResource(ApiResource):
             _host_not_found()
 
         resp.status = falcon.HTTP_200
-        resp.body = json.dumps(host.format())
+        resp.body = json.dumps({'host': host.format()})
 
     def on_put(self, req, resp, tenant_id, host_id):
         body = load_body(req)

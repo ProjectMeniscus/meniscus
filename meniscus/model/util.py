@@ -7,9 +7,9 @@ def _empty_condition():
 
 def find_tenant(ds_handler, tenant_id):
     """
-Retrieves a dictionary describing a tenant object and its Hosts, Profiles,
-and eventProducers and maps them to a tenant object
-"""
+    Retrieves a dictionary describing a tenant object and its Hosts, Profiles,
+    and eventProducers and maps them to a tenant object
+    """
 
     # get the tenant dictionary form the data source
     tenant_dict = ds_handler.find_one('tenant', {'tenant_id': tenant_id})
@@ -29,7 +29,7 @@ and eventProducers and maps them to a tenant object
     #Create a list of EventProducer objects from the dictionary
     event_producers = [EventProducer(
         e['id'], e['name'], e['pattern'], e['durable'], e['encrypted'])
-                       for e in tenant_dict['event_producers']]
+        for e in tenant_dict['event_producers']]
 
     #Create the parent tenant object
     tenant = Tenant(tenant_dict['tenant_id'], hosts, profiles, event_producers,
@@ -39,7 +39,11 @@ and eventProducers and maps them to a tenant object
 
 
 def find_host(tenant, host_id=None, host_name=None):
+    """
+    searches the given tenant for a host matching either the id or hostname
+    """
     if host_id:
+        host_id = int(host_id)
         for host in tenant.hosts:
             if host_id == host.get_id():
                 return host
@@ -51,7 +55,11 @@ def find_host(tenant, host_id=None, host_name=None):
 
 
 def find_host_profile(tenant, profile_id=None, profile_name=None):
+    """
+    searches the given tenant for a profile matching either the id or name
+    """
     if profile_id:
+        profile_id = int(profile_id)
         for profile in tenant.profiles:
             if profile_id == profile.get_id():
                 return profile
@@ -64,7 +72,11 @@ def find_host_profile(tenant, profile_id=None, profile_name=None):
 
 
 def find_event_producer(tenant, producer_id=None, producer_name=None):
+    """
+    searches the given tenant for a producer matching either the id or name
+    """
     if producer_id:
+        producer_id = int(producer_id)
         for producer in tenant.event_producers:
             if producer_id == producer.get_id():
                 return producer

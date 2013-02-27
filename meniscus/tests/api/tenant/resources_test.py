@@ -172,9 +172,10 @@ class WhenTestingHostProfilesResource(TestingTenantApiBase):
 
         parsed_body = json.loads(self.resp.body)
 
-        self.assertEqual(len(self.profiles), len(parsed_body))
+        self.assertTrue('profiles' in parsed_body.keys())
+        self.assertEqual(len(self.profiles), len(parsed_body['profiles']))
 
-        for profile in parsed_body:
+        for profile in parsed_body['profiles']:
             self.assertTrue('id' in profile.keys())
             self.assertTrue('name' in profile.keys())
             self.assertTrue('event_producers' in profile.keys())
@@ -244,17 +245,17 @@ class WhenTestingHostProfileResource(TestingTenantApiBase):
                                  self.profile_id)
         self.assertEquals(falcon.HTTP_200, self.resp.status)
 
-    def test_should_return_profiles_json_on_get(self):
+    def test_should_return_profile_json_on_get(self):
         with patch('meniscus.api.tenant.resources.find_tenant',
                    self.tenant_found):
             self.resource.on_get(self.req, self.resp, self.tenant_id,
                                  self.profile_id)
 
         parsed_body = json.loads(self.resp.body)
-
-        self.assertTrue('id' in parsed_body.keys())
-        self.assertTrue('name' in parsed_body.keys())
-        self.assertTrue('event_producers' in parsed_body.keys())
+        self.assertTrue('profile' in parsed_body.keys())
+        self.assertTrue('id' in parsed_body['profile'].keys())
+        self.assertTrue('name' in parsed_body['profile'].keys())
+        self.assertTrue('event_producers' in parsed_body['profile'].keys())
 
     def test_should_throw_exception_for_tenants_not_found_on_put(self):
         self.stream.read.return_value = \
@@ -305,14 +306,14 @@ class WhenTestingHostProfileResource(TestingTenantApiBase):
                    self.tenant_not_found):
             with self.assertRaises(falcon.HTTPError):
                 self.resource.on_delete(self.req, self.resp, self.tenant_id,
-                                     self.profile_id)
+                                        self.profile_id)
 
     def test_should_throw_exception_for_profile_not_found_on_delete(self):
         with patch('meniscus.api.tenant.resources.find_tenant',
                    self.tenant_found):
             with self.assertRaises(falcon.HTTPError):
                 self.resource.on_delete(self.req, self.resp, self.tenant_id,
-                                     self.not_valid_profile_id)
+                                        self.not_valid_profile_id)
 
     def test_should_return_200_on_delete(self):
         with patch('meniscus.api.tenant.resources.find_tenant',
@@ -339,16 +340,18 @@ class WhenTestingEventProducersResource(TestingTenantApiBase):
             self.resource.on_get(self.req, self.resp, self.tenant_id)
         self.assertEquals(falcon.HTTP_200, self.resp.status)
 
-    def test_should_return_profiles_json_on_get(self):
+    def test_should_return_producer_json_on_get(self):
         with patch('meniscus.api.tenant.resources.find_tenant',
                    self.tenant_found):
             self.resource.on_get(self.req, self.resp, self.tenant_id)
 
         parsed_body = json.loads(self.resp.body)
 
-        self.assertEqual(len(self.profiles), len(parsed_body))
+        self.assertTrue('event_producers'in parsed_body.keys())
+        self.assertEqual(len(self.profiles),
+                         len(parsed_body['event_producers']))
 
-        for profile in parsed_body:
+        for profile in parsed_body['event_producers']:
             self.assertTrue('id' in profile.keys())
             self.assertTrue('name' in profile.keys())
             self.assertTrue('pattern' in profile.keys())
@@ -424,11 +427,12 @@ class WhenTestingEventProducerResource(TestingTenantApiBase):
 
         parsed_body = json.loads(self.resp.body)
 
-        self.assertTrue('id' in parsed_body.keys())
-        self.assertTrue('name' in parsed_body.keys())
-        self.assertTrue('pattern' in parsed_body.keys())
-        self.assertTrue('durable' in parsed_body.keys())
-        self.assertTrue('encrypted' in parsed_body.keys())
+        self.assertTrue('event_producer' in parsed_body.keys())
+        self.assertTrue('id' in parsed_body['event_producer'].keys())
+        self.assertTrue('name' in parsed_body['event_producer'].keys())
+        self.assertTrue('pattern' in parsed_body['event_producer'].keys())
+        self.assertTrue('durable' in parsed_body['event_producer'].keys())
+        self.assertTrue('encrypted' in parsed_body['event_producer'].keys())
 
     def test_should_throw_exception_for_tenants_not_found_on_put(self):
         self.stream.read.return_value = u'{ "name" : "producer1", ' \
@@ -520,9 +524,10 @@ class WhenTestingHostsResource(TestingTenantApiBase):
 
         parsed_body = json.loads(self.resp.body)
 
-        self.assertEqual(len(self.profiles), len(parsed_body))
+        self.assertTrue('hosts' in parsed_body.keys())
+        self.assertEqual(len(self.profiles), len(parsed_body['hosts']))
 
-        for profile in parsed_body:
+        for profile in parsed_body['hosts']:
             self.assertTrue('id' in profile.keys())
             self.assertTrue('hostname' in profile.keys())
             self.assertTrue('ip_address_v4' in profile.keys())
@@ -607,11 +612,12 @@ class WhenTestingHostResource(TestingTenantApiBase):
 
         parsed_body = json.loads(self.resp.body)
 
-        self.assertTrue('id' in parsed_body.keys())
-        self.assertTrue('hostname' in parsed_body.keys())
-        self.assertTrue('ip_address_v4' in parsed_body.keys())
-        self.assertTrue('ip_address_v6' in parsed_body.keys())
-        self.assertTrue('profile' in parsed_body.keys())
+        self.assertTrue('host'in parsed_body.keys())
+        self.assertTrue('id' in parsed_body['host'].keys())
+        self.assertTrue('hostname' in parsed_body['host'].keys())
+        self.assertTrue('ip_address_v4' in parsed_body['host'].keys())
+        self.assertTrue('ip_address_v6' in parsed_body['host'].keys())
+        self.assertTrue('profile' in parsed_body['host'].keys())
 
     def test_should_throw_exception_for_tenants_not_found_on_put(self):
         self.stream.read.return_value = u'{ "hostname" : "host1" }'

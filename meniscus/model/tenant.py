@@ -92,15 +92,13 @@ application events.
         return self._id
 
     def format(self):
-        return {'tenant':
-                    {'tenant_id': self.tenant_id,
-                     'hosts': [h.format() for h in self.hosts],
-                     'profiles': [p.format() for p in self.profiles],
-                     'event_producers':
-                         [p.format() for p in self.event_producers]}
-        }
+        return {'tenant_id': self.tenant_id,
+                'hosts': [h.format() for h in self.hosts],
+                'profiles': [p.format() for p in self.profiles],
+                'event_producers':
+                [p.format() for p in self.event_producers]}
 
     def format_for_save(self):
         tenant_dict = self.format()
-        tenant_dict['tenant']['_id'] = self._id
+        tenant_dict['_id'] = self._id
         return tenant_dict

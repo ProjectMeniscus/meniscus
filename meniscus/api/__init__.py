@@ -19,9 +19,9 @@ def abort(status=falcon.HTTP_500, message=None):
 
 def load_body(req, required=[]):
     """
-Helper function for loading an HTTP request body from JSON into a
-Python dictionary
-"""
+    Helper function for loading an HTTP request body from JSON into a
+    Python dictionary
+    """
     try:
         raw_json = req.stream.read()
 
@@ -30,7 +30,7 @@ Python dictionary
 
     try:
         parsed_body = json.loads(raw_json, 'utf-8')
+        return parsed_body
     except ValueError as ve:
         abort(falcon.HTTP_400, 'Malformed JSON')
 
-    return parsed_body

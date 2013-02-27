@@ -1,4 +1,4 @@
-from meniscus.api.cfg.resources import NodeConfigurationResource
+from meniscus.api.coordinator.resources import NodeConfigurationResource
 from mock import MagicMock
 
 import falcon

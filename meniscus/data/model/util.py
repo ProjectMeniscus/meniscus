@@ -1,4 +1,4 @@
-from meniscus.model.tenant import Tenant, Host, HostProfile, EventProducer
+from meniscus.data.model.tenant import Tenant, Host, HostProfile, EventProducer
 
 
 def _empty_condition():

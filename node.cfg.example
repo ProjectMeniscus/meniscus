@@ -1,4 +1,0 @@
-[node_cfg]
-verbose=true
-personality='cfg_node_personality'
-name='cfg_node_name'

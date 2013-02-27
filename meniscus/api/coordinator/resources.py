@@ -1,6 +1,4 @@
 import falcon
-import unittest
-import json
 
 from meniscus.api import ApiResource, abort
 
@@ -11,11 +9,6 @@ def _header_not_valid():
 
 def _role_not_valid():
     abort(falcon.HTTP_403, 'roles do not have access to this resource')
-
-
-def suite():
-    suite = unittest.TestSuite()
-    suite.addTest(NodeConfigurationResource())
 
 
 class NodeConfigurationResource(ApiResource):

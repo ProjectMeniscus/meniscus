@@ -33,4 +33,3 @@ def load_body(req, required=[]):
         return parsed_body
     except ValueError as ve:
         abort(falcon.HTTP_400, 'Malformed JSON')
-

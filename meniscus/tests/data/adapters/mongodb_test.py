@@ -48,7 +48,7 @@ class WhenConnectingToLiveMongoDB(unittest.TestCase):
         test_obj = self.handler.find_one('test', {'name': 'test_1'})
         self.assertEqual(10, test_obj['value'])
         self.assertEqual(obj_id, test_obj['_id'])
-        
+
         self.handler.delete('test', {'name': 'test_1'})
         test_obj = self.handler.find_one('test', {'name': 'test_1'})
         self.assertFalse(test_obj)

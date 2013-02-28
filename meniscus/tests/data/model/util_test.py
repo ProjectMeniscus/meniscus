@@ -4,6 +4,11 @@ from mock import MagicMock
 import unittest
 
 
+def suite():
+    suite = unittest.TestSuite()
+    suite.addTest(WhenTestingFindMethods())
+
+
 class WhenTestingFindMethods(unittest.TestCase):
 
     def setUp(self):

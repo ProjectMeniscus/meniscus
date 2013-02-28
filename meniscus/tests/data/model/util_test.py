@@ -1,5 +1,5 @@
-from meniscus.model.tenant import Tenant, Host, HostProfile, EventProducer
-from meniscus.model.util import *
+from meniscus.data.model.tenant import Tenant, Host, HostProfile, EventProducer
+from meniscus.data.model.util import *
 from mock import MagicMock
 import unittest
 

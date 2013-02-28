@@ -42,7 +42,8 @@ class WhenTestingUtilsRequest(unittest.TestCase):
     def test_should_return_http_200(self):
         with patch.object(requests, 'post') as mock_method:
             mock_method.return_value.status_code = falcon.HTTP_200
-            self.assertEqual(post_http(self.url, self.json_payload), falcon.HTTP_200)
+            self.assertEqual(post_http(self.url, self.json_payload),
+                             falcon.HTTP_200)
 
 
 if __name__ == '__main__':

@@ -1,19 +1,10 @@
 import falcon
 
-from meniscus.api.tenant.resources import *
-from meniscus.data import adapters
-from meniscus.data.handler import datasource_handler
-from meniscus.config import init_config, get_config
+from meniscus.api.tenant.resources import VersionResource, \
+    TenantResource, UserResource, HostProfilesResource, HostProfileResource, \
+    EventProducersResource, EventProducerResource, HostsResource, HostResource
 
-
-init_config()
-conf = get_config()
-_handler = datasource_handler(conf)
-_handler.connect()
-
-
-def db_handler():
-    return _handler
+from meniscus.api.datastore_init import db_handler
 
 
 # Resources

@@ -1,6 +1,6 @@
 import unittest
 from meniscus.config import init_config, get_config
-from meniscus.worker.worker_config import worker_group, WORKER_OPTIONS
+from meniscus.api.worker.worker_config import worker_group, WORKER_OPTIONS
 
 
 def suite():

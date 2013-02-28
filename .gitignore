@@ -4,3 +4,6 @@ build/
 .idea
 meniscus.egg-info
 .tox
+*.DS_Store*
+nosetests.xml
+meniscus/coverage.xml

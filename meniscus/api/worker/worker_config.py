@@ -3,7 +3,7 @@ from meniscus.config import get_config
 
 # Node configuration options
 worker_group = cfg.OptGroup(name='worker_cfg',
-                          title='Worker Configuration Test')
+                            title='Worker Configuration Test')
 get_config().register_group(worker_group)
 
 WORKER_OPTIONS = [

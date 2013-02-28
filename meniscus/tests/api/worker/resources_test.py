@@ -11,10 +11,11 @@ import unittest
 def suite():
     suite = unittest.TestSuite()
     suite.addTest(WhenTestingVersionResource())
+    suite.addTest(WhenTestingConfigurationResource())
     return suite
 
 
-class TestingTenantApiBase(unittest.TestCase):
+class TestingWorkerApiBase(unittest.TestCase):
 
     def setUp(self):
         pass

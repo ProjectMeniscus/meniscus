@@ -1,5 +1,6 @@
 import json
 import falcon
+import uwsgi
 
 from meniscus.api import ApiResource, load_body
 
@@ -18,7 +19,12 @@ class ConfigurationResource(ApiResource):
     latest configuration settings
     """
 
-    # TODO: This is a placeholder, to be finished yet
     def on_post(self, req, resp):
         body = load_body(req)
+
+        if uwsgi.cache_exists('configuration'):
+            uwsgi.cache_update('configuration', str(body))
+        else:
+            uwsgi.cache_set('configuration', str(body))
+
         resp.status = falcon.HTTP_202

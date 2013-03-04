@@ -4,10 +4,11 @@
         "callback": "192.168.100.101:8080/v1/configuration/"
     },
     "worker": {
-        "hostname": "worker-n01",
+        "hostname": "worker-01",
         "ip_address_v4": "192.168.100.101",
         "ip_address_v6": "::1",
         "personality": "correlation|normalization|storage",
+        "status": "available|waiting",
         "system_info": [
             {
                 "disk_gb": "20",

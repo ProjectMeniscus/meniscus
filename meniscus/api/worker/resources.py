@@ -3,7 +3,7 @@ import falcon
 try:
     import uwsgi
     UWSGI = True
-except:
+except ImportError:
     UWSGI = False
 
 from meniscus.api import ApiResource, load_body

@@ -1,10 +1,7 @@
 {
-    "event": {
-        "type": "worker.registration",
-        "callback": "192.168.100.101:8080/v1/configuration/"
-    },
-    "worker": {
+    "worker_registration": {
         "hostname": "worker-01",
+        "callback": "192.168.100.101:8080/v1/configuration/",
         "ip_address_v4": "192.168.100.101",
         "ip_address_v6": "::1",
         "personality": "correlation|normalization|storage",

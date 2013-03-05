@@ -35,3 +35,7 @@ class WhenConfiguring(unittest.TestCase):
         conf.register_opts(CFG_TEST_OPTIONS, group=test_group)
 
         self.assertTrue(conf.test.should_pass)
+
+
+if __name__ == '__main__':
+    unittest.main()

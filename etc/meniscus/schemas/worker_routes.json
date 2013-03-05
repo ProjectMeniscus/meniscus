@@ -1,0 +1,26 @@
+{
+    "worker_routes": {
+        "grid": {
+            "workers": [
+                {
+                    "hostname": "worker-01",
+                    "ip_address_v4": "192.168.100.101",
+                    "ip_address_v6": "::1",
+                    "personality": "correlation|normalization|storage"
+                },
+                {
+                    "hostname": "worker-02",
+                    "ip_address_v4": "192.168.100.102",
+                    "ip_address_v6": "::1",
+                    "personality": "correlation|normalization|storage"
+                },
+                {
+                    "hostname": "worker-03",
+                    "ip_address_v4": "192.168.100.103",
+                    "ip_address_v6": "::1",
+                    "personality": "correlation|normalization|storage"
+                }
+            ]
+        }
+    }
+}

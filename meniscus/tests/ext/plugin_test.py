@@ -1,10 +1,9 @@
 import os
 import unittest
 import tempfile
-import importlib
 import shutil
 
-from meniscus.ext.plugin import plug_into
+from meniscus.ext.plugin import plug_into, import_module
 
 
 def suite():
@@ -40,7 +39,7 @@ class WhenLoading(unittest.TestCase):
     def test_loading(self):
         plug_into(self.tmp_dir)
 
-        plugin_mod = importlib.import_module('test.plugin')
+        plugin_mod = import_module('test.plugin')
         must_be_true, msg = plugin_mod.perform_operation('test')
 
         self.assertTrue(must_be_true)

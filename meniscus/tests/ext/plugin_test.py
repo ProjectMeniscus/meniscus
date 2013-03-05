@@ -24,6 +24,7 @@ class WhenLoading(unittest.TestCase):
 
     def setUp(self):
         self.tmp_dir = tempfile.mkdtemp('testing_lib')
+
         self.tmp_lib = os.path.join(self.tmp_dir, 'test')
         os.mkdir(self.tmp_lib)
 

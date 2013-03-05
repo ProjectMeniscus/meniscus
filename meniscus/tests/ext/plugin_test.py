@@ -6,6 +6,7 @@ import shutil
 
 from meniscus.ext.plugin import plug_into
 
+
 def suite():
     suite = unittest.TestSuite()
     suite.addTest(WhenLoading())
@@ -19,13 +20,14 @@ def perform_operation(msg):
 
 """
 
+
 class WhenLoading(unittest.TestCase):
 
     def setUp(self):
         self.tmp_dir = tempfile.mkdtemp('testing_lib')
         self.tmp_lib = os.path.join(self.tmp_dir, 'test')
         os.mkdir(self.tmp_lib)
-        
+
         self.plugin_file = os.path.join(self.tmp_lib, 'plugin.py')
 
         output = open(self.plugin_file, 'w')
@@ -34,7 +36,7 @@ class WhenLoading(unittest.TestCase):
 
     def tearDown(self):
         shutil.rmtree(self.tmp_dir)
-        
+
     def test_loading(self):
         plug_into(self.tmp_dir)
 

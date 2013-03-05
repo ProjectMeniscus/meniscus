@@ -24,7 +24,7 @@ class PluginFinder():
 
     def find_module(self, fullname, path=None):
         pathname = os.path.join(*fullname.split('.'))
-        
+
         for path in self.plugin_paths:
             target = os.path.join(path, pathname)
 
@@ -32,12 +32,12 @@ class PluginFinder():
                 target = os.path.join(target, '__init__.py')
             else:
                 target += '.py'
-                
+
             if os.path.exists(target):
                 return SecureLoader(fullname, target)
 
         return None
-            
+
 
 class SecureLoader():
 
@@ -47,12 +47,14 @@ class SecureLoader():
 
     def load_module(self, fullname):
         if fullname != self.module_name:
-            raise PluginError('Requesting a module that the loader is unaware of')
+            raise PluginError('Requesting a module that the loader is '
+                              'unaware of')
 
         return imp.load_source(fullname, self.load_target)
 
 
 PLUGIN_FINDER = PluginFinder()
+
 
 def plug_into(*args):
     for path in args:

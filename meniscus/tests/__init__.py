@@ -16,7 +16,7 @@ def suite():
     suite.addTest(handler_test.suite())
     suite.addTest(mongodb_test.suite())
     suite.addTest(plugin_test.suite())
-    
+
     return suite
 
 if __name__ == '__main__':

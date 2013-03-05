@@ -1,5 +1,5 @@
 import meniscus.tests.config_test
-import meniscus.tests.personas.worker.normalizer.drivers.rfc5424_test
+import meniscus.tests.personas.worker.normalization.drivers.rfc5424_test
 import meniscus.tests.api.tenant.resources_test
 import meniscus.tests.data.handler_test
 import meniscus.tests.data.adapters.mongodb_test

@@ -1,24 +1,9 @@
 {
-    "grid": {
-        "workers": [
-            {
-                "hostname": "worker-01",
-                "ip_address_v4": "192.168.100.101",
-                "ip_address_v6": "::1",
-                "personality": "correlation|normalization|storage"
-            },
-            {
-                "hostname": "worker-02",
-                "ip_address_v4": "192.168.100.102",
-                "ip_address_v6": "::1",
-                "personality": "correlation|normalization|storage"
-            },
-            {
-                "hostname": "worker-03",
-                "ip_address_v4": "192.168.100.103",
-                "ip_address_v6": "::1",
-                "personality": "correlation|normalization|storage"
-            }
-        ]
+    "worker_configuration": {
+        "personality": "correlation|normalization|storage",
+        "personality_module": "meniscus.personas.worker.correlation|normalization|storage",
+        "worker_token": "94d6176b-9188-4409-8648-7374d0326e6b",
+        "worker_id": "8cc3b103-9b23-4e1c-afb1-8c5973621b55",
+        "coordinator_uri": "http://172.22.15.25:8080/v1"
     }
 }

@@ -1,5 +1,5 @@
 from datetime import datetime
-from meniscus.personas.worker.normalizer.drivers.rfc5424 import *
+from meniscus.personas.worker.normalization.drivers.rfc5424 import *
 
 import unittest
 

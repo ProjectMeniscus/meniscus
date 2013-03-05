@@ -3,6 +3,7 @@ import meniscus.tests.worker.rfc5424_test
 import meniscus.tests.api.tenant.resources_test
 import meniscus.tests.data.handler_test
 import meniscus.tests.data.adapters.mongodb_test
+import meniscus.tests.ext.plugin_test
 
 import unittest
 
@@ -14,6 +15,7 @@ def suite():
     suite.addTest(config_test.suite())
     suite.addTest(handler_test.suite())
     suite.addTest(mongodb_test.suite())
+    suite.addTest(plugin_test.suite())
 
     return suite
 

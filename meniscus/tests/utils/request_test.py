@@ -34,7 +34,7 @@ class WhenTestingUtilsRequest(unittest.TestCase):
             http_request(self.url, self.json_payload, 'PATCH')
 
     @httprettified
-    def test_should_return_http_200(self):
+    def test_should_return_http_200_on_post(self):
         HTTPretty.register_uri(HTTPretty.POST, self.url,
                                body=self.json_payload,
                                content_type="application/json",
@@ -46,14 +46,48 @@ class WhenTestingUtilsRequest(unittest.TestCase):
                         falcon.HTTP_200)
 
     @httprettified
-    def test_should_cause_a_connection_exception(self):
-        HTTPretty.register_uri(HTTPretty.POST, self.url,
-                               body=self.json_payload,
+    def test_should_return_http_200_on_get(self):
+        HTTPretty.register_uri(HTTPretty.GET, self.url,
                                content_type="application/json",
                                status=200)
 
-        with self.assertRaises(requests.ConnectionError):
-            http_request(self.url, self.json_payload, 'POST')
+        self.assertTrue(http_request(self.url,
+                                     http_verb='GET'),
+                        falcon.HTTP_200)
+
+    @httprettified
+    def test_should_return_http_200_on_put(self):
+        HTTPretty.register_uri(HTTPretty.PUT, self.url,
+                               self.json_payload,
+                               content_type="application/json",
+                               status=200)
+
+        self.assertTrue(http_request(self.url,
+                                     self.json_payload,
+                                     http_verb='PUT'),
+                        falcon.HTTP_200)
+
+    @httprettified
+    def test_should_return_http_200_on_delete(self):
+        HTTPretty.register_uri(HTTPretty.DELETE, self.url,
+                               self.json_payload,
+                               content_type="application/json",
+                               status=200)
+
+        self.assertTrue(http_request(self.url,
+                                     self.json_payload,
+                                     http_verb='DELETE'),
+                        falcon.HTTP_200)
+
+    @httprettified
+    def test_should_return_http_200_on_head(self):
+        HTTPretty.register_uri(HTTPretty.HEAD, self.url,
+                               content_type="application/json",
+                               status=200)
+
+        self.assertTrue(http_request(self.url,
+                                     http_verb='HEAD'),
+                        falcon.HTTP_200)
 
     def test_should_cause_a_connection_exception(self):
         with patch.object(requests, 'get') as mock_method:

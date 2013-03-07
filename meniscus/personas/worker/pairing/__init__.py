@@ -1,7 +1,7 @@
 import falcon
 
 from meniscus.api.worker.resources import VersionResource
-from meniscus.api.pairing.resources import PairingConfigurationResource
+from resources import PairingConfigurationResource
 
 
 def start_up(cfg=dict()):

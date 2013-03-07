@@ -1,3 +1,4 @@
+import json
 from meniscus.proxy import NativeProxy
 from meniscus.ext.plugin import plug_into, import_module
 
@@ -11,8 +12,8 @@ def bootstrap_api():
 
     #if the configuration exists in the cache,
     # retrieve the personality module
-    if cache.cache_exists('configuration'):
-        cached_config = cache.cache_get('configuration')
+    if cache.cache_exists('worker_configuration'):
+        cached_config = json.loads(cache.cache_get('worker_configuration'))
         personality_module = cached_config['personality_module']
 
     #if no personality module was pulled form the cache, use the default

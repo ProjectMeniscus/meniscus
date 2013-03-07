@@ -14,7 +14,6 @@ def bootstrap_api():
     if cache.cache_exists('configuration'):
         cached_config = cache.cache_get('configuration')
         personality_module = cached_config['personality_module']
-        print personality_module
 
     #if no personality module was pulled form the cache, use the default
     if not personality_module:

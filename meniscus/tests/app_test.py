@@ -9,7 +9,8 @@ class TestingApIBootstrap(unittest.TestCase):
     def setUp(self):
         self.cache = MagicMock()
         self.cache.cache_exists.return_value = True
-        self.cache.cache_get.return_value = {'personality_module':'meniscus.personas.worker.pairing'}
+        self.cache.cache_get.return_value = \
+            {'personality_module':'meniscus.personas.worker.pairing'}
         self.no_cache = MagicMock()
         self.no_cache.cache_exists.return_value = False
 

@@ -21,7 +21,7 @@ def bootstrap_api():
 
     #plug into the meniscus directory, and load the personality module
     plug_into(
-        '/home/stev1090/PycharmProjects/ProjectMeniscus/meniscus/meniscus')
+        '/var/lib/meniscus')
     plugin_mod = import_module( personality_module)
 
     #start up the api from the specified personality_module

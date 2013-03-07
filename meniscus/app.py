@@ -19,10 +19,8 @@ def bootstrap_api():
     if not personality_module:
         personality_module = DEFAULT_PERSONALITY_MODULE
 
-    #plug into the meniscus directory, and load the personality module
-    plug_into(
-        '/var/lib/meniscus')
-    plugin_mod = import_module( personality_module)
+    #load the personality module as a plug in
+    plugin_mod = import_module(personality_module)
 
     #start up the api from the specified personality_module
     return plugin_mod.start_up()

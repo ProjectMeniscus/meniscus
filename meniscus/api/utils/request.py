@@ -10,9 +10,10 @@ HTTP_VERBS = (
 )
 
 
-def http_request(url, json_payload='{}', http_verb='GET', request_timeout=1.0):
+def http_request(url, add_headers=__dict__, json_payload='{}', http_verb='GET',
+                 request_timeout=1.0):
     headers = {'content-type': 'application/json'}
-
+    headers.update(add_headers)
     http_verb = str(http_verb).upper()
 
     if not http_verb in HTTP_VERBS:

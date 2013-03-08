@@ -1,6 +1,6 @@
-import json
 import falcon
-from meniscus.api.utils.request import http_request
+import json
+from pairing_process import PairingProcess
 from meniscus.api import ApiResource, load_body
 
 
@@ -24,5 +24,10 @@ class PairingConfigurationResource(ApiResource):
         api_secret = body['api_secret']
         coordinator_uri = body['coordinator_uri']
         personality = body['personality']
+
+        #start pairing on a separate process
+        pairing_process = PairingProcess(
+            api_secret, coordinator_uri, personality)
+        pairing_process.run()
 
         resp.status = falcon.HTTP_200

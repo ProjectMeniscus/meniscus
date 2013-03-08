@@ -6,13 +6,11 @@
         "ip_address_v6": "::1",
         "personality": "correlation|normalization|storage",
         "status": "available|waiting",
-        "system_info": [
-            {
+        "system_info": {
                 "disk_gb": "20",
                 "os_type": "Darwin-11.4.2-x86_64-i386-64bit",
                 "memory_mb": "1024",
                 "architecture": ""
             }
-        ]
     }
 }

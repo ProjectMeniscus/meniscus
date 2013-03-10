@@ -6,6 +6,7 @@ from mock import patch
 
 import falcon
 import unittest
+import json
 
 
 def suite():

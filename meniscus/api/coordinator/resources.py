@@ -6,6 +6,8 @@ from meniscus.api import ApiResource, load_body
 from meniscus.data.model.coordinator import Worker
 from meniscus.api import abort
 
+## TODO: Please consider the following return code for bad requests
+## http://tools.ietf.org/html/rfc2616#section-10.4.1
 
 def _header_not_valid():
     """
@@ -63,6 +65,7 @@ class WorkerRegistrationResource(ApiResource):
         self.db = db_handler
 
     def _format_registration_response(self, worker):
+        ## TODO: Avoid string concats - use .format and interpolation
         return {'personality_module': 'meniscus.persona.'
                                       + worker['personality'],
                 'worker_id': worker['worker_id'],
@@ -74,6 +77,7 @@ class WorkerRegistrationResource(ApiResource):
         """
         if not 'worker_registration' in body.keys():
             _registration_not_valid()
+        # TODO: Returns are unnecessarry if the function will raise an error
         return True
 
     def _register_worker(self, body):
@@ -98,6 +102,8 @@ class WorkerRegistrationResource(ApiResource):
                             body['worker_registration']['status'],
                             body['worker_registration']['system_info'])
 
+        ## TODO: When this call returns, the db operation should be considered successful
+        ## See: http://api.mongodb.org/python/current/api/pymongo/collection.html
         self.db.put('worker', new_worker.format())
 
         registered_worker = self.db.find_one(
@@ -114,6 +120,8 @@ class WorkerRegistrationResource(ApiResource):
         body = load_body(req)
         #try to register and return success or die
         confirmation = self._register_worker(body)
+
+        ## TODO: Over-zealous checking of returns
         if confirmation:
             resp.status = falcon.HTTP_203
             resp.body = json.dumps(confirmation)
@@ -141,6 +149,7 @@ class WorkerRegistrationResource(ApiResource):
 
     def on_get(self, req, resp):
 
+        ## TODO: Constants should live in global scope and be prefixed with a '_' if they're not to be exported
         VALID_HEADER = 'X-Auth-Roles'
         VALID_ROLE = 'meniscus_role'
 
@@ -161,6 +170,7 @@ class WorkerRegistrationResource(ApiResource):
         else:
             _role_not_valid()
 
+## TODO: Refactor into worker_configuration_api.py or something similar
 
 class WorkerConfigurationResource(ApiResource):
     """
@@ -201,7 +211,7 @@ class WorkerConfigurationResource(ApiResource):
             _personality_not_valid()
 
     def _format_configuration(self, configuration):
-
+        ## TODO: prefer list(), dict()... etc. over empty literals
         worker_list = []
 
         for worker in configuration:
@@ -216,6 +226,7 @@ class WorkerConfigurationResource(ApiResource):
         Gets configuration e.g. list of downstream personalities in the grid
         """
 
+        ## TODO: consider other line breaks instead of using '\'
         reg_worker = \
             self.db.find_one('worker', {'worker_id': worker_id})
         if not reg_worker:

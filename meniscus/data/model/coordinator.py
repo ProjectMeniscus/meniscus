@@ -5,6 +5,7 @@ class Worker():
     personalities: correlation | normalization | storage
     """
 
+    ## TODO: Consider builder pattern to avoid long constructor arg lists
     def __init__(self, worker_id, worker_token, host_name, callback,
                  ip_address_v4, ip_address_v6, personality, status,
                  system_info):
@@ -21,7 +22,8 @@ class Worker():
                                  'architecture': ''}]
         else:
             self.system_info = system_info
-    #
+    ## TODO: If it's commented, don't check it in
+
     # def __init__(self, mongo_worker):
     #     """
     #     constructor that takes in a mongodb worker and stores in worker object

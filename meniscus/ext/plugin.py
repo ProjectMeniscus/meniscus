@@ -92,7 +92,8 @@ class SecureLoader():
         return module
 
 
-PLUGIN_FINDER = PluginFinder()
+# Plugin finder singleton
+_PLUGIN_FINDER = PluginFinder()
 
 
 """
@@ -103,8 +104,8 @@ given to the interpreter at boot.
 
 
 def _inject():
-    if PLUGIN_FINDER not in sys.meta_path:
-        sys.meta_path.append(PLUGIN_FINDER)
+    if _PLUGIN_FINDER not in sys.meta_path:
+        sys.meta_path.append(_PLUGIN_FINDER)
 
 
 """
@@ -127,4 +128,4 @@ modules.
 
 def plug_into(*args):
     for path in args:
-        PLUGIN_FINDER.add_path(path)
+        _PLUGIN_FINDER.add_path(path)

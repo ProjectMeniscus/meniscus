@@ -39,7 +39,7 @@ class PluginFinder():
         for path in self.plugin_paths:
             target = os.path.join(path, pathname)
             is_pkg = False
-            
+
             # If the target references a directory, try to load it as
             # a module by referencing the __init__.py file, otherwise
             # append .py and attempt to resolve it.
@@ -80,7 +80,7 @@ class SecureLoader():
         module = imp.new_module(fullname)
         module.__file__ = self.load_target
         module.__loader__ = self
-            
+
         if self.is_pkg:
             module.__path__ = []
             module.__package__ = fullname

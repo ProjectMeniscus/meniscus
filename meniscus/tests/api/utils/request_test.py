@@ -32,7 +32,8 @@ class WhenTestingUtilsRequest(unittest.TestCase):
                                content_type="application/json")
 
         with self.assertRaises(ValueError):
-            http_request(self.url, self.json_payload, 'PATCH')
+            http_request(self.url, json_payload=self.json_payload,
+                         http_verb='PATCH')
 
     @httprettified
     def test_should_return_http_200_on_all_http_verbs(self):
@@ -51,7 +52,7 @@ class WhenTestingUtilsRequest(unittest.TestCase):
                                    content_type="application/json",
                                    status=200)
             self.assertTrue(http_request(self.url,
-                                         self.json_payload,
+                                         json_payload=self.json_payload,
                                          http_verb=http_verb),
                             falcon.HTTP_200)
 
@@ -59,19 +60,19 @@ class WhenTestingUtilsRequest(unittest.TestCase):
         with patch.object(requests, 'get') as mock_method:
             with self.assertRaises(requests.ConnectionError):
                 mock_method.side_effect = requests.ConnectionError
-                http_request(self.url, self.json_payload)
+                http_request(self.url, json_payload=self.json_payload)
 
     def test_should_cause_a_http_exception(self):
         with patch.object(requests, 'get') as mock_method:
             with self.assertRaises(requests.HTTPError):
                 mock_method.side_effect = requests.HTTPError
-                http_request(self.url, self.json_payload)
+                http_request(self.url, json_payload=self.json_payload)
 
     def test_should_cause_a_request_exception(self):
         with patch.object(requests, 'get') as mock_method:
             with self.assertRaises(requests.RequestException):
                 mock_method.side_effect = requests.RequestException
-                http_request(self.url, self.json_payload)
+                http_request(self.url, json_payload=self.json_payload)
 
 if __name__ == '__main__':
     unittest.main()

@@ -92,5 +92,3 @@ class WorkerConfigurationResource(ApiResource):
             resp.status = falcon.HTTP_200
         else:
             _role_not_valid()
-
-    pass

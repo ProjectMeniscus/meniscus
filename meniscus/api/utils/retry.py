@@ -24,9 +24,9 @@ def retry(tries, delay=3, backoff=2):
 
     def deco_retry(f):
         def f_retry(*args, **kwargs):
-            mtries, mdelay = tries, delay # make mutable
+            mtries, mdelay = tries, delay  # make mutable
 
-            rv = f(*args, **kwargs) # first attempt
+            rv = f(*args, **kwargs)  # first attempt
             while mtries > 0:
                 if rv is True: # Done on success
                     return True

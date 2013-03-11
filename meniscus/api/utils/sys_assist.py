@@ -1,7 +1,9 @@
+import fcntl
+import multiprocessing
 import os
 import socket
+import struct
 import sys
-import multiprocessing
 
 
 def get_sys_mem_total_kB():
@@ -26,27 +28,23 @@ def get_sys_mem_total_MB():
     memory_total_kb = get_sys_mem_total_kB()
     if memory_total_kb:
         memory_total_mb = memory_total_kb / 1024
-        print memory_total_mb
-
-
-if os.name != "nt":
-    import fcntl
-    import struct
-
-    def get_interface_ip(ifname):
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        return socket.inet_ntoa(
-            fcntl.ioctl(s.fileno(), 0x8915,
-                        struct.pack('256s', ifname[:15]))[20:24])
+        return memory_total_mb
 
 
 def get_disk_size_GB():
     disk_size = None
     if 'linux' in sys.platform:
         file_system = os.statvfs('/')
-        disk_size = (file_system.f_blocks * file_system.f_frsize) / 3072
+        disk_size = (file_system.f_blocks * file_system.f_frsize) / (1024 ** 3)
 
     return disk_size
+
+
+def get_interface_ip(ifname):
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    return socket.inet_ntoa(
+        fcntl.ioctl(s.fileno(), 0x8915,
+                    struct.pack('256s', ifname[:15]))[20:24])
 
 
 def get_lan_ip():

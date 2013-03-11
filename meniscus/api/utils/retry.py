@@ -37,7 +37,7 @@ def retry(tries, delay=3, backoff=2):
 
                 rv = f(*args, **kwargs) # Try again
 
-            return False # Ran out of tries :-(
+            return False  # Ran out of tries :-(
 
-        return f_retry # true decorator -> decorated function
+        return f_retry  # true decorator -> decorated function
     return deco_retry  # @retry(arg[, ...]) -> true decorator

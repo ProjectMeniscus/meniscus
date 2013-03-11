@@ -47,7 +47,7 @@ class WhenLoading(unittest.TestCase):
         output.close()
 
     def tearDown(self):
-        #shutil.rmtree(self.tmp_dir)
+        shutil.rmtree(self.tmp_dir)
         pass
 
     def test_loading_module(self):

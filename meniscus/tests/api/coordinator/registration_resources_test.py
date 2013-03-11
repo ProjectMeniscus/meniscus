@@ -2,19 +2,18 @@ import falcon
 import unittest
 import json
 
-from meniscus.api.coordinator.resources import *
+from meniscus.api.coordinator.registration_resources import *
 from mock import MagicMock
 from mock import patch
 
 
 def suite():
     suite = unittest.TestSuite()
-    suite.addTest(WhenTestingWorkerConfiguration())
     suite.addTest(WhenTestingWorkerRegistration())
     return suite
 
 
-class TestingCoordinatorApiBase(unittest.TestCase):
+class WhenTestingWorkerRegistration(unittest.TestCase):
 
     def setUp(self):
         self.db_handler = MagicMock()
@@ -22,6 +21,7 @@ class TestingCoordinatorApiBase(unittest.TestCase):
         self.req = MagicMock()
         self.resp = MagicMock()
         self.req.stream = self.stream
+        self.resource = WorkerRegistrationResource(self.db_handler)
 
         self.db_handler.find_one.return_value = \
             {"worker_id": "51375fc4eea50d53066292b6",
@@ -41,32 +41,6 @@ class TestingCoordinatorApiBase(unittest.TestCase):
 
     def setResource(self):
         pass
-
-
-class WhenTestingVersionResource(unittest.TestCase):
-
-    def setUp(self):
-        self.req = MagicMock()
-        self.resp = MagicMock()
-        self.resource = VersionResource()
-
-    def test_should_return_200_on_get(self):
-        self.resource.on_get(self.req, self.resp)
-        self.assertEqual(falcon.HTTP_200, self.resp.status)
-
-    def test_should_return_version_json(self):
-        self.resource.on_get(self.req, self.resp)
-
-        parsed_body = json.loads(self.resp.body)
-
-        self.assertTrue('v1' in parsed_body)
-        self.assertEqual('current', parsed_body['v1'])
-
-
-class WhenTestingWorkerRegistration(TestingCoordinatorApiBase):
-
-    def setResource(self):
-        self.resource = WorkerRegistrationResource(self.db_handler)
 
     def test_should_return_203_on_post(self):
         self.stream.read.return_value = \
@@ -131,36 +105,6 @@ class WhenTestingWorkerRegistration(TestingCoordinatorApiBase):
         self.resource.on_get(self.req, self.resp)
         self.assertEqual(falcon.HTTP_200, self.resp.status)
 
-
-class WhenTestingWorkerConfiguration(TestingCoordinatorApiBase):
-
-    def setUp(self):
-        self.req = MagicMock()
-        self.resp = MagicMock()
-        self.db_handler = MagicMock()
-        self.resource = WorkerConfigurationResource(self.db_handler)
-        self.stream = MagicMock()
-        self.req.stream = self.stream
-        self.worker_id = MagicMock()
-    # GET /v1/worker/8cc3b103-9b23-4e1c-afb1-8c5973621b55/configuration HTTP/1.1
-    # ACCEPT: application/json
-    # CONTENT-TYPE: application/json
-    # WORKER-TOKEN: 94d6176b-9188-4409-8648-7374d0326e6b
-
-    def test_should_return_error_401_personality_not_valid_on_get(self):
-        self.req.get_header.return_value = ['ACCEPT',
-                                            'CONTENT-TYPE',
-                                            'WORKER-TOKEN']
-        with self.assertRaises(falcon.HTTPError):
-            self.resource.on_get(self.req, self.resp, self.worker_id)
-
-    # def test_should_return_200_on_get(self):
-    #     self.stream.read.return_value = u'"hostname": "worker-01", \
-    #                 "ip_address_v4": "192.168.100.101",\
-    #                 "ip_address_v6": "::1",\
-    #                 "personality": "correlation|normalization|storage"'
-    #     self.resource.on_get(self.req, self.resp, self.worker_id)
-    #     self.assertEqual(falcon.HTTP_200, self.resp.status)
 
 if __name__ == '__main__':
     unittest.main()

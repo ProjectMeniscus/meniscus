@@ -5,16 +5,18 @@ class Worker():
     personalities: correlation | normalization | storage
     """
 
-    ## TODO: Consider builder pattern to avoid long constructor arg lists
-    def __init__(self, worker_id, worker_token, host_name, callback,
-                 ip_address_v4, ip_address_v6, personality, status,
-                 system_info):
+    def __init__(self, worker_id, worker_token):
         self.worker_id = worker_id
         self.worker_token = worker_token
+
+    def set_worker_network_layer_stats(self, host_name, callback,
+                                       ip_address_v4, ip_address_v6):
         self.host_name = host_name
         self.callback = callback
         self.ip_address_v4 = ip_address_v4
         self.ip_address_v6 = ip_address_v6
+
+    def set_worker_personality_stats(self, personality, status, system_info):
         self.personality = personality
         self.status = status
         if not system_info:
@@ -22,25 +24,6 @@ class Worker():
                                  'architecture': ''}]
         else:
             self.system_info = system_info
-    ## TODO: If it's commented, don't check it in
-
-    # def __init__(self, mongo_worker):
-    #     """
-    #     constructor that takes in a mongodb worker and stores in worker object
-    #     """
-    #     self.worker_id = mongo_worker['worker_id']
-    #     self.worker_token = mongo_worker['worker_token']
-    #     self.host_name = mongo_worker['host_name']
-    #     self.callback = mongo_worker['callback']
-    #     self.ip_address_v4 = mongo_worker['ip_address_v4']
-    #     self.ip_address_v6 = mongo_worker['ip_address_v6']
-    #     self.personality = mongo_worker['personality']
-    #     self.status = mongo_worker['status']
-    #     if not mongo_worker['system_info']:
-    #         self.system_info = [{'disk_gb': '', 'os_type': '', 'memory_mb': '',
-    #                              'architecture': ''}]
-    #     else:
-    #         self.system_info = mongo_worker['system_info']
 
     def get_hostname(self):
         return self.host_name
@@ -59,7 +42,7 @@ class Worker():
                 'status': self.status,
                 'system_info': self.system_info}
 
-    def format_for_save(self, id):
+    def format_for_save(self, db_id):
         worker_dict = self.format()
-        worker_dict['_id'] = id
+        worker_dict['_id'] = db_id
         return worker_dict

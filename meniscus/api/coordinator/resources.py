@@ -225,4 +225,3 @@ class WorkerConfigurationResource(ApiResource):
         resp.status = falcon.HTTP_200
         resp.body = json.dumps(self._format_configuration(configuration))
 
-

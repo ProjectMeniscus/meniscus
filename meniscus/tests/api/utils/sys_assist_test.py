@@ -36,7 +36,8 @@ class WhenTestingSysAssist(unittest.TestCase):
 
     def test_get_disk_size_GB_should_return_100(self):
         with patch.object(sys_assist.sys, 'platform', self.platform), \
-             patch.object(sys_assist.os, 'statvfs', return_value=self.statvfs):
+                patch.object(sys_assist.os, 'statvfs',
+                             return_value=self.statvfs):
             mem_total = sys_assist.get_disk_size_GB()
             self.assertEqual(mem_total, 100)
 
@@ -66,10 +67,9 @@ class WhenTestingSysAssist(unittest.TestCase):
             self.assertEqual(ip, '10.6.60.95')
 
     def test_get_lan_ip_should_return_localhost(self):
-        self.io_error = MagicMock()
-        self.io_error.side_effect = IOError
-        with patch.object(sys_assist, 'get_interface_ip',
-                          self.io_error), \
+        io_error = MagicMock()
+        io_error.side_effect = IOError
+        with patch.object(sys_assist, 'get_interface_ip',  io_error), \
             patch.object(sys_assist.socket, 'gethostbyname',
                          return_value='127.0.0.1'):
             ip = sys_assist.get_lan_ip()

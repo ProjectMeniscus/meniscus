@@ -37,6 +37,7 @@ class WhenTestingRetry(unittest.TestCase):
     def test_retry_func_returns_true_first_try(self):
         self.counter = 0
         self.tries = 2
+
         @retry(tries=self.tries, delay=1, backoff=2)
         def retry_valid():
             self.counter += 1
@@ -48,6 +49,7 @@ class WhenTestingRetry(unittest.TestCase):
     def test_retry_func_returns_false(self):
         self.counter = 0
         self.tries = 2
+
         @retry(tries=self.tries, delay=0.1, backoff=2)
         def retry_once():
             self.counter += 1
@@ -59,6 +61,7 @@ class WhenTestingRetry(unittest.TestCase):
     def test_retry_func_should_retry_twice(self):
         self.counter = 0
         self.tries = 2
+
         @retry(tries=self.tries, delay=0.1, backoff=2)
         def retry_once():
             self.counter += 1

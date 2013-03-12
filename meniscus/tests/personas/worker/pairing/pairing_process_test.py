@@ -24,11 +24,12 @@ class WhenTestingPairingProcess(unittest.TestCase):
         self.native_proxy = MagicMock()
         self.cache_get = \
             u'{"coordinator_uri": "http://localhost:8080/v1", ' \
-            u'"worker_token": "3F2504E0-4F89-11D3-9A0C-0305E82C3301"}'
+            u'"worker_token": "3F2504E0-4F89-11D3-9A0C-0305E82C3301", ' \
+            u'"worker_id": "3F2504E0-4F89-11D3-9A0C-0305E82C3301"}'
 
         self.resp = requests.Response()
         self.http_request = MagicMock(return_value=self.resp)
-        self.registration = {}
+        self.registration = dict()
 
     def test_process_start_on_run(self):
         with patch.object(pairing_process.Process, 'start') as start:
@@ -76,3 +77,6 @@ class WhenTestingPairingProcess(unittest.TestCase):
                        'http_request', self.http_request):
                 self.assertTrue(self.pairing_process._get_worker_routes())
                 cache_get.assert_called_once_with('worker_configuration')
+
+if __name__ == '__main__':
+    unittest.main()

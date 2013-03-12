@@ -60,7 +60,7 @@ class PairingProcess(object):
     def _register_with_coordinator(
             self, coordinator_uri, personality, registration, auth_header):
         """
-        register with the coordinator and persist the configuration to the cache
+        register with the coordinator and persist the configuration to cache
         """
         try:
             resp = http_request(coordinator_uri + '/pairing', auth_header,
@@ -86,9 +86,9 @@ class PairingProcess(object):
         config = json.loads(cache.cache_get('worker_configuration'))
         coordinator_uri = config['coordinator_uri']
 
-        token_header = {"worker_token": config['worker_token']}
+        token_header = {"WORKER-TOKEN": config['worker_token']}
         request_uri = "{0}/worker/{1}/configuration".format(
-            coordinator_uri, config['worker_token'])
+            coordinator_uri, config['worker_id'])
 
         try:
             resp = http_request(request_uri, token_header, http_verb='GET')

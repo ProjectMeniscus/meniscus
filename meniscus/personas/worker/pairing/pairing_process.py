@@ -31,7 +31,7 @@ class PairingProcess(object):
 
         ip_address_v4 = sys_assist.get_lan_ip()
         #get registration info and call the coordinator
-        registration = {
+        registration = {"worker_registration": {
             "hostname": platform.node(),
             "callback": ip_address_v4 + ':8080/v1/configuration',
             "ip_address_v4": ip_address_v4,
@@ -45,7 +45,7 @@ class PairingProcess(object):
                 "memory_mb": sys_assist.get_sys_mem_total_MB(),
                 "architecture": platform.machine()
             }
-        }
+        }}
 
         auth_header = {'X-AUTH-TOKEN': api_secret}
         #register with coordinator

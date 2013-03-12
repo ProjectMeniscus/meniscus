@@ -18,6 +18,7 @@ setup(
         "wsgiref",
         "uWSGI",
         "pymongo",
+        "requests",
     ],
     test_suite = 'meniscus.tests',
     zip_safe = False,

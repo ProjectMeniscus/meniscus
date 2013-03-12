@@ -1,6 +1,6 @@
 import falcon
 
-from meniscus.api.worker.resources import VersionResource
+from resources import VersionResource
 from resources import PairingConfigurationResource
 
 

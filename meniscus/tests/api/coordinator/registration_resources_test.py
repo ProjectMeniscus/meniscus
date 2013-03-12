@@ -22,9 +22,31 @@ class WhenTestingWorkerRegistration(unittest.TestCase):
         self.resp = MagicMock()
         self.req.stream = self.stream
         self.resource = WorkerRegistrationResource(self.db_handler)
-
+        self.worker_id = '8cc3b103-9b23-4e1c-afb1-8c5973621b55'
+        self._update_worker = MagicMock()
+        self.registration_request = u'{ "worker_registration": {\
+                "hostname": "worker-04",\
+                "callback": "172.22.15.25:8080/v1/configuration/",\
+                "ip_address_v4": "172.23.1.100",\
+                "ip_address_v6": "::1",\
+                "personality": "worker.correlation",\
+                "status": "new",\
+                "system_info": [{"disk_gb": "20", \
+                    "os_type": "Darwin-11.4.2-x86_64-i386-64bit",\
+                    "memory_mb": "1024", "architecture": "" }]}}'
+        self.failed_registration_request = u'{ "worker_monkey": {\
+                "hostname": "worker-04",\
+                "callback": "172.22.15.25:8080/v1/configuration/",\
+                "ip_address_v4": "172.23.1.100",\
+                "ip_address_v6": "::1",\
+                "personality": "worker.correlation",\
+                "status": "new",\
+                "system_info": [{ "disk_gb": "20",\
+                      "os_type": "Darwin-11.4.2-x86_64-i386-64bit",\
+                      "memory_mb": "1024", "architecture": ""}]}}'
         self.db_handler.find_one.return_value = \
-            {"worker_id": "51375fc4eea50d53066292b6",
+            {"_id": "ObjectId('513e43b6eea50d3e3eb82ccb')",
+             "worker_id": "51375fc4eea50d53066292b6",
              "worker_token": "o234ks3453oi34",
              "hostname": "worker-04",
              "callback": "172.22.15.25:8080/v1/configuration/",
@@ -37,27 +59,14 @@ class WhenTestingWorkerRegistration(unittest.TestCase):
                   "os_type": "Darwin-11.4.2-x86_64-i386-64bit",
                   "memory_mb": "1024",
                   "architecture": ""}]}
+
         self.setResource()
 
     def setResource(self):
         pass
 
     def test_should_return_203_on_post(self):
-        self.stream.read.return_value = \
-            u'{ "worker_registration": {\
-                "hostname": "worker-04",\
-                "callback": "172.22.15.25:8080/v1/configuration/",\
-                "ip_address_v4": "172.23.1.100",\
-                "ip_address_v6": "::1",\
-                "personality": "worker.correlation",\
-                "status": "new",\
-                "system_info": [\
-                    {\
-                        "disk_gb": "20",\
-                        "os_type": "Darwin-11.4.2-x86_64-i386-64bit",\
-                        "memory_mb": "1024",\
-                        "architecture": ""\
-            }]}}'
+        self.stream.read.return_value = self.registration_request
         self.resource.on_post(self.req, self.resp)
         parsed_body = json.loads(self.resp.body)
         self.assertTrue('personality_module' in parsed_body.keys())
@@ -66,21 +75,8 @@ class WhenTestingWorkerRegistration(unittest.TestCase):
         self.assertEqual(falcon.HTTP_203, self.resp.status)
 
     def test_invalid_registration_return_401_on_get(self):
-        self.stream.read.return_value = \
-            u'{ "worker_monkey": {\
-                "hostname": "worker-04",\
-                "callback": "172.22.15.25:8080/v1/configuration/",\
-                "ip_address_v4": "172.23.1.100",\
-                "ip_address_v6": "::1",\
-                "personality": "worker.correlation",\
-                "status": "new",\
-                "system_info": [\
-                    {\
-                        "disk_gb": "20",\
-                        "os_type": "Darwin-11.4.2-x86_64-i386-64bit",\
-                        "memory_mb": "1024",\
-                        "architecture": ""\
-            }]}}'
+        self.stream.read.return_value = self.failed_registration_request
+
         with self.assertRaises(falcon.HTTPError):
             self.resource.on_post(self.req, self.resp)
 
@@ -104,6 +100,24 @@ class WhenTestingWorkerRegistration(unittest.TestCase):
                                             'role3']
         self.resource.on_get(self.req, self.resp)
         self.assertEqual(falcon.HTTP_200, self.resp.status)
+
+    def test_validate_worker_body_should_return_400(self):
+        body = {
+            "worker_regis": {
+                "hostname": "worker-04",
+                "callback": "172.22.15.25:8080/v1/configuration/",
+                "ip_address_v4": "172.23.1.100",
+                "ip_address_v6": "::1",
+                "personality": "worker.correlation",
+                "status": "new",
+            }
+        }
+        with self.assertRaises(falcon.HTTPError):
+            self.resource._validate_worker_body(body)
+
+    def test_update_worker_should_return_400(self):
+        with self.assertRaises(falcon.HTTPError):
+            self.resource._update_worker(self.req, self.worker_id)
 
 
 if __name__ == '__main__':

@@ -11,3 +11,4 @@ def start_up(cfg=dict()):
     register_worker_online.run()
 
     return application
+

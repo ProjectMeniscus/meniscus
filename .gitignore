@@ -7,3 +7,4 @@ meniscus.egg-info
 *.DS_Store*
 nosetests.xml
 meniscus/coverage.xml
+cache-store

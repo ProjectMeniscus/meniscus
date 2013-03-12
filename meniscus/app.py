@@ -8,7 +8,6 @@ cache = NativeProxy()
 
 def bootstrap_api():
     personality_module = None
-    #check if uwsgi was imported
 
     #if the configuration exists in the cache,
     # retrieve the personality module

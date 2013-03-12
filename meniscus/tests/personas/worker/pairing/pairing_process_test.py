@@ -1,4 +1,5 @@
-import falcon
+
+import httplib
 import meniscus.personas.worker.pairing.pairing_process as pairing_process
 import requests
 import unittest
@@ -59,7 +60,7 @@ class WhenTestingPairingProcess(unittest.TestCase):
                 routes.assert_called_once()
 
     def test_should_return_true_for_register_with_coordinator(self):
-        self.resp.status_code = falcon.HTTP_203
+        self.resp.status_code = httplib.NON_AUTHORITATIVE_INFORMATION
         self.resp._content = '{"fake": "json"}'
         with patch('meniscus.personas.worker.pairing.pairing_process.'
                    'http_request', self.http_request):
@@ -69,7 +70,7 @@ class WhenTestingPairingProcess(unittest.TestCase):
                     self.registration, self.api_secret))
 
     def test_should_return_true_for_get_worker_routes(self):
-        self.resp.status_code = falcon.HTTP_200
+        self.resp.status_code = httplib.OK
         self.resp._content = '{"fake": "json"}'
         with patch.object(pairing_process.NativeProxy, 'cache_get',
                           return_value=self.cache_get) as cache_get:

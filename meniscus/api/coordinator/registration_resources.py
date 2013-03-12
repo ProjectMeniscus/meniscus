@@ -13,21 +13,21 @@ _VALID_ROLE = 'meniscus_role'
 
 def _header_not_valid():
     """
-    sends an http 401 invalid header
+    sends an http 400 invalid header
     """
     abort(falcon.HTTP_400, 'unauthorized request.')
 
 
 def _role_not_valid():
     """
-    sends an http 403 invalid role
+    sends an http 400 invalid role
     """
     abort(falcon.HTTP_400, 'roles do not have access to this resource.')
 
 
 def _registration_not_valid():
     """
-    sends an http 401 invalid registration request
+    sends an http 400 invalid registration request
     """
     abort(falcon.HTTP_400, 'invalid registration request.')
 

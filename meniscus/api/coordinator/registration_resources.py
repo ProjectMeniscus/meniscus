@@ -44,7 +44,7 @@ class WorkerRegistrationResource(ApiResource):
         """
         returns response for a successfully registered worker request
         """
-        return {'personality_module': 'meniscus.persona.{0}'
+        return {'personality_module': 'meniscus.personas.{0}'
                 .format(worker['personality']),
                 'worker_id': worker['worker_id'],
                 'worker_token': worker['worker_token']}

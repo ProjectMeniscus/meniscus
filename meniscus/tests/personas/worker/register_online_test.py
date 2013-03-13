@@ -1,4 +1,4 @@
-import falcon
+import httplib
 import meniscus.personas.worker.register_online as register_online
 import requests
 import unittest
@@ -31,7 +31,7 @@ class WhenTestingRegisterWorkerOnline(unittest.TestCase):
             start.assert_called_once()
 
     def test_register_worker_online_with_coordinator_return_true(self):
-        self.resp.status_code = falcon.HTTP_200
+        self.resp.status_code = httplib.OK
         self.resp._content = '{"fake": "json"}'
         with patch.object(register_online.NativeProxy, 'cache_get',
                           return_value=self.cache_get) as cache_get:

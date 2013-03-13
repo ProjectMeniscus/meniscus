@@ -79,4 +79,3 @@ class WorkerConfigurationResource(ApiResource):
         configuration = self._get_configuration(reg_worker['personality'])
         resp.status = falcon.HTTP_200
         resp.body = json.dumps(self._format_configuration(configuration))
-

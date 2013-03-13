@@ -19,5 +19,3 @@ api.add_route('/', versions)
 api.add_route('/v1/pairing', worker_registration)
 api.add_route('/v1/worker/{worker_id}/configuration', worker_configuration)
 api.add_route('/v1/worker/{worker_id}/status', worker_status)
-
-

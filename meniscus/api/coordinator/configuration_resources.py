@@ -53,7 +53,7 @@ class WorkerConfigurationResource(ApiResource):
             return self._find_workers(self.PERSONALITIES['STORE'])
         elif personality_type == self.PERSONALITIES['STORE']:
             #too be filled in with unique configuration probably storage nodes
-            return {}
+            return []
         else:
             _personality_not_valid()
 

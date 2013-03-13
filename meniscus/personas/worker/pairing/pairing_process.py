@@ -1,12 +1,13 @@
-import falcon
+import httplib
 import json
 import platform
+import requests
+
 import meniscus.api.utils.sys_assist as sys_assist
 from meniscus.api.utils.request import http_request
 from meniscus.api.utils.retry import retry
 from meniscus.proxy import NativeProxy
 from multiprocessing import Process
-import requests
 
 #constants for retry methods
 TRIES = 6
@@ -31,7 +32,7 @@ class PairingProcess(object):
 
         ip_address_v4 = sys_assist.get_lan_ip()
         #get registration info and call the coordinator
-        registration = {
+        registration = {"worker_registration": {
             "hostname": platform.node(),
             "callback": ip_address_v4 + ':8080/v1/configuration',
             "ip_address_v4": ip_address_v4,
@@ -45,7 +46,7 @@ class PairingProcess(object):
                 "memory_mb": sys_assist.get_sys_mem_total_MB(),
                 "architecture": platform.machine()
             }
-        }
+        }}
 
         auth_header = {'X-AUTH-TOKEN': api_secret}
         #register with coordinator
@@ -68,7 +69,7 @@ class PairingProcess(object):
         except requests.ConnectionError:
             return False
 
-        if resp.status_code == falcon.HTTP_203:
+        if resp.status_code == httplib.NON_AUTHORITATIVE_INFORMATION:
             config = resp.json()
             config.update({"personality": personality,
                            "coordinator_uri": coordinator_uri})
@@ -97,7 +98,7 @@ class PairingProcess(object):
 
         #if the coordinator issues a response, cache the worker routes
         #and return true
-        if resp.status_code == falcon.HTTP_200:
+        if resp.status_code == httplib.OK:
             routes = resp.json()
 
             cache = NativeProxy()

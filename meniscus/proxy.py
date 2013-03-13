@@ -40,4 +40,4 @@ class NativeProxy(object):
 
     def restart(self):
         if UWSGI:
-            self.server.restart()
+            self.server.reload()

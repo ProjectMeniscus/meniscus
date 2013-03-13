@@ -1,4 +1,4 @@
-import falcon
+import httplib
 import json
 import requests
 
@@ -41,9 +41,9 @@ class RegisterWorkerOnline(object):
 
         try:
             resp = http_request(request_uri, token_header,
-                                json.dumps(status), http_verb='POST')
+                                json.dumps(status), http_verb='PUT')
         except requests.ConnectionError:
             return False
 
-        if resp.status_code == falcon.HTTP_200:
+        if resp.status_code == httplib.OK:
             return True

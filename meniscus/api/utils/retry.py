@@ -7,10 +7,10 @@ def retry(tries, delay=3, backoff=2):
     """
     Retries a function or method until it returns True.
 
-    delay sets the initial delay in seconds, and backoff sets the factor by which
-    the delay should lengthen after each failure. backoff must be greater than 1,
-    or else it isn't really a backoff. tries must be at least 0, and delay
-    greater than 0."""
+    delay sets the initial delay in seconds, and backoff sets the factor by
+    which the delay should lengthen after each failure. backoff must be
+    greater than 1, or else it isn't really a backoff. tries must be at least
+    0, and delay greater than 0."""
 
     if backoff <= 1:
         raise ValueError("backoff must be greater than 1")
@@ -28,14 +28,14 @@ def retry(tries, delay=3, backoff=2):
 
             rv = f(*args, **kwargs)  # first attempt
             while mtries > 0:
-                if rv is True: # Done on success
+                if rv is True:  # Done on success
                     return True
 
                 mtries -= 1      # consume an attempt
-                time.sleep(mdelay) # wait...
+                time.sleep(mdelay)  # wait...
                 mdelay *= backoff  # make future wait longer
 
-                rv = f(*args, **kwargs) # Try again
+                rv = f(*args, **kwargs)  # Try again
 
             return False  # Ran out of tries :-(
 

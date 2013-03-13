@@ -60,7 +60,7 @@ def get_lan_ip():
             "ath0",
             "ath1",
             "ppp0",
-            ]
+        ]
         for ifname in interfaces:
             try:
                 ip = get_interface_ip(ifname)

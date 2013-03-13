@@ -67,14 +67,14 @@ class WhenTestingWorkerRegistration(unittest.TestCase):
     def setResource(self):
         pass
 
-    def test_should_return_203_on_post(self):
+    def test_should_return_202_on_post(self):
         self.stream.read.return_value = self.registration_request
         self.resource.on_post(self.req, self.resp)
         parsed_body = json.loads(self.resp.body)
         self.assertTrue('personality_module' in parsed_body.keys())
         self.assertTrue('worker_id' in parsed_body.keys())
         self.assertTrue('worker_token' in parsed_body.keys())
-        self.assertEqual(falcon.HTTP_203, self.resp.status)
+        self.assertEqual(falcon.HTTP_202, self.resp.status)
 
     def test_invalid_registration_return_401_on_get(self):
         self.stream.read.return_value = self.failed_registration_request

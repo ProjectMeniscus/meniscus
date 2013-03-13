@@ -23,7 +23,9 @@ class WhenTestingWorkerRegistration(unittest.TestCase):
         self.req.stream = self.stream
         self.resource = WorkerRegistrationResource(self.db_handler)
         self.worker_id = '8cc3b103-9b23-4e1c-afb1-8c5973621b55'
+        self.registered_worker = u'{"worker_status": "online"}'
         self._update_worker = MagicMock()
+        self.mongo_worker = MagicMock()
         self.registration_request = u'{ "worker_registration": {\
                 "hostname": "worker-04",\
                 "callback": "172.22.15.25:8080/v1/configuration/",\
@@ -115,10 +117,24 @@ class WhenTestingWorkerRegistration(unittest.TestCase):
         with self.assertRaises(falcon.HTTPError):
             self.resource._validate_worker_body(body)
 
-    def test_update_worker_should_return_400(self):
-        with self.assertRaises(falcon.HTTPError):
-            self.resource._update_worker(self.req, self.worker_id)
+    def test_update_worker_should_call_find_one(self):
+        self.req.stream.read.return_value = self.registered_worker
+        self.db_handler.find_one = MagicMock()
+        self.resource._update_worker(self.req, self.worker_id)
+        self.db_handler.find_one.assert_called_once_with(
+            'worker', {'worker_id': self.worker_id})
 
+    def test_update_worker_should_call_update_worker(self):
+        self.req.stream.read.return_value = self.registered_worker
+        self.db_handler.update = MagicMock()
+        self.resource._update_worker(self.req, self.worker_id)
+        self.db_handler.update.assert_called()
+
+    def test_return_200_on_put(self):
+        self.req.stream.read.return_value = self.registered_worker
+        with patch.object(WorkerRegistrationResource, '_update_worker'):
+            self.resource.on_put(self.req, self.resp, self.worker_id)
+            self.assertEqual(falcon.HTTP_200, self.resp.status)
 
 if __name__ == '__main__':
     unittest.main()

@@ -83,7 +83,7 @@ class WorkerRegistrationResource(ApiResource):
             body['worker_registration']['system_info'])
 
         self.db.put('worker', new_worker.format())
-        return  self._format_registration_response(new_worker.format())
+        return self._format_registration_response(new_worker.format())
 
     def on_post(self, req, resp):
         """
@@ -152,5 +152,4 @@ class WorkerRegistrationResource(ApiResource):
             resp.status = falcon.HTTP_200
         else:
             _role_not_valid()
-
 

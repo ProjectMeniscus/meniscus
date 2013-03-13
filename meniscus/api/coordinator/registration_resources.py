@@ -112,10 +112,12 @@ class WorkerRegistrationResource(ApiResource):
 
         #update worker status taken from json body
         updated_worker = Worker(worker['worker_id'], worker['worker_token'])
+
         updated_worker.set_worker_network_layer_stats(worker['hostname'],
                                                       worker['callback'],
                                                       worker['ip_address_v4'],
                                                       worker['ip_address_v6'])
+
         updated_worker.set_worker_personality_stats(worker['personality'],
                                                     body['worker_status'],
                                                     worker['system_info'])

@@ -1,5 +1,5 @@
 import falcon
-import json
+import meniscus.openstack.common.jsonutils as json
 
 
 class ApiResource(object):
@@ -29,7 +29,7 @@ def load_body(req, required=[]):
         abort(falcon.HTTP_500, 'Read Error')
 
     try:
-        parsed_body = json.loads(raw_json, 'utf-8')
+        parsed_body = json.loads(raw_json)
         return parsed_body
     except ValueError as ve:
         abort(falcon.HTTP_400, 'Malformed JSON')

@@ -1,4 +1,4 @@
-import json
+import meniscus.openstack.common.jsonutils as json
 import falcon
 
 from meniscus.api import ApiResource, load_body, abort

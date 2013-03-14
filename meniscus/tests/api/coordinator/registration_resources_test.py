@@ -1,8 +1,9 @@
 import falcon
 import unittest
-import json
 
-from meniscus.api.coordinator.registration_resources import *
+from meniscus.api.coordinator.registration_resources \
+    import WorkerRegistrationResource
+from meniscus.openstack.common import jsonutils
 from mock import MagicMock
 from mock import patch
 
@@ -70,7 +71,7 @@ class WhenTestingWorkerRegistration(unittest.TestCase):
     def test_should_return_203_on_post(self):
         self.stream.read.return_value = self.registration_request
         self.resource.on_post(self.req, self.resp)
-        parsed_body = json.loads(self.resp.body)
+        parsed_body = jsonutils.loads(self.resp.body)
         self.assertTrue('personality_module' in parsed_body.keys())
         self.assertTrue('worker_id' in parsed_body.keys())
         self.assertTrue('worker_token' in parsed_body.keys())

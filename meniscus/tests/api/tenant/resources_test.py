@@ -1,12 +1,18 @@
-from meniscus.api.tenant.resources import *
-from meniscus.data.model.tenant import Tenant, Host, HostProfile
+import falcon
+import unittest
+
+from meniscus.api.tenant.resources import \
+    VersionResource, UserResource, TenantResource, \
+    HostProfilesResource, HostProfileResource, \
+    EventProducersResource, EventProducerResource, \
+    HostResource, HostsResource
+from meniscus.data.model.tenant import Tenant, Host, HostProfile, EventProducer
+from meniscus.openstack.common import jsonutils
 
 from mock import MagicMock
 from mock import patch
 
-import falcon
-import unittest
-import json
+
 
 
 def suite():
@@ -81,7 +87,7 @@ class WhenTestingVersionResource(unittest.TestCase):
     def test_should_return_version_json(self):
         self.resource.on_get(self.req, self.resp)
 
-        parsed_body = json.loads(self.resp.body)
+        parsed_body = jsonutils.loads(self.resp.body)
 
         self.assertTrue('v1' in parsed_body)
         self.assertEqual('current', parsed_body['v1'])
@@ -130,7 +136,7 @@ class WhenTestingUserResource(TestingTenantApiBase):
                    self.tenant_found):
             self.resource.on_get(self.req, self.resp, self.tenant_id)
 
-        parsed_body = json.loads(self.resp.body)
+        parsed_body = jsonutils.loads(self.resp.body)
 
         self.assertTrue('tenant' in parsed_body)
         self.assertTrue('tenant_id' in parsed_body['tenant'])
@@ -171,7 +177,7 @@ class WhenTestingHostProfilesResource(TestingTenantApiBase):
                    self.tenant_found):
             self.resource.on_get(self.req, self.resp, self.tenant_id)
 
-        parsed_body = json.loads(self.resp.body)
+        parsed_body = jsonutils.loads(self.resp.body)
 
         self.assertTrue('profiles' in parsed_body.keys())
         self.assertEqual(len(self.profiles), len(parsed_body['profiles']))
@@ -252,7 +258,7 @@ class WhenTestingHostProfileResource(TestingTenantApiBase):
             self.resource.on_get(self.req, self.resp, self.tenant_id,
                                  self.profile_id)
 
-        parsed_body = json.loads(self.resp.body)
+        parsed_body = jsonutils.loads(self.resp.body)
         self.assertTrue('profile' in parsed_body.keys())
         self.assertTrue('id' in parsed_body['profile'].keys())
         self.assertTrue('name' in parsed_body['profile'].keys())
@@ -346,7 +352,7 @@ class WhenTestingEventProducersResource(TestingTenantApiBase):
                    self.tenant_found):
             self.resource.on_get(self.req, self.resp, self.tenant_id)
 
-        parsed_body = json.loads(self.resp.body)
+        parsed_body = jsonutils.loads(self.resp.body)
 
         self.assertTrue('event_producers'in parsed_body.keys())
         self.assertEqual(len(self.profiles),
@@ -426,7 +432,7 @@ class WhenTestingEventProducerResource(TestingTenantApiBase):
             self.resource.on_get(self.req, self.resp, self.tenant_id,
                                  self.producer_id)
 
-        parsed_body = json.loads(self.resp.body)
+        parsed_body = jsonutils.loads(self.resp.body)
 
         self.assertTrue('event_producer' in parsed_body.keys())
         self.assertTrue('id' in parsed_body['event_producer'].keys())
@@ -523,7 +529,7 @@ class WhenTestingHostsResource(TestingTenantApiBase):
                    self.tenant_found):
             self.resource.on_get(self.req, self.resp, self.tenant_id)
 
-        parsed_body = json.loads(self.resp.body)
+        parsed_body = jsonutils.loads(self.resp.body)
 
         self.assertTrue('hosts' in parsed_body.keys())
         self.assertEqual(len(self.profiles), len(parsed_body['hosts']))
@@ -611,7 +617,7 @@ class WhenTestingHostResource(TestingTenantApiBase):
             self.resource.on_get(self.req, self.resp, self.tenant_id,
                                  self.host_id)
 
-        parsed_body = json.loads(self.resp.body)
+        parsed_body = jsonutils.loads(self.resp.body)
 
         self.assertTrue('host'in parsed_body.keys())
         self.assertTrue('id' in parsed_body['host'].keys())

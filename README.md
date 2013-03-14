@@ -16,7 +16,7 @@ In highly diverse, clustered environments like those seen in many OpenStack depl
 
 * Installation
 * [Development Environment Set Up](https://github.com/ProjectMeniscus/meniscus/wiki/Creating-a-development-environment-to-work-with-Meniscus)
-* [API Documentation](https://github.com/ProjectMeniscus/meniscus/wiki/Tenant-API)
+* [API Documentation](https://github.com/ProjectMeniscus/meniscus/wiki)
 * [Technology & standards](https://github.com/ProjectMeniscus/meniscus/wiki/Technology-and-Standards)
 * FAQ
 

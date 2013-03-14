@@ -12,7 +12,8 @@ def bootstrap_api():
     #if the configuration exists in the cache,
     # retrieve the personality module
     if cache.cache_exists('worker_configuration'):
-        cached_config = jsonutils.loads(cache.cache_get('worker_configuration'))
+        cached_config = jsonutils.loads(
+            cache.cache_get('worker_configuration'))
         personality_module = cached_config['personality_module']
 
     #if no personality module was pulled form the cache, use the default

@@ -1,5 +1,6 @@
 from meniscus.data.model.tenant import Tenant, Host, HostProfile, EventProducer
-from meniscus.data.model.util import *
+from meniscus.data.model.util import \
+    find_tenant, find_host_profile, find_host, find_event_producer
 from mock import MagicMock
 import unittest
 

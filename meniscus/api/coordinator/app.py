@@ -1,7 +1,9 @@
 import falcon
 
-from meniscus.api.coordinator.configuration_resources import *
-from meniscus.api.coordinator.registration_resources import *
+from meniscus.api.coordinator.configuration_resources \
+    import WorkerConfigurationResource
+from meniscus.api.coordinator.registration_resources \
+    import WorkerRegistrationResource
 from meniscus.api.coordinator.version_resource import VersionResource
 from meniscus.api.datastore_init import db_handler
 

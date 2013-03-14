@@ -1,6 +1,8 @@
+import falcon
 import unittest
 from mock import MagicMock
-from meniscus.api.coordinator.configuration_resources import *
+from meniscus.api.coordinator.configuration_resources \
+    import WorkerConfigurationResource
 
 
 def suite():

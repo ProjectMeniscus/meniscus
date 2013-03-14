@@ -1,8 +1,7 @@
-import json
 import falcon
 
 from meniscus.api import ApiResource
-from meniscus.api import abort
+from meniscus.api import abort, format_response_body
 
 
 def _personality_not_valid():
@@ -78,4 +77,5 @@ class WorkerConfigurationResource(ApiResource):
 
         configuration = self._get_configuration(reg_worker['personality'])
         resp.status = falcon.HTTP_200
-        resp.body = json.dumps(self._format_configuration(configuration))
+        resp.body = format_response_body(
+            self._format_configuration(configuration))

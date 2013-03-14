@@ -86,7 +86,7 @@ class WorkerRegistrationResource(ApiResource):
 
     def on_post(self, req, resp):
         """
-        receives json req to register worker responds with a 203 for success
+        receives json req to register worker responds with a 202 for success
         """
 
         #load json payload in body
@@ -95,7 +95,7 @@ class WorkerRegistrationResource(ApiResource):
         #Register worker and store in confirmation
         confirmation = self._register_worker(body)
 
-        resp.status = falcon.HTTP_203
+        resp.status = falcon.HTTP_202
         resp.body = format_response_body(confirmation)
 
     def _update_worker(self, req, worker_id):

@@ -104,8 +104,9 @@ class HostProfilesResource(ApiResource):
         resp.status = falcon.HTTP_200
 
         #jsonify a list of formatted profiles
-        resp.body = format_response_body({'profiles':
-                               [p.format() for p in tenant.profiles]})
+        resp.body = format_response_body({
+            'profiles': [p.format() for p in tenant.profiles]
+        })
 
     def on_post(self, req, resp, tenant_id):
         body = load_body(req)

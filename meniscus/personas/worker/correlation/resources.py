@@ -1,13 +1,13 @@
 import httplib
 import falcon
-import json
 import requests
 
 from meniscus.api import ApiResource, load_body, abort
+from meniscus.api.utils.request import http_request
 from meniscus.data.model.util import find_tenant
 from meniscus.data.model.tenant import Tenant
 from meniscus.proxy import NativeProxy
-from meniscus.api.utils.request import http_request
+
 
 MSG_TOKEN = 'MESSAGE-TOKEN'
 
@@ -88,7 +88,13 @@ class PublishResource():
         body = load_body(req)
         message_token = req.get_header(MSG_TOKEN)
 
+        # create cache
+        cache = NativeProxy()
+        if cache.cache_exists(tenant_id):
+            message_token == cache.cache_get(tenant_id)
+
         #validate that tenant is cache locally
+        #todo: verify how much of the tenant object is in local cache
         tenant = self._get_tenant_from_cache(tenant_id)
 
         #call to coordinator api

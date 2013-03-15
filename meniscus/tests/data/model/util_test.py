@@ -1,8 +1,17 @@
-from meniscus.data.model.tenant import Tenant, Host, HostProfile, EventProducer
-from meniscus.data.model.util import \
-    find_tenant, find_host_profile, find_host, find_event_producer
-from mock import MagicMock
 import unittest
+
+from mock import MagicMock
+
+from meniscus.data.model.tenant import EventProducer
+from meniscus.data.model.tenant import Host
+from meniscus.data.model.tenant import HostProfile
+from meniscus.data.model.tenant import Tenant
+from meniscus.data.model.util import find_event_producer
+from meniscus.data.model.util import find_host
+from meniscus.data.model.util import find_host_profile
+from meniscus.data.model.util import find_tenant
+from meniscus.data.model.util import find_tenant_in_cache
+from meniscus.openstack.common import jsonutils
 
 
 def suite():
@@ -13,8 +22,8 @@ def suite():
 class WhenTestingFindMethods(unittest.TestCase):
 
     def setUp(self):
-        self.ds_handler = MagicMock()
-        self.ds_handler.find_one.return_value = {
+
+        self.tenant = {
             "tenant_id": "12345",
             "_id": "507f1f77bcf86cd799439011",
             "hosts": [
@@ -53,9 +62,15 @@ class WhenTestingFindMethods(unittest.TestCase):
                 }
             ]
         }
-
+        self.ds_handler = MagicMock()
+        self.ds_handler.find_one.return_value = self.tenant
         self.ds_handler_empty = MagicMock()
         self.ds_handler_empty.find_one.return_value = None
+        self.cache = MagicMock()
+        self.cache.cache_get.return_value = jsonutils.dumps(self.tenant)
+        self.cache.cache_exists.return_value = True
+        self.cache_empty = MagicMock()
+        self.cache_empty.cache_exists.return_value = False
 
     def test_find_tenant_returns_instance(self):
         tenant = find_tenant(self.ds_handler, '12345')
@@ -63,6 +78,14 @@ class WhenTestingFindMethods(unittest.TestCase):
 
     def test_find_tenant_returns_none(self):
         tenant = find_tenant(self.ds_handler_empty, '12345')
+        self.assertEquals(tenant, None)
+
+    def test_find_tenant_in_cache_returns_instance(self):
+        tenant = find_tenant_in_cache(self.cache, '12345')
+        self.assertIsInstance(tenant, Tenant)
+
+    def test_find_tenant_in_cache_returns_none(self):
+        tenant = find_tenant_in_cache(self.cache_empty, '12345')
         self.assertEquals(tenant, None)
 
     def test_find_host_by_id_returns_instance(self):

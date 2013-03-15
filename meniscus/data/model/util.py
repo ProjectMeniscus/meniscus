@@ -1,8 +1,8 @@
-from meniscus.data.model.tenant import Tenant, Host, HostProfile, EventProducer
-
-
-def _empty_condition():
-    raise NotImplementedError
+from meniscus.data.model.tenant import EventProducer
+from meniscus.data.model.tenant import Host
+from meniscus.data.model.tenant import HostProfile
+from meniscus.data.model.tenant import Tenant
+from meniscus.openstack.common import jsonutils
 
 
 def find_tenant(ds_handler, tenant_id):
@@ -14,9 +14,28 @@ def find_tenant(ds_handler, tenant_id):
     # get the tenant dictionary form the data source
     tenant_dict = ds_handler.find_one('tenant', {'tenant_id': tenant_id})
 
-    if not tenant_dict:
-        return None
+    if tenant_dict:
+        tenant = _load_tenant_from_dict(tenant_dict)
+        return tenant
 
+    return None
+
+
+def find_tenant_in_cache(cache, tenant_id):
+    """
+    Retrieves a dictionary describing a tenant object and its Hosts, Profiles,
+    and eventProducers and maps them to a tenant object
+    """
+
+    if cache.cache_exists(tenant_id):
+        tenant_dict = jsonutils.loads(cache.cache_get(tenant_id))
+        tenant = _load_tenant_from_dict(tenant_dict)
+        return tenant
+
+    return None
+
+
+def _load_tenant_from_dict(tenant_dict):
     #Create a list of Host objects from the dictionary
     hosts = [Host(
         h['id'], h['hostname'], h['ip_address_v4'],
@@ -35,6 +54,7 @@ def find_tenant(ds_handler, tenant_id):
     tenant = Tenant(tenant_dict['tenant_id'], hosts, profiles, event_producers,
                     tenant_dict['_id'])
 
+    #return tenant object
     return tenant
 
 

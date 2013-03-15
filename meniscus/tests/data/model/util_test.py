@@ -1,8 +1,19 @@
-from meniscus.data.model.tenant import Tenant, Host, HostProfile, EventProducer
-from meniscus.data.model.util import \
-    find_tenant, find_host_profile, find_host, find_event_producer
-from mock import MagicMock
 import unittest
+
+from mock import MagicMock
+
+from meniscus.data.model.tenant import EventProducer
+from meniscus.data.model.tenant import Host
+from meniscus.data.model.tenant import HostProfile
+from meniscus.data.model.tenant import Tenant
+from meniscus.data.model.util import find_event_producer
+from meniscus.data.model.util import find_event_producer_for_host
+from meniscus.data.model.util import find_host
+from meniscus.data.model.util import find_host_profile
+from meniscus.data.model.util import find_tenant
+from meniscus.data.model.util import find_tenant_in_cache
+from meniscus.data.model.util import load_tenant_from_dict
+from meniscus.openstack.common import jsonutils
 
 
 def suite():
@@ -13,8 +24,8 @@ def suite():
 class WhenTestingFindMethods(unittest.TestCase):
 
     def setUp(self):
-        self.ds_handler = MagicMock()
-        self.ds_handler.find_one.return_value = {
+
+        self.tenant = {
             "tenant_id": "12345",
             "_id": "507f1f77bcf86cd799439011",
             "hosts": [
@@ -53,9 +64,15 @@ class WhenTestingFindMethods(unittest.TestCase):
                 }
             ]
         }
-
+        self.ds_handler = MagicMock()
+        self.ds_handler.find_one.return_value = self.tenant
         self.ds_handler_empty = MagicMock()
         self.ds_handler_empty.find_one.return_value = None
+        self.cache = MagicMock()
+        self.cache.cache_get.return_value = jsonutils.dumps(self.tenant)
+        self.cache.cache_exists.return_value = True
+        self.cache_empty = MagicMock()
+        self.cache_empty.cache_exists.return_value = False
 
     def test_find_tenant_returns_instance(self):
         tenant = find_tenant(self.ds_handler, '12345')
@@ -63,6 +80,14 @@ class WhenTestingFindMethods(unittest.TestCase):
 
     def test_find_tenant_returns_none(self):
         tenant = find_tenant(self.ds_handler_empty, '12345')
+        self.assertEquals(tenant, None)
+
+    def test_find_tenant_in_cache_returns_instance(self):
+        tenant = find_tenant_in_cache(self.cache, '12345')
+        self.assertIsInstance(tenant, Tenant)
+
+    def test_find_tenant_in_cache_returns_none(self):
+        tenant = find_tenant_in_cache(self.cache_empty, '12345')
         self.assertEquals(tenant, None)
 
     def test_find_host_by_id_returns_instance(self):
@@ -124,6 +149,48 @@ class WhenTestingFindMethods(unittest.TestCase):
         tenant = find_tenant(self.ds_handler, '12345')
         producer = find_event_producer(tenant, producer_name='not_name')
         self.assertEquals(producer, None)
+
+    def test_find_event_producer_for_host_no_profile_returns_none(self):
+        tenant = load_tenant_from_dict(self.tenant)
+        test_host = find_host(tenant, host_name='ws-n01')
+        test_host.profile = None
+        test_producer = find_event_producer_for_host(
+            tenant, test_host, 'producer_name_none')
+        self.assertEqual(test_producer, None)
+
+    def test_find_event_producer_for_host_no_producers_for_profile(self):
+        tenant = load_tenant_from_dict(self.tenant)
+        test_host = find_host(tenant, host_name='ws-n01')
+        test_profile = find_host_profile(tenant, profile_id=122)
+        test_profile.event_producers = list()
+        test_producer = find_event_producer_for_host(
+            tenant, test_host, 'producer_name_none')
+        self.assertEqual(test_producer, None)
+
+    def test_find_event_producer_for_host_no_producer_found(self):
+        tenant = load_tenant_from_dict(self.tenant)
+        test_host = find_host(tenant, host_name='ws-n01')
+        tenant.event_producers = list()
+        test_producer = find_event_producer_for_host(
+            tenant, test_host, 'producer_name_none')
+        self.assertEqual(test_producer, None)
+
+    def test_find_event_producer_for_host_producer_not_in_profile(self):
+        tenant = load_tenant_from_dict(self.tenant)
+        test_host = find_host(tenant, host_name='ws-n01')
+        test_profile = find_host_profile(tenant, profile_id=122)
+        test_profile.event_producers = [124]
+        test_producer = find_event_producer_for_host(
+            tenant, test_host, 'apache')
+        self.assertEqual(test_producer, None)
+
+    def test_find_event_producer_for_host_success_returns_producer(self):
+        tenant = load_tenant_from_dict(self.tenant)
+        test_host = find_host(tenant, host_name='ws-n01')
+        test_producer = find_event_producer_for_host(
+            tenant, test_host, 'apache')
+        self.assertIsInstance(test_producer, EventProducer)
+
 
 if __name__ == '__main__':
     unittest.main()

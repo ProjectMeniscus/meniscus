@@ -3,6 +3,8 @@ uWSGI>=1.4.7
 wsgiref>=0.1.2
 pymongo>=2.4.2
 requests>=1.1.0
+iso8601>=0.1.4
+eventlet>=0.12.1
 
 # Right now this is the location for oslo-config (its not in PyPi yet)
 http://tarballs.openstack.org/oslo-config/oslo-config-2013.1b5.tar.gz#egg=oslo-config

@@ -1,11 +1,11 @@
 import httplib
-import json
 import platform
 import requests
 
 import meniscus.api.utils.sys_assist as sys_assist
 from meniscus.api.utils.request import http_request
 from meniscus.api.utils.retry import retry
+from meniscus.openstack.common import jsonutils
 from meniscus.proxy import NativeProxy
 from multiprocessing import Process
 
@@ -65,7 +65,8 @@ class PairingProcess(object):
         """
         try:
             resp = http_request(coordinator_uri + '/pairing', auth_header,
-                                json.dumps(registration), http_verb='POST')
+                                jsonutils.dumps(
+                                    registration), http_verb='POST')
         except requests.ConnectionError:
             return False
 
@@ -75,7 +76,7 @@ class PairingProcess(object):
                            "coordinator_uri": coordinator_uri})
 
             cache = NativeProxy()
-            cache.cache_set('worker_configuration', json.dumps(config))
+            cache.cache_set('worker_configuration', jsonutils.dumps(config))
             return True
 
     @retry(tries=TRIES, delay=DELAY, backoff=BACKOFF)
@@ -84,7 +85,7 @@ class PairingProcess(object):
         get the associated routes for the worker and store them in cache
         """
         cache = NativeProxy()
-        config = json.loads(cache.cache_get('worker_configuration'))
+        config = jsonutils.loads(cache.cache_get('worker_configuration'))
         coordinator_uri = config['coordinator_uri']
 
         token_header = {"WORKER-TOKEN": config['worker_token']}
@@ -102,5 +103,5 @@ class PairingProcess(object):
             routes = resp.json()
 
             cache = NativeProxy()
-            cache.cache_set('worker_routes', json.dumps(routes))
+            cache.cache_set('worker_routes', jsonutils.dumps(routes))
             return True

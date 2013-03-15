@@ -1,8 +1,8 @@
-from meniscus.data.model.tenant import Tenant, Host, HostProfile, EventProducer
-
-
-def _empty_condition():
-    raise NotImplementedError
+from meniscus.data.model.tenant import EventProducer
+from meniscus.data.model.tenant import Host
+from meniscus.data.model.tenant import HostProfile
+from meniscus.data.model.tenant import Tenant
+from meniscus.openstack.common import jsonutils
 
 
 def find_tenant(ds_handler, tenant_id):
@@ -14,9 +14,28 @@ def find_tenant(ds_handler, tenant_id):
     # get the tenant dictionary form the data source
     tenant_dict = ds_handler.find_one('tenant', {'tenant_id': tenant_id})
 
-    if not tenant_dict:
-        return None
+    if tenant_dict:
+        tenant = load_tenant_from_dict(tenant_dict)
+        return tenant
 
+    return None
+
+
+def find_tenant_in_cache(cache, tenant_id):
+    """
+    Retrieves a dictionary describing a tenant object and its Hosts, Profiles,
+    and eventProducers and maps them to a tenant object
+    """
+
+    if cache.cache_exists(tenant_id):
+        tenant_dict = jsonutils.loads(cache.cache_get(tenant_id))
+        tenant = load_tenant_from_dict(tenant_dict)
+        return tenant
+
+    return None
+
+
+def load_tenant_from_dict(tenant_dict):
     #Create a list of Host objects from the dictionary
     hosts = [Host(
         h['id'], h['hostname'], h['ip_address_v4'],
@@ -35,6 +54,7 @@ def find_tenant(ds_handler, tenant_id):
     tenant = Tenant(tenant_dict['tenant_id'], hosts, profiles, event_producers,
                     tenant_dict['_id'])
 
+    #return tenant object
     return tenant
 
 
@@ -85,5 +105,30 @@ def find_event_producer(tenant, producer_id=None, producer_name=None):
         for producer in tenant.event_producers:
             if producer_name == producer.name:
                 return producer
+
+    return None
+
+
+def find_event_producer_for_host(tenant, host, producer_name):
+    #if the host does not have a profile assigned, return None
+    if not host.profile:
+        return None
+
+    #get the profile
+    profile = find_host_profile(tenant, profile_id=host.profile)
+
+    #if the profile does not have event producers assigned, return None
+    if not profile.event_producers:
+        return None
+
+    ##find the producer by name
+    producer = find_event_producer(tenant, producer_name=producer_name)
+
+    #if the producer is not found, return None
+    if not producer:
+        return None
+
+    if producer.get_id() in profile.event_producers:
+        return producer
 
     return None

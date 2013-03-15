@@ -80,10 +80,10 @@ Tenants are users of the environments being monitored for
 application events.
 """
 
-    def __init__(self, tenant_id, hosts=[], profiles=[], event_producers=[],
-                 _id=None):
+    def __init__(self, tenant_id, hosts=list(), profiles=list(),
+                 event_producers=list(),  _id=None):
         self._id = _id
-        self.tenant_id = tenant_id
+        self.tenant_id = str(tenant_id)
         self.hosts = hosts
         self.profiles = profiles
         self.event_producers = event_producers

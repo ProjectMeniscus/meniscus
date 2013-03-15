@@ -1,8 +1,7 @@
-import json
 import falcon
 import uuid
 
-from meniscus.api import ApiResource, load_body
+from meniscus.api import ApiResource, load_body, format_response_body
 from meniscus.data.model.coordinator import Worker
 from meniscus.api import abort
 
@@ -97,7 +96,7 @@ class WorkerRegistrationResource(ApiResource):
         confirmation = self._register_worker(body)
 
         resp.status = falcon.HTTP_202
-        resp.body = json.dumps(confirmation)
+        resp.body = format_response_body(confirmation)
 
     def _update_worker(self, req, worker_id):
         """
@@ -152,4 +151,3 @@ class WorkerRegistrationResource(ApiResource):
             resp.status = falcon.HTTP_200
         else:
             _role_not_valid()
-

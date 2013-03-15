@@ -1,9 +1,9 @@
-import json
+from meniscus.openstack.common import jsonutils
 import falcon
 import unittest
 
 from mock import MagicMock
-from meniscus.api.coordinator.version_resource import *
+from meniscus.api.coordinator.version_resource import VersionResource
 
 
 def suite():
@@ -25,7 +25,7 @@ class WhenTestingVersionResource(unittest.TestCase):
     def test_should_return_version_json(self):
         self.resource.on_get(self.req, self.resp)
 
-        parsed_body = json.loads(self.resp.body)
+        parsed_body = jsonutils.loads(self.resp.body)
 
         self.assertTrue('v1' in parsed_body)
         self.assertEqual('current', parsed_body['v1'])

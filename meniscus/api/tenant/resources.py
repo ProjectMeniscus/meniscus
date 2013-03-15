@@ -1,7 +1,6 @@
-import json
 import falcon
 
-from meniscus.api import ApiResource, load_body, abort
+from meniscus.api import ApiResource, load_body, abort, format_response_body
 from meniscus.data.model.util import find_tenant, find_host, \
     find_host_profile, find_event_producer
 from meniscus.data.model.tenant import Tenant, Host, HostProfile, EventProducer
@@ -12,6 +11,13 @@ def _tenant_not_found():
     sends an http 404 response to the caller
     """
     abort(falcon.HTTP_404, 'Unable to locate tenant.')
+
+
+def _tenant_id_not_provided():
+    """
+    sends an http 400 response to the caller when a a tenant id is not given
+    """
+    abort(falcon.HTTP_400, 'Malformed request')
 
 
 def _host_not_found():
@@ -39,7 +45,7 @@ class VersionResource(ApiResource):
 
     def on_get(self, req, resp):
         resp.status = falcon.HTTP_200
-        resp.body = json.dumps({'v1': 'current'})
+        resp.body = format_response_body({'v1': 'current'})
 
 
 class TenantResource(ApiResource):
@@ -50,6 +56,9 @@ class TenantResource(ApiResource):
     def on_post(self, req, resp):
         body = load_body(req)
         tenant_id = body['tenant_id']
+
+        if not tenant_id:
+            _tenant_id_not_provided()
 
         #validate that tenant does not already exists
         tenant = find_tenant(self.db, tenant_id=tenant_id)
@@ -78,7 +87,7 @@ class UserResource(ApiResource):
             _tenant_not_found()
 
         resp.status = falcon.HTTP_200
-        resp.body = json.dumps({'tenant': tenant.format()})
+        resp.body = format_response_body({'tenant': tenant.format()})
 
     def on_delete(self, req, resp, tenant_id):
         tenant = find_tenant(self.db, tenant_id=tenant_id)
@@ -105,8 +114,9 @@ class HostProfilesResource(ApiResource):
         resp.status = falcon.HTTP_200
 
         #jsonify a list of formatted profiles
-        resp.body = json.dumps({'profiles':
-                               [p.format() for p in tenant.profiles]})
+        resp.body = format_response_body({
+            'profiles': [p.format() for p in tenant.profiles]
+        })
 
     def on_post(self, req, resp, tenant_id):
         body = load_body(req)
@@ -169,7 +179,7 @@ class HostProfileResource(ApiResource):
             _profile_not_found()
 
         resp.status = falcon.HTTP_200
-        resp.body = json.dumps({'profile': profile.format()})
+        resp.body = format_response_body({'profile': profile.format()})
 
     def on_put(self, req, resp, tenant_id, profile_id):
         #load the message
@@ -249,8 +259,9 @@ class EventProducersResource(ApiResource):
             _tenant_not_found()
 
         resp.status = falcon.HTTP_200
-        resp.body = json.dumps({'event_producers':
-                               [p.format() for p in tenant.event_producers]})
+        resp.body = format_response_body({'event_producers':
+                                         [p.format()
+                                          for p in tenant.event_producers]})
 
     def on_post(self, req, resp, tenant_id):
         body = load_body(req)
@@ -317,7 +328,8 @@ class EventProducerResource(ApiResource):
             _producer_not_found()
 
         resp.status = falcon.HTTP_200
-        resp.body = json.dumps({'event_producer': event_producer.format()})
+        resp.body = format_response_body(
+            {'event_producer': event_producer.format()})
 
     def on_put(self, req, resp, tenant_id, event_producer_id):
         body = load_body(req)
@@ -396,7 +408,8 @@ class HostsResource(ApiResource):
             _tenant_not_found()
 
         resp.status = falcon.HTTP_200
-        resp.body = json.dumps({'hosts': [h.format() for h in tenant.hosts]})
+        resp.body = format_response_body(
+            {'hosts': [h.format() for h in tenant.hosts]})
 
     def on_post(self, req, resp, tenant_id):
         body = load_body(req)
@@ -469,7 +482,7 @@ class HostResource(ApiResource):
             _host_not_found()
 
         resp.status = falcon.HTTP_200
-        resp.body = json.dumps({'host': host.format()})
+        resp.body = format_response_body({'host': host.format()})
 
     def on_put(self, req, resp, tenant_id, host_id):
         body = load_body(req)

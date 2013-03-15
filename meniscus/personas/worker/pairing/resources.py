@@ -1,7 +1,6 @@
 import falcon
-import json
 from pairing_process import PairingProcess
-from meniscus.api import ApiResource, load_body
+from meniscus.api import ApiResource, load_body, format_response_body
 
 
 class VersionResource(ApiResource):
@@ -9,7 +8,7 @@ class VersionResource(ApiResource):
 
     def on_get(self, req, resp):
         resp.status = falcon.HTTP_200
-        resp.body = json.dumps({'v1': 'current'})
+        resp.body = format_response_body({'v1': 'current'})
 
 
 class PairingConfigurationResource(ApiResource):

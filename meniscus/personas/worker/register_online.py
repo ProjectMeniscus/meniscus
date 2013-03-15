@@ -1,7 +1,7 @@
 import httplib
-import json
 import requests
 
+from meniscus.openstack.common import jsonutils
 from meniscus.api.utils.request import http_request
 from meniscus.api.utils.retry import retry
 from meniscus.proxy import NativeProxy
@@ -29,7 +29,7 @@ class RegisterWorkerOnline(object):
         register the worker with the coordinator with an online status
         """
         cache = NativeProxy()
-        config = json.loads(cache.cache_get('worker_configuration'))
+        config = jsonutils.loads(cache.cache_get('worker_configuration'))
         coordinator_uri = config['coordinator_uri']
 
         token_header = {"WORKER-TOKEN": config['worker_token']}
@@ -41,7 +41,7 @@ class RegisterWorkerOnline(object):
 
         try:
             resp = http_request(request_uri, token_header,
-                                json.dumps(status), http_verb='PUT')
+                                jsonutils.dumps(status), http_verb='PUT')
         except requests.ConnectionError:
             return False
 

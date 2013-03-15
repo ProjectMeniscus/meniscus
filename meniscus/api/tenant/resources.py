@@ -13,6 +13,13 @@ def _tenant_not_found():
     abort(falcon.HTTP_404, 'Unable to locate tenant.')
 
 
+def _tenant_id_not_provided():
+    """
+    sends an http 400 response to the caller when a a tenant id is not given
+    """
+    abort(falcon.HTTP_400, 'Malformed request')
+
+
 def _host_not_found():
     """
     sends an http 404 response to the caller
@@ -49,6 +56,9 @@ class TenantResource(ApiResource):
     def on_post(self, req, resp):
         body = load_body(req)
         tenant_id = body['tenant_id']
+
+        if not tenant_id:
+            _tenant_id_not_provided()
 
         #validate that tenant does not already exists
         tenant = find_tenant(self.db, tenant_id=tenant_id)

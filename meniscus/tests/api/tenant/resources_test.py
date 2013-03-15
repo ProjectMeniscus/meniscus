@@ -98,6 +98,13 @@ class WhenTestingTenantResource(TestingTenantApiBase):
     def setResource(self):
         self.resource = TenantResource(self.db_handler)
 
+    def test_should_throw_exception_for_tenant_id_not_provided_on_post(self):
+        self.stream.read.return_value = u'{ "tenant_id" : "" }'
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            with self.assertRaises(falcon.HTTPError):
+                self.resource.on_post(self.req, self.resp)
+
     def test_should_throw_exception_for_tenants_that_exist_on_post(self):
         self.stream.read.return_value = u'{ "tenant_id" : "1234" }'
         with patch('meniscus.api.tenant.resources.find_tenant',

@@ -7,10 +7,12 @@ from meniscus.data.model.tenant import Host
 from meniscus.data.model.tenant import HostProfile
 from meniscus.data.model.tenant import Tenant
 from meniscus.data.model.util import find_event_producer
+from meniscus.data.model.util import find_event_producer_for_host
 from meniscus.data.model.util import find_host
 from meniscus.data.model.util import find_host_profile
 from meniscus.data.model.util import find_tenant
 from meniscus.data.model.util import find_tenant_in_cache
+from meniscus.data.model.util import load_tenant_from_dict
 from meniscus.openstack.common import jsonutils
 
 
@@ -147,6 +149,48 @@ class WhenTestingFindMethods(unittest.TestCase):
         tenant = find_tenant(self.ds_handler, '12345')
         producer = find_event_producer(tenant, producer_name='not_name')
         self.assertEquals(producer, None)
+
+    def test_find_event_producer_for_host_no_profile_returns_none(self):
+        tenant = load_tenant_from_dict(self.tenant)
+        test_host = find_host(tenant, host_name='ws-n01')
+        test_host.profile = None
+        test_producer = find_event_producer_for_host(
+            tenant, test_host, 'producer_name_none')
+        self.assertEqual(test_producer, None)
+
+    def test_find_event_producer_for_host_no_producers_for_profile(self):
+        tenant = load_tenant_from_dict(self.tenant)
+        test_host = find_host(tenant, host_name='ws-n01')
+        test_profile = find_host_profile(tenant, profile_id=122)
+        test_profile.event_producers = list()
+        test_producer = find_event_producer_for_host(
+            tenant, test_host, 'producer_name_none')
+        self.assertEqual(test_producer, None)
+
+    def test_find_event_producer_for_host_no_producer_found(self):
+        tenant = load_tenant_from_dict(self.tenant)
+        test_host = find_host(tenant, host_name='ws-n01')
+        tenant.event_producers = list()
+        test_producer = find_event_producer_for_host(
+            tenant, test_host, 'producer_name_none')
+        self.assertEqual(test_producer, None)
+
+    def test_find_event_producer_for_host_producer_not_in_profile(self):
+        tenant = load_tenant_from_dict(self.tenant)
+        test_host = find_host(tenant, host_name='ws-n01')
+        test_profile = find_host_profile(tenant, profile_id=122)
+        test_profile.event_producers = [124]
+        test_producer = find_event_producer_for_host(
+            tenant, test_host, 'apache')
+        self.assertEqual(test_producer, None)
+
+    def test_find_event_producer_for_host_success_returns_producer(self):
+        tenant = load_tenant_from_dict(self.tenant)
+        test_host = find_host(tenant, host_name='ws-n01')
+        test_producer = find_event_producer_for_host(
+            tenant, test_host, 'apache')
+        self.assertIsInstance(test_producer, EventProducer)
+
 
 if __name__ == '__main__':
     unittest.main()

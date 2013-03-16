@@ -3,6 +3,7 @@ from meniscus.data.model.tenant import Host
 from meniscus.data.model.tenant import HostProfile
 from meniscus.data.model.tenant import Tenant
 from meniscus.openstack.common import jsonutils
+from meniscus.proxy import CACHE_TENANT as CACHE_TENANT
 
 
 def find_tenant(ds_handler, tenant_id):
@@ -27,8 +28,8 @@ def find_tenant_in_cache(cache, tenant_id):
     and eventProducers and maps them to a tenant object
     """
 
-    if cache.cache_exists(tenant_id):
-        tenant_dict = jsonutils.loads(cache.cache_get(tenant_id))
+    if cache.cache_exists(tenant_id, CACHE_TENANT):
+        tenant_dict = jsonutils.loads(cache.cache_get(tenant_id, CACHE_TENANT))
         tenant = load_tenant_from_dict(tenant_dict)
         return tenant
 

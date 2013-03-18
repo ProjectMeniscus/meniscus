@@ -5,8 +5,4 @@ requests>=1.1.0
 iso8601>=0.1.4
 eventlet>=0.12.1
 oslo.config>=1.1.0
-#uWSGI>=1.9.0
-
-# Cache2 for uWSGI uses the latest uWSGI release which is not
-# in PyPi yet
-http://projects.unbit.it/downloads/uwsgi-1.9-rc2.tar.gz
+uWSGI>=1.9.0

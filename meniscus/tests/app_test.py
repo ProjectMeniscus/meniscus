@@ -1,9 +1,9 @@
-from meniscus.app import bootstrap_api
-#import meniscus.app
+import falcon
 from mock import MagicMock
 from mock import patch
-import falcon
 import unittest
+
+from meniscus.app import bootstrap_api
 
 
 class TestingApIBootstrap(unittest.TestCase):

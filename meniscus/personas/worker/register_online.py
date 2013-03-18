@@ -5,7 +5,7 @@ from meniscus.openstack.common import jsonutils
 from meniscus.api.utils.request import http_request
 from meniscus.api.utils.retry import retry
 from meniscus.proxy import NativeProxy
-from meniscus.proxy import CACHE_CONFIG as CACHE_CONFIG
+from meniscus.personas.worker.cache_params import CACHE_CONFIG
 from multiprocessing import Process
 
 

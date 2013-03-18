@@ -3,7 +3,7 @@ from meniscus.data.model.tenant import Host
 from meniscus.data.model.tenant import HostProfile
 from meniscus.data.model.tenant import Tenant
 from meniscus.openstack.common import jsonutils
-from meniscus.proxy import CACHE_TENANT as CACHE_TENANT
+from meniscus.personas.worker.cache_params import CACHE_TENANT
 
 
 def find_tenant(ds_handler, tenant_id):

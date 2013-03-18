@@ -5,15 +5,11 @@ except ImportError:
     uwsgi = None
     UWSGI = False
 
-CACHE_CONFIG = 'cache_config'
-CACHE_TENANT = 'cache_tenant'
-
 
 class NativeProxy(object):
-    def __init__(self, cache_expires=900):
+    def __init__(self):
         self.server = uwsgi
         # Default timeout = 15 minutes
-        self.expires = cache_expires
 
     def cache_exists(self, key, cache_name):
         if UWSGI:
@@ -27,13 +23,13 @@ class NativeProxy(object):
         else:
             return None
 
-    def cache_set(self, key, value, cache_name):
+    def cache_set(self, key, value, cache_name, cache_expires):
         if UWSGI:
-            self.server.cache_set(key, value, self.expires, cache_name)
+            self.server.cache_set(key, value, cache_name, cache_expires)
 
-    def cache_update(self, key, value, cache_name):
+    def cache_update(self, key, value, cache_name, cache_expires):
         if UWSGI:
-            self.server.cache_update(key, value, self.expires, cache_name)
+            self.server.cache_update(key, value, cache_name, cache_expires)
 
     def cache_del(self, key, cache_name):
         if UWSGI:

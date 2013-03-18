@@ -77,7 +77,8 @@ class WhenTestingPairingProcess(unittest.TestCase):
             with patch('meniscus.personas.worker.pairing.pairing_process.'
                        'http_request', self.http_request):
                 self.assertTrue(self.pairing_process._get_worker_routes())
-                cache_get.assert_called_once_with('worker_configuration')
+                cache_get.assert_called_once_with('worker_configuration',
+                                                  'cache_config')
 
 if __name__ == '__main__':
     unittest.main()

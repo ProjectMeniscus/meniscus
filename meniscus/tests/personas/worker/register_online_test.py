@@ -38,7 +38,8 @@ class WhenTestingRegisterWorkerOnline(unittest.TestCase):
             with patch('meniscus.personas.worker.register_online.'
                        'http_request', self.http_request):
                 self.assertTrue(self.register_online._register_worker_online())
-                cache_get.assert_called_once_with('worker_configuration')
+                cache_get.assert_called_once_with('worker_configuration',
+                                                  'cache_config')
 
 
 if __name__ == '__main__':

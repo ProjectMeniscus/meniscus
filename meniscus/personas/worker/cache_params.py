@@ -13,7 +13,7 @@ try:
 
 except ConfigFilesNotFoundError:
 
-    DEFAULT_EXPIRES = 0
-    CONFIG_EXPIRES = 900
+    DEFAULT_EXPIRES = 900
+    CONFIG_EXPIRES = 0
     CACHE_CONFIG = 'cache_config'
     CACHE_TENANT = 'cache_tenant'

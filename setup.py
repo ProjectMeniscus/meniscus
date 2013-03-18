@@ -28,6 +28,7 @@ setup(
         "pymongo",
         "requests",
         "eventlet",
+        "oslo.config",
     ],
     test_suite = 'nose.collector',
     zip_safe = False,

@@ -630,7 +630,23 @@ class WhenTestingHostsResource(TestingTenantApiBase):
             with self.assertRaises(falcon.HTTPError):
                 self.resource.on_post(self.req, self.resp, self.tenant_id)
 
-    def test_should_throw_exception_for_profile_found_on_post(self):
+    def test_should_throw_exception_for_hostname_not_provided_on_post(self):
+        self.stream.read.return_value = u'{ "ip_address_v4": "192.168.1.1" }'
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            with self.assertRaises(falcon.HTTPError):
+                self.resource.on_post(self.req, self.resp, self.tenant_id)
+
+    def test_should_throw_exception_for_hostname_empty_on_post(self):
+        self.stream.read.return_value = \
+            u'{ "hostname" : "", ' \
+            u'"ip_address_v4": "192.168.1.1" }'
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            with self.assertRaises(falcon.HTTPError):
+                self.resource.on_post(self.req, self.resp, self.tenant_id)
+
+    def test_should_throw_exception_for_host_found_on_post(self):
         self.stream.read.return_value = u'{ "hostname" : "host1" }'
         with patch('meniscus.api.tenant.resources.find_tenant',
                    self.tenant_found):
@@ -715,6 +731,16 @@ class WhenTestingHostResource(TestingTenantApiBase):
             with self.assertRaises(falcon.HTTPError):
                 self.resource.on_put(self.req, self.resp, self.tenant_id,
                                      self.host_id)
+
+    def test_should_throw_exception_for_hostname_empty_on_put(self):
+        self.stream.read.return_value = \
+            u'{ "hostname" : "", ' \
+            u'"ip_address_v4": "192.168.1.1" }'
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            with self.assertRaises(falcon.HTTPError):
+                self.resource.on_put(self.req, self.resp, self.tenant_id,
+                                     self.not_valid_host_id)
 
     def test_should_throw_exception_for_host_not_found_on_put(self):
         self.stream.read.return_value = \

@@ -244,9 +244,6 @@ class HostProfileResource(ApiResource):
         #if attributes are present in message, update the profile
         if 'name' in body.keys() and body['name'] != profile.name:
 
-            #name cannot be empty
-            if not body['name']:
-                _profile_name_not_provided()
             #if the tenant already has a profile with this name then abort
             duplicate_profile = find_host_profile(tenant,
                                                   profile_name=body['name'])
@@ -498,9 +495,6 @@ class HostsResource(ApiResource):
             _tenant_not_found()
 
         hostname = body['hostname']
-
-        if not hostname:
-            _hostname_not_provided()
 
         # Check if the tenant already has a host with this hostname
         for host in tenant.hosts:

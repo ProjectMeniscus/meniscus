@@ -17,7 +17,7 @@ def _tenant_id_not_provided():
     """
     sends an http 400 response to the caller when a a tenant id is not given
     """
-    abort(falcon.HTTP_400, 'Malformed request')
+    abort(falcon.HTTP_400, 'Malformed request, tenant_id cannot be empty')
 
 
 def _host_not_found():
@@ -27,6 +27,13 @@ def _host_not_found():
     abort(falcon.HTTP_400, 'Unable to locate host.')
 
 
+def _hostname_not_provided():
+    """
+    sends an http 400 response to the caller when a a tenant id is not given
+    """
+    abort(falcon.HTTP_400, 'Malformed request, hostname cannot be empty')
+
+
 def _profile_not_found():
     """
     sends an http 404 response to the caller
@@ -34,11 +41,32 @@ def _profile_not_found():
     abort(falcon.HTTP_400, 'Unable to locate host profile.')
 
 
+def _profile_name_not_provided():
+    """
+    sends an http 404 response to the caller
+    """
+    abort(falcon.HTTP_400, 'Malformed request, name cannot be empty')
+
+
 def _producer_not_found():
     """
     sends an http 404 response to the caller
     """
     abort(falcon.HTTP_400, 'Unable to locate event producer.')
+
+
+def _producer_name_not_provided():
+    """
+    sends an http 404 response to the caller
+    """
+    abort(falcon.HTTP_400, 'Malformed request, name cannot be empty')
+
+
+def _producer_pattern_not_provided():
+    """
+    sends an http 404 response to the caller
+    """
+    abort(falcon.HTTP_400, 'Malformed request, pattern cannot be empty')
 
 
 class VersionResource(ApiResource):
@@ -53,12 +81,16 @@ class TenantResource(ApiResource):
     def __init__(self, db_handler):
         self.db = db_handler
 
+    def _validate_req_body_on_post(self, body):
+        if 'tenant_id' not in body.keys() or not body['tenant_id']:
+            _tenant_id_not_provided()
+
     def on_post(self, req, resp):
         body = load_body(req)
-        tenant_id = body['tenant_id']
 
-        if not tenant_id:
-            _tenant_id_not_provided()
+        self._validate_req_body_on_post(body)
+
+        tenant_id = body['tenant_id']
 
         #validate that tenant does not already exists
         tenant = find_tenant(self.db, tenant_id=tenant_id)
@@ -118,8 +150,14 @@ class HostProfilesResource(ApiResource):
             'profiles': [p.format() for p in tenant.profiles]
         })
 
+    def _validate_req_body_on_post(self, body):
+        if 'name' not in body.keys() or not body['name']:
+            _profile_name_not_provided()
+
     def on_post(self, req, resp, tenant_id):
         body = load_body(req)
+
+        self._validate_req_body_on_post(body)
 
         tenant = find_tenant(self.db, tenant_id=tenant_id)
 
@@ -181,9 +219,17 @@ class HostProfileResource(ApiResource):
         resp.status = falcon.HTTP_200
         resp.body = format_response_body({'profile': profile.format()})
 
+    def _validate_req_body_on_put(self, body):
+        # if the request includes name field, validate it is not empty
+        if 'name' in body.keys():
+            if not body['name']:
+                _profile_name_not_provided()
+
     def on_put(self, req, resp, tenant_id, profile_id):
         #load the message
         body = load_body(req)
+
+        self._validate_req_body_on_put(body)
 
         #verify the tenant exists
         tenant = find_tenant(self.db, tenant_id=tenant_id)
@@ -197,6 +243,7 @@ class HostProfileResource(ApiResource):
 
         #if attributes are present in message, update the profile
         if 'name' in body.keys() and body['name'] != profile.name:
+
             #if the tenant already has a profile with this name then abort
             duplicate_profile = find_host_profile(tenant,
                                                   profile_name=body['name'])
@@ -263,8 +310,18 @@ class EventProducersResource(ApiResource):
                                          [p.format()
                                           for p in tenant.event_producers]})
 
+    def _validate_req_body_on_post(self, body):
+        if 'name' not in body.keys() or not body['name']:
+            _producer_name_not_provided()
+
+        if 'pattern' not in body.keys() or not body['pattern']:
+            _producer_pattern_not_provided()
+
     def on_post(self, req, resp, tenant_id):
         body = load_body(req)
+
+        self._validate_req_body_on_post(body)
+
         tenant = find_tenant(self.db, tenant_id=tenant_id)
 
         if not tenant:
@@ -331,8 +388,19 @@ class EventProducerResource(ApiResource):
         resp.body = format_response_body(
             {'event_producer': event_producer.format()})
 
+    def _validate_req_body_on_put(self, body):
+        if 'name' in body.keys():
+            if not body['name']:
+                _producer_name_not_provided()
+
+        if 'pattern' in body.keys():
+            if not body['pattern']:
+                _producer_pattern_not_provided()
+
     def on_put(self, req, resp, tenant_id, event_producer_id):
         body = load_body(req)
+
+        self._validate_req_body_on_put(body)
 
         #verify the tenant exists
         tenant = find_tenant(self.db, tenant_id=tenant_id)
@@ -411,8 +479,14 @@ class HostsResource(ApiResource):
         resp.body = format_response_body(
             {'hosts': [h.format() for h in tenant.hosts]})
 
+    def _validate_req_body_on_post(self, body):
+        if 'hostname' not in body.keys() or not body['hostname']:
+            _hostname_not_provided()
+
     def on_post(self, req, resp, tenant_id):
         body = load_body(req)
+
+        self._validate_req_body_on_post(body)
 
         #verify the tenant exists
         tenant = find_tenant(self.db, tenant_id=tenant_id)
@@ -484,8 +558,15 @@ class HostResource(ApiResource):
         resp.status = falcon.HTTP_200
         resp.body = format_response_body({'host': host.format()})
 
+    def _validate_req_body_on_put(self, body):
+        if 'hostname' in body.keys():
+            if not body['hostname']:
+                _hostname_not_provided()
+
     def on_put(self, req, resp, tenant_id, host_id):
         body = load_body(req)
+
+        self._validate_req_body_on_put(body)
 
         #verify the tenant exists
         tenant = find_tenant(self.db, tenant_id=tenant_id)

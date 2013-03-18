@@ -5,6 +5,7 @@ from meniscus.openstack.common import jsonutils
 from meniscus.api.utils.request import http_request
 from meniscus.api.utils.retry import retry
 from meniscus.proxy import NativeProxy
+from meniscus.proxy import CACHE_CONFIG as CACHE_CONFIG
 from multiprocessing import Process
 
 
@@ -29,7 +30,8 @@ class RegisterWorkerOnline(object):
         register the worker with the coordinator with an online status
         """
         cache = NativeProxy()
-        config = jsonutils.loads(cache.cache_get('worker_configuration'))
+        config = jsonutils.loads(cache.cache_get('worker_configuration',
+                                                 CACHE_CONFIG))
         coordinator_uri = config['coordinator_uri']
 
         token_header = {"WORKER-TOKEN": config['worker_token']}

@@ -7,6 +7,7 @@ from meniscus.api.utils.request import http_request
 from meniscus.api.utils.retry import retry
 from meniscus.openstack.common import jsonutils
 from meniscus.proxy import NativeProxy
+from meniscus.proxy import CACHE_CONFIG as CACHE_CONFIG
 from multiprocessing import Process
 
 #constants for retry methods
@@ -76,7 +77,9 @@ class PairingProcess(object):
                            "coordinator_uri": coordinator_uri})
 
             cache = NativeProxy()
-            cache.cache_set('worker_configuration', jsonutils.dumps(config))
+            cache.cache_set('worker_configuration',
+                            jsonutils.dumps(config),
+                            CACHE_CONFIG)
             return True
 
     @retry(tries=TRIES, delay=DELAY, backoff=BACKOFF)
@@ -85,7 +88,8 @@ class PairingProcess(object):
         get the associated routes for the worker and store them in cache
         """
         cache = NativeProxy()
-        config = jsonutils.loads(cache.cache_get('worker_configuration'))
+        config = jsonutils.loads(cache.cache_get('worker_configuration',
+                                                 CACHE_CONFIG))
         coordinator_uri = config['coordinator_uri']
 
         token_header = {"WORKER-TOKEN": config['worker_token']}
@@ -103,5 +107,7 @@ class PairingProcess(object):
             routes = resp.json()
 
             cache = NativeProxy()
-            cache.cache_set('worker_routes', jsonutils.dumps(routes))
+            cache.cache_set('worker_routes',
+                            jsonutils.dumps(routes),
+                            CACHE_CONFIG)
             return True

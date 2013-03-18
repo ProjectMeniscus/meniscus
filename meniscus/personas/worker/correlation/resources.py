@@ -9,6 +9,8 @@ from meniscus.data.model.tenant import Tenant
 from meniscus.data.model.util import find_host
 from meniscus.data.model.util import find_event_producer_for_host
 from meniscus.data.model.util import load_tenant_from_dict
+from meniscus.personas.worker.cache_params import CACHE_CONFIG
+from meniscus.personas.worker.cache_params import CACHE_TENANT
 from meniscus.proxy import NativeProxy
 
 
@@ -57,18 +59,30 @@ class PublishResource():
     def __init__(self, db_handler):
         self.db = db_handler
 
+    def _validate_req_body_on_post(self, body):
+    # validate host with tenant
+        if 'hostname' not in body.keys() or not body['hostname']:
+            _hostname_not_provided()
+
+        if 'procname' not in body.keys() or not body['procname']:
+            _producer_not_provided()
+
     def on_post(self, req, resp, tenant_id):
 
         #Validate the tenant's JSON event log data as valid JSON.
         body = load_body(req)
+        self._validate_req_body_on_post(body)
+
         message_token = req.get_header(MSG_TOKEN)
 
-        # call to coordinator
         cache = NativeProxy()
 
+        tenant = None
+
         #attempt to validate message token from the cache
-        if cache.cache_exists(tenant_id):
-            tenant_info = jsonutils.loads(cache.cache_get(tenant_id))
+        if cache.cache_exists(tenant_id, CACHE_TENANT):
+            tenant_info = jsonutils.loads(
+                cache.cache_get(tenant_id, CACHE_TENANT))
 
             # Message token not valid abort
             if tenant_info['message_token'] != message_token:
@@ -79,7 +93,8 @@ class PublishResource():
 
         else:
             # build head from cache to validate message token and tenant id
-            config = jsonutils.loads(cache.cache_get('worker_configuration'))
+            config = jsonutils.loads(cache.cache_get(
+                'worker_configuration', CACHE_CONFIG))
             token_header = {"MESSAGE-TOKEN": message_token,
                             "WORKER-ID": config['worker_id'],
                             "WORKER-TOKEN": config['worker_token']
@@ -112,17 +127,10 @@ class PublishResource():
             except requests.ConnectionError:
                 _coordinator_connection_failure()
 
-        # validate host with tenant
-        if 'hostname' not in body.keys() or not body['hostname']:
-            _hostname_not_provided()
-
         host = find_host(tenant, host_name=body['hostname'])
 
         if not host:
             _host_not_found()
-
-        if 'procname' not in body.keys() or not body['procname']:
-            _producer_not_provided()
 
         producer = find_event_producer_for_host(tenant, host, body['procname'])
 

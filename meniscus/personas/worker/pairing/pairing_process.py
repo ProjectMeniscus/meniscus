@@ -6,8 +6,9 @@ import meniscus.api.utils.sys_assist as sys_assist
 from meniscus.api.utils.request import http_request
 from meniscus.api.utils.retry import retry
 from meniscus.openstack.common import jsonutils
+from meniscus.personas.worker.cache_params import CACHE_CONFIG
+from meniscus.personas.worker.cache_params import CONFIG_EXPIRES
 from meniscus.proxy import NativeProxy
-from meniscus.proxy import CACHE_CONFIG as CACHE_CONFIG
 from multiprocessing import Process
 
 #constants for retry methods
@@ -79,7 +80,7 @@ class PairingProcess(object):
             cache = NativeProxy()
             cache.cache_set('worker_configuration',
                             jsonutils.dumps(config),
-                            CACHE_CONFIG)
+                            CACHE_CONFIG, CONFIG_EXPIRES)
             return True
 
     @retry(tries=TRIES, delay=DELAY, backoff=BACKOFF)
@@ -109,5 +110,5 @@ class PairingProcess(object):
             cache = NativeProxy()
             cache.cache_set('worker_routes',
                             jsonutils.dumps(routes),
-                            CACHE_CONFIG)
+                            CACHE_CONFIG, CONFIG_EXPIRES)
             return True

@@ -1,4 +1,5 @@
 import falcon
+
 from meniscus.personas.worker.register_online import RegisterWorkerOnline
 
 

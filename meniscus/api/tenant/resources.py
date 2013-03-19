@@ -12,6 +12,7 @@ from meniscus.data.model.tenant import Tenant
 from meniscus.data.model.tenant import Token
 from meniscus.openstack.common.timeutils import isotime, parse_isotime
 
+MESSAGE_TOKEN = 'MESSAGE-TOKEN'
 MIN_TOKEN_TIME_LIMIT_HRS = 3
 
 
@@ -78,6 +79,12 @@ def _producer_pattern_not_provided():
     abort(falcon.HTTP_400, 'Malformed request, pattern cannot be empty')
 
 
+def _message_token_is_invalid():
+    """
+    sends an http 400 response to the caller
+    """
+    abort(falcon.HTTP_400)
+
 def _token_invalidate_now_malformed():
     """
     sends an http 400 response to the caller
@@ -87,6 +94,9 @@ def _token_invalidate_now_malformed():
 
 
 def _token_min_time_limit_not_reached():
+    """
+    sends an http 409 response to the caller
+    """
     abort(falcon.HTTP_409,
           'Message tokens can only be changed once every {0} hours'
           .format(MIN_TOKEN_TIME_LIMIT_HRS))
@@ -659,7 +669,20 @@ class TokenResource(ApiResource):
         self.db = db_handler
 
     def on_head(self, req, resp, tenant_id):
-        pass
+
+        #get message token, or abort if token is not in header
+        message_token = req.get_header(MESSAGE_TOKEN, required=True)
+
+        #verify the tenant exists
+        tenant = find_tenant(self.db, tenant_id=tenant_id)
+
+        if not tenant:
+            _tenant_not_found()
+
+        if message_token != tenant.token:
+            _message_token_is_invalid()
+
+        resp.status = falcon.HTTP_200
 
     def _validate_req_body_on_post(self, body):
         #if invalidate_now is included in request,

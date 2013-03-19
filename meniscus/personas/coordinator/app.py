@@ -4,11 +4,16 @@ from meniscus.api.coordinator.configuration_resources \
     import WorkerConfigurationResource
 from meniscus.api.coordinator.registration_resources \
     import WorkerRegistrationResource
-from meniscus.api.tenant.resources import VersionResource, \
-    TenantResource, UserResource, HostProfilesResource, HostProfileResource, \
-    EventProducersResource, EventProducerResource, HostsResource, HostResource
-
 from meniscus.api.datastore_init import db_handler
+from meniscus.api.tenant.resources import VersionResource
+from meniscus.api.tenant.resources import TenantResource
+from meniscus.api.tenant.resources import UserResource
+from meniscus.api.tenant.resources import HostProfilesResource
+from meniscus.api.tenant.resources import HostProfileResource
+from meniscus.api.tenant.resources import EventProducersResource
+from meniscus.api.tenant.resources import EventProducerResource
+from meniscus.api.tenant.resources import HostsResource
+from meniscus.api.tenant.resources import HostResource
 
 
 def start_up(cfg=dict()):

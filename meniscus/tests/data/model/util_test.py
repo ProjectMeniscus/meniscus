@@ -62,7 +62,12 @@ class WhenTestingFindMethods(unittest.TestCase):
                     "durable": False,
                     "encrypted": False
                 }
-            ]
+            ],
+            "token": {
+                "valid": "c8a4db32-635a-46b6-94ed-04b1bd533f41",
+                "previous": None,
+                "last_changed": "2013-03-19T18:16:48.411029Z"
+            }
         }
         self.ds_handler = MagicMock()
         self.ds_handler.find_one.return_value = self.tenant

@@ -2,6 +2,7 @@ from meniscus.data.model.tenant import EventProducer
 from meniscus.data.model.tenant import Host
 from meniscus.data.model.tenant import HostProfile
 from meniscus.data.model.tenant import Tenant
+from meniscus.data.model.tenant import Token
 from meniscus.openstack.common import jsonutils
 from meniscus.personas.worker.cache_params import CACHE_TENANT
 
@@ -51,9 +52,14 @@ def load_tenant_from_dict(tenant_dict):
         e['id'], e['name'], e['pattern'], e['durable'], e['encrypted'])
         for e in tenant_dict['event_producers']]
 
+    token_dict = tenant_dict['token']
+    token = Token(token_dict['valid'],
+                  token_dict['previous'],
+                  token_dict['last_changed'])
+
     #Create the parent tenant object
-    tenant = Tenant(tenant_dict['tenant_id'], hosts, profiles, event_producers,
-                    tenant_dict['_id'])
+    tenant = Tenant(tenant_dict['tenant_id'], token, hosts, profiles,
+                    event_producers, tenant_dict['_id'])
 
     #return tenant object
     return tenant

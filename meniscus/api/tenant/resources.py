@@ -10,6 +10,9 @@ from meniscus.data.model.tenant import Host
 from meniscus.data.model.tenant import HostProfile
 from meniscus.data.model.tenant import Tenant
 from meniscus.data.model.tenant import Token
+from meniscus.openstack.common.timeutils import isotime, parse_isotime
+
+MIN_TOKEN_TIME_LIMIT_HRS = 3
 
 
 def _tenant_not_found():
@@ -42,37 +45,51 @@ def _hostname_not_provided():
 
 def _profile_not_found():
     """
-    sends an http 404 response to the caller
+    sends an http 400 response to the caller
     """
     abort(falcon.HTTP_400, 'Unable to locate host profile.')
 
 
 def _profile_name_not_provided():
     """
-    sends an http 404 response to the caller
+    sends an http 400 response to the caller
     """
     abort(falcon.HTTP_400, 'Malformed request, name cannot be empty')
 
 
 def _producer_not_found():
     """
-    sends an http 404 response to the caller
+    sends an http 400 response to the caller
     """
     abort(falcon.HTTP_400, 'Unable to locate event producer.')
 
 
 def _producer_name_not_provided():
     """
-    sends an http 404 response to the caller
+    sends an http 400 response to the caller
     """
     abort(falcon.HTTP_400, 'Malformed request, name cannot be empty')
 
 
 def _producer_pattern_not_provided():
     """
-    sends an http 404 response to the caller
+    sends an http 400 response to the caller
     """
     abort(falcon.HTTP_400, 'Malformed request, pattern cannot be empty')
+
+
+def _token_invalidate_now_malformed():
+    """
+    sends an http 400 response to the caller
+    """
+    abort(falcon.HTTP_400,
+          'Malformed request, invalidate_now must be a boolean ')
+
+
+def _token_min_time_limit_not_reached():
+    abort(falcon.HTTP_409,
+          'Message tokens can only be changed once every {0} hours'
+          .format(MIN_TOKEN_TIME_LIMIT_HRS))
 
 
 class VersionResource(ApiResource):
@@ -634,3 +651,61 @@ class HostResource(ApiResource):
         self.db.update('tenant', tenant.format_for_save())
 
         resp.status = falcon.HTTP_200
+
+
+class TokenResource(ApiResource):
+
+    def __init__(self, db_handler):
+        self.db = db_handler
+
+    def on_head(self, req, resp, tenant_id):
+        pass
+
+    def _validate_req_body_on_post(self, body):
+        #if invalidate_now is included in request,
+        # verify the value is True or False
+        if 'token' in body.keys() and 'invalidate_now' in body['token']:
+            invalidate_now = body['token']['invalidate_now']
+            if not isinstance(invalidate_now, bool):
+                _token_invalidate_now_malformed()
+
+    def _validate_token_min_time_limit_reached(self, token):
+        #get the token create time and the current time as datetime objects
+        token_created = parse_isotime(token.last_updated)
+        current_time = parse_isotime(isotime(subsecond=True))
+
+        #get a datetime.timedelta object that represents the difference
+        time_diff = current_time - token_created
+        hours_diff = time_diff.total_seconds() / 3600
+
+        #if the time limit has not been reached, abort and alert the caller
+        if hours_diff < MIN_TOKEN_TIME_LIMIT_HRS:
+            _token_min_time_limit_not_reached()
+
+    def on_post(self, req, resp, tenant_id):
+        body = load_body(req)
+        self._validate_req_body_on_post(body)
+
+        #verify the tenant exists
+        tenant = find_tenant(self.db, tenant_id=tenant_id)
+
+        if not tenant:
+            _tenant_not_found()
+
+        invalidate_now = False
+
+        if 'token' in body.keys() and 'invalidate_now' in body['token']:
+            invalidate_now = body['token']['invalidate_now']
+
+        if invalidate_now:
+            #immediately invalidate the token
+            tenant.token = Token()
+
+        else:
+            self._validate_token_min_time_limit_reached(tenant.token)
+            tenant.token.invalidate_token()
+
+        self.db.update('tenant', tenant.format_for_save())
+
+        resp.status = falcon.HTTP_203
+

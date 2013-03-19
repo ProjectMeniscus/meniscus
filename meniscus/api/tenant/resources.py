@@ -1,9 +1,15 @@
 import falcon
 
 from meniscus.api import ApiResource, load_body, abort, format_response_body
-from meniscus.data.model.util import find_tenant, find_host, \
-    find_host_profile, find_event_producer
-from meniscus.data.model.tenant import Tenant, Host, HostProfile, EventProducer
+from meniscus.data.model.util import find_event_producer
+from meniscus.data.model.util import find_host
+from meniscus.data.model.util import find_host_profile
+from meniscus.data.model.util import find_tenant
+from meniscus.data.model.tenant import EventProducer
+from meniscus.data.model.tenant import Host
+from meniscus.data.model.tenant import HostProfile
+from meniscus.data.model.tenant import Tenant
+from meniscus.data.model.tenant import Token
 
 
 def _tenant_not_found():
@@ -98,7 +104,9 @@ class TenantResource(ApiResource):
             abort(falcon.HTTP_400, 'Tenant with tenant_id {0} '
                   'already exists'.format(tenant_id))
 
-        new_tenant = Tenant(tenant_id)
+        #create new token for the tenant
+        new_token = Token()
+        new_tenant = Tenant(tenant_id, new_token)
 
         self.db.put('tenant', new_tenant.format())
         self.db.create_sequence(new_tenant.tenant_id)

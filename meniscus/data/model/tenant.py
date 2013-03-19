@@ -1,6 +1,8 @@
+from uuid import uuid4
+from meniscus.openstack.common.timeutils import isotime
 
 
-class EventProducer():
+class EventProducer(object):
     """
 An event producer is a nicer way of describing a parsing template
 for a producer of events. Event producer definitions should be
@@ -25,13 +27,13 @@ described.
                 'durable': self.durable, 'encrypted': self.encrypted}
 
 
-class HostProfile():
+class HostProfile(object):
     """
 Host profiles are reusable collections of event producers with an
 associated, unique name for lookup.
 """
 
-    def __init__(self, _id, name, event_producer_ids=[]):
+    def __init__(self, _id, name, event_producer_ids=list()):
         if not event_producer_ids:
             event_producer_ids = []
 
@@ -48,7 +50,7 @@ associated, unique name for lookup.
                 'event_producers': self.event_producers}
 
 
-class Host():
+class Host(object):
     """
 Hosts represent a single, addressable entity in a logical tenant
 environment.
@@ -74,16 +76,41 @@ environment.
                 'profile': self.profile}
 
 
-class Tenant():
+class Token(object):
+
+    def __init__(self, valid=None, previous=None, last_changed=None):
+        if not valid:
+            valid = str(uuid4())
+        if not last_changed:
+            last_changed = isotime(subsecond=True)
+
+        self.valid = valid
+        self.previous = previous
+        self.last_changed = last_changed
+
+    def invalidate_token(self):
+        self.previous = self.value
+        self.value = str(uuid4())
+        self.last_changed = isotime(subsecond=True)
+
+    def format(self):
+        return {'valid': self.valid,
+                'previous': self.previous,
+                'last_changed': self.last_changed,
+                }
+
+
+class Tenant(object):
     """
 Tenants are users of the environments being monitored for
 application events.
 """
 
-    def __init__(self, tenant_id, hosts=list(), profiles=list(),
+    def __init__(self, tenant_id, token, hosts=list(), profiles=list(),
                  event_producers=list(),  _id=None):
         self._id = _id
         self.tenant_id = str(tenant_id)
+        self.token = token
         self.hosts = hosts
         self.profiles = profiles
         self.event_producers = event_producers
@@ -96,7 +123,8 @@ application events.
                 'hosts': [h.format() for h in self.hosts],
                 'profiles': [p.format() for p in self.profiles],
                 'event_producers':
-                [p.format() for p in self.event_producers]}
+                [p.format() for p in self.event_producers],
+                'token': self.token.format()}
 
     def format_for_save(self):
         tenant_dict = self.format()

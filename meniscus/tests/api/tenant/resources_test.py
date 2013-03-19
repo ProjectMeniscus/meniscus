@@ -1,16 +1,23 @@
 import falcon
-import unittest
-
-from meniscus.api.tenant.resources import \
-    VersionResource, UserResource, TenantResource, \
-    HostProfilesResource, HostProfileResource, \
-    EventProducersResource, EventProducerResource, \
-    HostResource, HostsResource
-from meniscus.data.model.tenant import Tenant, Host, HostProfile, EventProducer
-from meniscus.openstack.common import jsonutils
-
 from mock import MagicMock
 from mock import patch
+import unittest
+
+from meniscus.api.tenant.resources import EventProducerResource
+from meniscus.api.tenant.resources import EventProducersResource
+from meniscus.api.tenant.resources import HostResource
+from meniscus.api.tenant.resources import HostProfileResource
+from meniscus.api.tenant.resources import HostsResource
+from meniscus.api.tenant.resources import HostProfilesResource
+from meniscus.api.tenant.resources import TenantResource
+from meniscus.api.tenant.resources import UserResource
+from meniscus.api.tenant.resources import VersionResource
+from meniscus.data.model.tenant import EventProducer
+from meniscus.data.model.tenant import Host
+from meniscus.data.model.tenant import HostProfile
+from meniscus.data.model.tenant import Tenant
+from meniscus.data.model.tenant import Token
+from meniscus.openstack.common import jsonutils
 
 
 def suite():
@@ -58,11 +65,13 @@ class TestingTenantApiBase(unittest.TestCase):
                            profile_id=123),
                       Host(766, 'host2', ip_address_v4='192.168.2.1',
                            profile_id=456)]
-
+        self.token = Token('ffe7104e-8d93-47dc-a49a-8fb0d39e5192',
+                           None, "2013-03-19T18:16:48.411029Z")
         self.tenant_id = '1234'
         self.tenant_not_found = MagicMock(return_value=None)
         self.tenant_found = MagicMock(
-            return_value=Tenant(self.tenant_id, profiles=self.profiles,
+            return_value=Tenant(self.tenant_id, self.token,
+                                profiles=self.profiles,
                                 event_producers=self.producers,
                                 hosts=self.hosts))
         self.setResource()

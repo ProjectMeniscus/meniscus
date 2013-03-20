@@ -49,4 +49,3 @@ api.add_route('/v1/{tenant_id}/producers/{event_producer_id}',
               event_producer)
 api.add_route('/v1/{tenant_id}/hosts', hosts)
 api.add_route('/v1/{tenant_id}/hosts/{host_id}', host)
-

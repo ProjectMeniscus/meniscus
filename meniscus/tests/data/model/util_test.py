@@ -1,6 +1,5 @@
-import unittest
-
 from mock import MagicMock
+import unittest
 
 from meniscus.data.model.tenant import EventProducer
 from meniscus.data.model.tenant import Host

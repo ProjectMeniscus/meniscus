@@ -1,7 +1,8 @@
+import unittest
+
 import falcon
 from mock import MagicMock
 from mock import patch
-import unittest
 
 from meniscus.api.tenant.resources import EventProducerResource
 from meniscus.api.tenant.resources import EventProducersResource
@@ -10,6 +11,7 @@ from meniscus.api.tenant.resources import HostProfileResource
 from meniscus.api.tenant.resources import HostsResource
 from meniscus.api.tenant.resources import HostProfilesResource
 from meniscus.api.tenant.resources import TenantResource
+from meniscus.api.tenant.resources import TokenResource
 from meniscus.api.tenant.resources import UserResource
 from meniscus.api.tenant.resources import VersionResource
 from meniscus.data.model.tenant import EventProducer
@@ -65,15 +67,17 @@ class TestingTenantApiBase(unittest.TestCase):
                            profile_id=123),
                       Host(766, 'host2', ip_address_v4='192.168.2.1',
                            profile_id=456)]
-        self.token = Token('ffe7104e-8d93-47dc-a49a-8fb0d39e5192',
+        self.token_original = 'ffe7104e-8d93-47dc-a49a-8fb0d39e5192'
+        self.token = Token(self.token_original,
                            None, "2013-03-19T18:16:48.411029Z")
         self.tenant_id = '1234'
+        self.tenant = Tenant(self.tenant_id, self.token,
+                             profiles=self.profiles,
+                             event_producers=self.producers,
+                             hosts=self.hosts)
         self.tenant_not_found = MagicMock(return_value=None)
-        self.tenant_found = MagicMock(
-            return_value=Tenant(self.tenant_id, self.token,
-                                profiles=self.profiles,
-                                event_producers=self.producers,
-                                hosts=self.hosts))
+        self.tenant_found = MagicMock(return_value=self.tenant)
+
         self.setResource()
 
     def setResource(self):
@@ -820,6 +824,125 @@ class WhenTestingHostResource(TestingTenantApiBase):
                                     self.host_id)
         self.assertEquals(falcon.HTTP_200, self.resp.status)
 
+
+class WhenTestingTokenResource(TestingTenantApiBase):
+
+    def setResource(self):
+        self.resource = TokenResource(self.db_handler)
+
+    def test_should_throw_exception_for_tenant_not_found_on_head(self):
+        self.req.get_header.return_value = \
+            'ffe7104e-8d93-47dc-a49a-8fb0d39e5192'
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_not_found):
+            with self.assertRaises(falcon.HTTPError):
+                self.resource.on_head(self.req, self.resp, self.tenant_id)
+
+    def test_should_call_tenant_not_found_on_head(self):
+        tenant_not_found_method = MagicMock(
+            side_effect=falcon.HTTPError(falcon.HTTP_404, "tenant_not_found"))
+        self.req.get_header.return_value = \
+            'ffe7104e-8d93-47dc-a49a-8fb0d39e5192'
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_not_found), \
+                patch('meniscus.api.tenant.resources._tenant_not_found',
+                      tenant_not_found_method):
+            with self.assertRaises(falcon.HTTPError):
+                self.resource.on_head(self.req, self.resp, self.tenant_id)
+            tenant_not_found_method.assert_called_once_with()
+
+    def test_should_throw_exception_for_tenant_not_found_on_head(self):
+        self.req.get_header.return_value = \
+            'zzz7104e-8d93-47dc-a49a-8fb0d39e5192'
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            with self.assertRaises(falcon.HTTPError):
+                self.resource.on_head(self.req, self.resp, self.tenant_id)
+
+    def test_should_call_message_token_is_invalid_on_head(self):
+        message_token_is_invalid_method = MagicMock(
+            side_effect=falcon.HTTPError(falcon.HTTP_400, "invalid token"))
+        self.req.get_header.return_value = \
+            'zzz7104e-8d93-47dc-a49a-8fb0d39e5192'
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_not_found), \
+                patch('meniscus.api.tenant.resources._tenant_not_found',
+                      message_token_is_invalid_method):
+            with self.assertRaises(falcon.HTTPError):
+                self.resource.on_head(self.req, self.resp, self.tenant_id)
+            message_token_is_invalid_method.assert_called_once_with()
+
+    def test_should_return_200_on_head(self):
+        self.req.get_header.return_value = \
+            'ffe7104e-8d93-47dc-a49a-8fb0d39e5192'
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            self.resource.on_head(self.req, self.resp, self.tenant_id)
+            self.assertEquals(self.resp.status, falcon.HTTP_200)
+
+    def test_should_throw_exception_for_non_bool_value(self):
+        body = {'token': {'invalidate_now': 'True'}}
+        with(self.assertRaises(falcon.HTTPError)):
+            self.resource._validate_req_body_on_post(body)
+
+    def test_should_not_throw_exception_for_bool_value(self):
+        body = {'token': {'invalidate_now': True}}
+        self.resource._validate_req_body_on_post(body)
+
+    def test_iso_timestamp_format_should_throw_exception_for_time_limit(self):
+        bad_time_format = "2013-03-19"
+        new_token = Token('ffe7104e-8d93-47dc-a49a-8fb0d39e5192',
+                          None, bad_time_format)
+        with(self.assertRaises(ValueError)):
+            self.resource._validate_token_min_time_limit_reached(new_token)
+
+    def test_should_throw_exception_for_time_limit(self):
+        new_token = Token()
+        with(self.assertRaises(falcon.HTTPError)):
+            self.resource._validate_token_min_time_limit_reached(new_token)
+
+    def test_should_not_throw_exception_for_time_limit(self):
+        self.resource._validate_token_min_time_limit_reached(self.token)
+
+    def test_should_throw_exception_for_tenant_not_found_on_post(self):
+        self.req.stream = None
+
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_not_found):
+            with self.assertRaises(falcon.HTTPError):
+                self.resource.on_post(self.req, self.resp, self.tenant_id)
+
+    def test_should_invalidate_now(self):
+        self.req.stream = MagicMock(return_value=True)
+        self.req.stream.read.return_value = \
+            u'{"token": {"invalidate_now": true}}'
+
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+                self.resource.on_post(self.req, self.resp, self.tenant_id)
+        self.assertNotEqual(self.tenant.token.valid, self.token_original)
+        self.assertEqual(self.tenant.token.previous, None)
+
+    def test_should_invalidate_with_optional_body(self):
+        self.req.stream = None
+        self.req.stream = MagicMock(return_value=True)
+        self.req.stream.read.return_value = \
+            u'{"token": {"invalidate_now": false}}'
+
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            self.resource.on_post(self.req, self.resp, self.tenant_id)
+        self.assertNotEqual(self.tenant.token.valid, self.token_original)
+        self.assertEqual(self.tenant.token.previous, self.token_original)
+
+    def test_should_invalidate(self):
+        self.req.stream = None
+
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            self.resource.on_post(self.req, self.resp, self.tenant_id)
+        self.assertNotEqual(self.tenant.token.valid, self.token_original)
+        self.assertEqual(self.tenant.token.previous, self.token_original)
 
 if __name__ == '__main__':
     unittest.main()

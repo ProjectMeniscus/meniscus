@@ -1,6 +1,9 @@
 import falcon
 
-from meniscus.api import ApiResource, load_body, abort, format_response_body
+from meniscus.api import abort
+from meniscus.api import ApiResource
+from meniscus.api import format_response_body
+from meniscus.api import load_body
 from meniscus.data.model.util import find_event_producer
 from meniscus.data.model.util import find_host
 from meniscus.data.model.util import find_host_profile
@@ -10,7 +13,8 @@ from meniscus.data.model.tenant import Host
 from meniscus.data.model.tenant import HostProfile
 from meniscus.data.model.tenant import Tenant
 from meniscus.data.model.tenant import Token
-from meniscus.openstack.common.timeutils import isotime, parse_isotime
+from meniscus.openstack.common.timeutils import parse_isotime
+from meniscus.openstack.common.timeutils import isotime
 
 MESSAGE_TOKEN = 'MESSAGE-TOKEN'
 MIN_TOKEN_TIME_LIMIT_HRS = 3
@@ -679,7 +683,7 @@ class TokenResource(ApiResource):
         if not tenant:
             _tenant_not_found()
 
-        if message_token != tenant.token:
+        if message_token != tenant.token.valid:
             _message_token_is_invalid()
 
         resp.status = falcon.HTTP_200
@@ -694,7 +698,7 @@ class TokenResource(ApiResource):
 
     def _validate_token_min_time_limit_reached(self, token):
         #get the token create time and the current time as datetime objects
-        token_created = parse_isotime(token.last_updated)
+        token_created = parse_isotime(token.last_changed)
         current_time = parse_isotime(isotime(subsecond=True))
 
         #get a datetime.timedelta object that represents the difference
@@ -706,8 +710,11 @@ class TokenResource(ApiResource):
             _token_min_time_limit_not_reached()
 
     def on_post(self, req, resp, tenant_id):
-        body = load_body(req)
-        self._validate_req_body_on_post(body)
+
+        body = dict()
+        if req.stream:
+            body = load_body(req)
+            self._validate_req_body_on_post(body)
 
         #verify the tenant exists
         tenant = find_tenant(self.db, tenant_id=tenant_id)
@@ -722,7 +729,7 @@ class TokenResource(ApiResource):
 
         if invalidate_now:
             #immediately invalidate the token
-            tenant.token = Token()
+            tenant.token.invalidate_token_now()
 
         else:
             self._validate_token_min_time_limit_reached(tenant.token)
@@ -731,4 +738,3 @@ class TokenResource(ApiResource):
         self.db.update('tenant', tenant.format_for_save())
 
         resp.status = falcon.HTTP_203
-

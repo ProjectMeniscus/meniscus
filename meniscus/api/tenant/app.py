@@ -13,7 +13,6 @@ from meniscus.api.tenant.resources import UserResource
 from meniscus.api.tenant.resources import VersionResource
 
 
-
 # Resources
 versions = VersionResource()
 tenant = TenantResource(db_handler())

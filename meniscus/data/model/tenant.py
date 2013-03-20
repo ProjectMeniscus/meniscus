@@ -88,13 +88,22 @@ class Token(object):
         self.previous = previous
         self.last_changed = last_changed
 
-    def invalidate_token(self):
+    def reset_token(self):
         self.previous = self.valid
         self.valid = str(uuid4())
         self.last_changed = isotime(subsecond=True)
 
-    def invalidate_token_now(self):
+    def reset_token_now(self):
         self.__init__()
+
+    def validate_token(self, token):
+        if not token:
+            return False
+
+        if token == self.valid or token == self.previous:
+            return True
+
+        return False
 
     def format(self):
         return {'valid': self.valid,

@@ -68,8 +68,10 @@ class TestingTenantApiBase(unittest.TestCase):
                       Host(766, 'host2', ip_address_v4='192.168.2.1',
                            profile_id=456)]
         self.token_original = 'ffe7104e-8d93-47dc-a49a-8fb0d39e5192'
-        self.token = Token(self.token_original,
-                           None, "2013-03-19T18:16:48.411029Z")
+        self.token_previous = 'bbd6302e-8d93-47dc-a49a-8fb0d39e5192'
+        self.timestamp_original = "2013-03-19T18:16:48.411029Z"
+        self.token = Token(self.token_original, self.token_previous,
+                           self.timestamp_original)
         self.tenant_id = '1234'
         self.tenant = Tenant(self.tenant_id, self.token,
                              profiles=self.profiles,
@@ -872,9 +874,15 @@ class WhenTestingTokenResource(TestingTenantApiBase):
                 self.resource.on_head(self.req, self.resp, self.tenant_id)
             message_token_is_invalid_method.assert_called_once_with()
 
-    def test_should_return_200_on_head(self):
-        self.req.get_header.return_value = \
-            'ffe7104e-8d93-47dc-a49a-8fb0d39e5192'
+    def test_should_return_200_on_head_valid(self):
+        self.req.get_header.return_value = self.token_original
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            self.resource.on_head(self.req, self.resp, self.tenant_id)
+            self.assertEquals(self.resp.status, falcon.HTTP_200)
+
+    def test_should_return_200_on_head_previous(self):
+        self.req.get_header.return_value = self.token_previous
         with patch('meniscus.api.tenant.resources.find_tenant',
                    self.tenant_found):
             self.resource.on_head(self.req, self.resp, self.tenant_id)
@@ -922,6 +930,8 @@ class WhenTestingTokenResource(TestingTenantApiBase):
                 self.resource.on_post(self.req, self.resp, self.tenant_id)
         self.assertNotEqual(self.tenant.token.valid, self.token_original)
         self.assertEqual(self.tenant.token.previous, None)
+        self.assertGreater(self.tenant.token.last_changed,
+                           self.timestamp_original)
 
     def test_should_invalidate_with_optional_body(self):
         self.req.stream = None
@@ -934,6 +944,8 @@ class WhenTestingTokenResource(TestingTenantApiBase):
             self.resource.on_post(self.req, self.resp, self.tenant_id)
         self.assertNotEqual(self.tenant.token.valid, self.token_original)
         self.assertEqual(self.tenant.token.previous, self.token_original)
+        self.assertGreater(self.tenant.token.last_changed,
+                           self.timestamp_original)
 
     def test_should_invalidate(self):
         self.req.stream = None
@@ -943,6 +955,8 @@ class WhenTestingTokenResource(TestingTenantApiBase):
             self.resource.on_post(self.req, self.resp, self.tenant_id)
         self.assertNotEqual(self.tenant.token.valid, self.token_original)
         self.assertEqual(self.tenant.token.previous, self.token_original)
+        self.assertGreater(self.tenant.token.last_changed,
+                           self.timestamp_original)
 
 if __name__ == '__main__':
     unittest.main()

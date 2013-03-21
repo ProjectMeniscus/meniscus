@@ -6,6 +6,7 @@ from meniscus.data.model.tenant import Token
 from meniscus.openstack.common import jsonutils
 from meniscus.personas.worker.cache_params import CACHE_TENANT
 from meniscus.personas.worker.cache_params import CACHE_TOKEN
+from meniscus.personas.worker.cache_params import DEFAULT_EXPIRES
 
 
 def find_tenant(ds_handler, tenant_id):
@@ -22,6 +23,17 @@ def find_tenant(ds_handler, tenant_id):
         return tenant
 
     return None
+
+
+def persist_tenant_to_cache(cache, tenant):
+    tenant_id = tenant.get_id()
+
+    if cache.cache_exists(tenant_id, CACHE_TENANT):
+        cache.cache_update(
+            tenant_id, tenant.format(), CACHE_TENANT, DEFAULT_EXPIRES)
+    else:
+        cache.cache_set(
+            tenant_id, tenant.format(), CACHE_TENANT, DEFAULT_EXPIRES)
 
 
 def find_tenant_in_cache(cache, tenant_id):
@@ -61,6 +73,16 @@ def load_tenant_from_dict(tenant_dict):
 
     #return tenant object
     return tenant
+
+
+def persist_token_to_cache(cache, tenant_id, token):
+
+    if cache.cache_exists(tenant_id, CACHE_TOKEN):
+        cache.cache_update(
+            tenant_id, token.format(), CACHE_TOKEN, DEFAULT_EXPIRES)
+    else:
+        cache.cache_set(
+            tenant_id, token.format(), CACHE_TOKEN, DEFAULT_EXPIRES)
 
 
 def find_token_in_cache(cache, tenant_id):

@@ -5,14 +5,22 @@ from meniscus.data.model.tenant import EventProducer
 from meniscus.data.model.tenant import Host
 from meniscus.data.model.tenant import HostProfile
 from meniscus.data.model.tenant import Tenant
+from meniscus.data.model.tenant import Token
 from meniscus.data.model.util import find_event_producer
 from meniscus.data.model.util import find_event_producer_for_host
 from meniscus.data.model.util import find_host
 from meniscus.data.model.util import find_host_profile
 from meniscus.data.model.util import find_tenant
 from meniscus.data.model.util import find_tenant_in_cache
+from meniscus.data.model.util import find_token_in_cache
 from meniscus.data.model.util import load_tenant_from_dict
+from meniscus.data.model.util import load_token_from_dict
+from meniscus.data.model.util import persist_tenant_to_cache
+from meniscus.data.model.util import persist_token_to_cache
 from meniscus.openstack.common import jsonutils
+from meniscus.personas.worker.cache_params import CACHE_TENANT
+from meniscus.personas.worker.cache_params import CACHE_TOKEN
+from meniscus.personas.worker.cache_params import DEFAULT_EXPIRES
 
 
 def suite():
@@ -72,11 +80,17 @@ class WhenTestingFindMethods(unittest.TestCase):
         self.ds_handler.find_one.return_value = self.tenant
         self.ds_handler_empty = MagicMock()
         self.ds_handler_empty.find_one.return_value = None
-        self.cache = MagicMock()
-        self.cache.cache_get.return_value = jsonutils.dumps(self.tenant)
-        self.cache.cache_exists.return_value = True
+        self.tenant_cache = MagicMock()
+        self.tenant_cache.cache_get.return_value = jsonutils.dumps(self.tenant)
+        self.tenant_cache.cache_exists.return_value = True
+        self.tenant_cache.cache_update = MagicMock()
+        self.token_cache = MagicMock()
+        self.token_cache.cache_get.return_value = jsonutils.dumps(
+            self.tenant['token'])
+        self.token_cache.cache_exists.return_value = True
         self.cache_empty = MagicMock()
         self.cache_empty.cache_exists.return_value = False
+        self.cache_empty.cache_set = MagicMock()
 
     def test_find_tenant_returns_instance(self):
         tenant = find_tenant(self.ds_handler, '12345')
@@ -86,13 +100,47 @@ class WhenTestingFindMethods(unittest.TestCase):
         tenant = find_tenant(self.ds_handler_empty, '12345')
         self.assertEquals(tenant, None)
 
+    def test_persist_tenant_to_cache_calls_cache_update_when_exists(self):
+        tenant = load_tenant_from_dict(self.tenant)
+        persist_tenant_to_cache(self.tenant_cache, tenant)
+        self.tenant_cache.cache_update.assert_called_once_with(
+            tenant.get_id(), tenant.format(), CACHE_TENANT, DEFAULT_EXPIRES)
+
+    def test_persist_tenant_to_cache_calls_cache_set_when_not_exists(self):
+        tenant = load_tenant_from_dict(self.tenant)
+        persist_tenant_to_cache(self.cache_empty, tenant)
+        self.cache_empty.cache_set.assert_called_once_with(
+            tenant.get_id(), tenant.format(), CACHE_TENANT, DEFAULT_EXPIRES)
+
     def test_find_tenant_in_cache_returns_instance(self):
-        tenant = find_tenant_in_cache(self.cache, '12345')
+        tenant = find_tenant_in_cache(self.tenant_cache, '12345')
         self.assertIsInstance(tenant, Tenant)
 
     def test_find_tenant_in_cache_returns_none(self):
         tenant = find_tenant_in_cache(self.cache_empty, '12345')
         self.assertEquals(tenant, None)
+
+    def test_persist_token_to_cache_calls_cache_update_when_exists(self):
+        tenant_id = self.tenant['tenant_id']
+        token = load_token_from_dict(self.tenant['token'])
+        persist_token_to_cache(self.tenant_cache, tenant_id, token)
+        self.tenant_cache.cache_update.assert_called_once_with(
+            tenant_id, token.format(), CACHE_TOKEN, DEFAULT_EXPIRES)
+
+    def test_persist_token_to_cache_calls_cache_set_when_not_exists(self):
+        tenant_id = self.tenant['tenant_id']
+        token = load_token_from_dict(self.tenant['token'])
+        persist_token_to_cache(self.cache_empty, tenant_id, token)
+        self.cache_empty.cache_set.assert_called_once_with(
+            tenant_id, token.format(), CACHE_TOKEN, DEFAULT_EXPIRES)
+
+    def test_find_token_in_cache_returns_instance(self):
+        token = find_token_in_cache(self.token_cache, '12345')
+        self.assertIsInstance(token, Token)
+
+    def test_find_token_in_cache_returns_none(self):
+        token = find_token_in_cache(self.cache_empty, '12345')
+        self.assertEquals(token, None)
 
     def test_find_host_by_id_returns_instance(self):
         tenant = find_tenant(self.ds_handler, '12345')

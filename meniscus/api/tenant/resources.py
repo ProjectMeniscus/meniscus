@@ -85,9 +85,10 @@ def _producer_pattern_not_provided():
 
 def _message_token_is_invalid():
     """
-    sends an http 400 response to the caller
+    sends an http 404 response to the caller
     """
-    abort(falcon.HTTP_400)
+    abort(falcon.HTTP_404)
+
 
 def _token_invalidate_now_malformed():
     """
@@ -683,7 +684,7 @@ class TokenResource(ApiResource):
         if not tenant:
             _tenant_not_found()
 
-        if message_token != tenant.token.valid:
+        if not tenant.token.validate_token(message_token):
             _message_token_is_invalid()
 
         resp.status = falcon.HTTP_200
@@ -729,11 +730,11 @@ class TokenResource(ApiResource):
 
         if invalidate_now:
             #immediately invalidate the token
-            tenant.token.invalidate_token_now()
+            tenant.token.reset_token_now()
 
         else:
             self._validate_token_min_time_limit_reached(tenant.token)
-            tenant.token.invalidate_token()
+            tenant.token.reset_token()
 
         self.db.update('tenant', tenant.format_for_save())
 

@@ -4,6 +4,7 @@ import meniscus.personas.worker.pairing.pairing_process as pairing_process
 import requests
 import unittest
 
+from meniscus.personas.worker.cache_params import CACHE_CONFIG
 from meniscus.personas.worker.pairing.pairing_process import PairingProcess
 from mock import MagicMock
 from mock import patch
@@ -78,7 +79,7 @@ class WhenTestingPairingProcess(unittest.TestCase):
                        'http_request', self.http_request):
                 self.assertTrue(self.pairing_process._get_worker_routes())
                 cache_get.assert_called_once_with('worker_configuration',
-                                                  'cache_config')
+                                                  CACHE_CONFIG)
 
 if __name__ == '__main__':
     unittest.main()

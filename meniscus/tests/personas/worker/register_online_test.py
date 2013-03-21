@@ -3,6 +3,7 @@ import meniscus.personas.worker.register_online as register_online
 import requests
 import unittest
 
+from meniscus.personas.worker.cache_params import CACHE_CONFIG
 from meniscus.personas.worker.register_online import RegisterWorkerOnline
 from mock import MagicMock
 from mock import patch
@@ -39,7 +40,7 @@ class WhenTestingRegisterWorkerOnline(unittest.TestCase):
                        'http_request', self.http_request):
                 self.assertTrue(self.register_online._register_worker_online())
                 cache_get.assert_called_once_with('worker_configuration',
-                                                  'cache_config')
+                                                  CACHE_CONFIG)
 
 
 if __name__ == '__main__':

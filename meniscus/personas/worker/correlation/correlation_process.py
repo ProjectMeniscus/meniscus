@@ -1,9 +1,11 @@
 import httplib
-
+from uuid import uuid4
 import requests
-from correlation_exceptions import MessageValidationError
+
 from meniscus.api.tenant.resources import MESSAGE_TOKEN
 from meniscus.api.utils.request import http_request
+from meniscus.data.model.util import find_event_producer_for_host
+from meniscus.data.model.util import find_host
 from meniscus.data.model.util import find_tenant_in_cache
 from meniscus.data.model.util import find_token_in_cache
 from meniscus.data.model.util import load_tenant_from_dict
@@ -13,6 +15,7 @@ from meniscus.openstack.common import jsonutils
 from meniscus.personas.worker.cache_params import CACHE_CONFIG
 from correlation_exceptions import CoordinatorCommunicationError
 from correlation_exceptions import MessageAuthenticationError
+from correlation_exceptions import MessageValidationError
 from correlation_exceptions import ResourceNotFoundError
 
 
@@ -31,6 +34,54 @@ def validate_event_message_body(body):
         raise MessageValidationError("time cannot be empty")
 
     return True
+
+
+class CorrelationMessage(object):
+    def __init__(self, tenant, message):
+        self.tenant = tenant
+        self.message = message
+        self.durable = False
+        self.job_id = None
+        self.job_info = None
+
+    def process_message(self):
+        host = find_host(self.tenant, host_name=self.message['host'])
+
+        if not host:
+            raise MessageValidationError(
+                "invalid host, host with name {0} cannot be located"
+                .format(self.message['host']))
+
+            #initialize correlation dictionary with default values
+        correlation_dict = {
+            'host_id': host.get_id(),
+            'ep_id': None,
+            'pattern': None
+        }
+
+        producer = find_event_producer_for_host(
+            self.tenant, host, self.message['pname'])
+
+        if producer:
+            self.durable = producer.durable
+            correlation_dict.update({
+                'ep_id': producer.get_id(),
+                'pattern': producer.pattern
+            })
+
+            if producer.durable:
+                job_id = str(uuid4())
+                correlation_dict.update({'job_id': job_id})
+                #todo(sgonzales) persist message and create job
+
+        self.message.update({
+            "profile": "http://projectmeniscus.org/cee/profiles/base",
+            "meniscus": {
+                "correlation": correlation_dict
+            }
+        })
+
+        #todo(sgonzales) pass message to normalization worker
 
 
 class TenantIdentification(object):
@@ -132,8 +183,4 @@ class TenantIdentification(object):
 
         except requests.ConnectionError:
             raise CoordinatorCommunicationError
-
-
-
-
 

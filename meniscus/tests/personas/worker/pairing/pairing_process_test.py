@@ -1,13 +1,12 @@
-
 import httplib
-import meniscus.personas.worker.pairing.pairing_process as pairing_process
+from mock import MagicMock
+from mock import patch
 import requests
 import unittest
 
 from meniscus.personas.worker.cache_params import CACHE_CONFIG
 from meniscus.personas.worker.pairing.pairing_process import PairingProcess
-from mock import MagicMock
-from mock import patch
+import meniscus.personas.worker.pairing.pairing_process as pairing_process
 
 
 def suite():

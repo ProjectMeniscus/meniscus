@@ -139,23 +139,19 @@ class TenantIdentification(object):
             resp = http_request(request_uri, token_header,
                                 http_verb='HEAD')
 
-            if resp.status_code == httplib.NOT_FOUND:
-                raise ResourceNotFoundError('Unable to locate tenant.')
-
-            if resp.status_code != httplib.OK:
-                raise MessageAuthenticationError(
-                    'Message not authenticated, check your tenant id '
-                    'and or message token for validity')
-
-        except requests.ConnectionError:
+        except requests.RequestException:
             raise CoordinatorCommunicationError
+
+        if resp.status_code != httplib.OK:
+            raise MessageAuthenticationError(
+                'Message not authenticated, check your tenant id '
+                'and or message token for validity')
 
         return True
 
     def _get_tenant_from_coordinator(self):
         """
-        This method calls to the coordinator to validate the message
-        token and tenant
+        This method calls to the coordinator to retrieve tenant
         """
 
         config = jsonutils.loads(self.cache.cache_get(
@@ -173,14 +169,18 @@ class TenantIdentification(object):
             resp = http_request(request_uri, token_header,
                                 http_verb='GET')
 
-            if resp.status_code == httplib.OK:
-                response_body = resp.json()
-                tenant = load_tenant_from_dict(response_body['tenant'])
-                return tenant
-
-            else:
-                raise ResourceNotFoundError('Unable to locate tenant.')
-
-        except requests.ConnectionError:
+        except requests.RequestException:
             raise CoordinatorCommunicationError
+
+        if resp.status_code == httplib.OK:
+            response_body = resp.json()
+            tenant = load_tenant_from_dict(response_body['tenant'])
+            return tenant
+
+        elif resp.status_code == httplib.NOT_FOUND:
+            raise ResourceNotFoundError('Unable to locate tenant.')
+        else:
+            raise CoordinatorCommunicationError
+
+
 

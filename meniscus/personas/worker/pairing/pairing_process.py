@@ -71,6 +71,10 @@ class PairingProcess(object):
                                     registration), http_verb='POST')
         except requests.ConnectionError:
             return False
+        except requests.HTTPError:
+            return False
+        except requests.RequestException:
+            return False
 
         if resp.status_code == httplib.NON_AUTHORITATIVE_INFORMATION:
             config = resp.json()
@@ -99,7 +103,8 @@ class PairingProcess(object):
 
         try:
             resp = http_request(request_uri, token_header, http_verb='GET')
-        except requests.ConnectionError:
+
+        except requests.RequestException:
             return False
 
         #if the coordinator issues a response, cache the worker routes

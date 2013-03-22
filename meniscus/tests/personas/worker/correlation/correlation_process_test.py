@@ -261,21 +261,78 @@ class WhenTestingTenantIdentification(unittest.TestCase):
 
         self.cache = MagicMock()
         self.cache.cache_get.return_value = self.config
+        self.valid_message_token = 'ffe7104e-8d93-47dc-a49a-8fb0d39e5192'
+        self.invalid_message_token = 'yyy7104e-8d93-47dc-a49a-8fb0d39e5192'
+        self.get_token = MagicMock(return_value=self.token)
+        self.get_tenant = MagicMock(return_value=self.tenant)
+        self.get_none = MagicMock(return_value=None)
+
+    def test_get_validated_tenant_throws_auth_exception_from_cache(self):
+        tenant_identify = TenantIdentification(
+            self.cache, self.tenant_id, self.invalid_message_token)
+        get_token = MagicMock(return_value=self.token)
+        with patch(
+                'meniscus.personas.worker.correlation.'
+                'correlation_process.find_token_in_cache', get_token):
+            with self.assertRaises(exception.MessageAuthenticationError):
+                tenant_identify.get_validated_tenant()
+
+    def test_get_validated_tenant_from_cache_returns_tenant(self):
+        tenant_identify = TenantIdentification(
+            self.cache, self.tenant_id, self.valid_message_token)
+        with patch(
+                'meniscus.personas.worker.correlation.'
+                'correlation_process.find_token_in_cache', self.get_token), \
+            patch(
+                'meniscus.personas.worker.correlation.'
+                'correlation_process.find_tenant_in_cache', self.get_tenant):
+                tenant = tenant_identify.get_validated_tenant()
+        self.assertIsInstance(tenant, Tenant)
+
+    def test_get_validated_tenant_from_coordinator_returns_tenant(self):
+        tenant_identify = TenantIdentification(
+            self.cache, self.tenant_id, self.valid_message_token)
+        with patch(
+                'meniscus.personas.worker.correlation.'
+                'correlation_process.find_token_in_cache', self.get_token), \
+            patch(
+                'meniscus.personas.worker.correlation.'
+                'correlation_process.find_tenant_in_cache', self.get_none),\
+            patch.object(
+                TenantIdentification, '_get_tenant_from_coordinator',
+                self.get_tenant):
+            tenant = tenant_identify.get_validated_tenant()
+        self.assertIsInstance(tenant, Tenant)
+
+    def test_get_coord_validated_tenant_from_coordinator_returns_tenant(self):
+        tenant_identify = TenantIdentification(
+            self.cache, self.tenant_id, self.valid_message_token)
+        with patch(
+                'meniscus.personas.worker.correlation.'
+                'correlation_process.find_token_in_cache', self.get_none), \
+            patch.object(
+                TenantIdentification, '_validate_token_with_coordinator',
+                MagicMock()), \
+            patch.object(
+                TenantIdentification, '_get_tenant_from_coordinator',
+                self.get_tenant):
+            tenant = tenant_identify.get_validated_tenant()
+        self.assertIsInstance(tenant, Tenant)
 
     def test_validate_token_with_coordinator_throws_communication_error(self):
         tenant_identify = TenantIdentification(
-            self.cache, self.tenant_id, self.token)
+            self.cache, self.tenant_id, self.valid_message_token)
         http_request = MagicMock(
             side_effect=requests.RequestException)
         with patch(
                 'meniscus.personas.worker.correlation.'
                 'correlation_process.http_request', http_request):
             with self.assertRaises(exception.CoordinatorCommunicationError):
-                tenant_identify. _validate_token_with_coordinator()
+                tenant_identify._validate_token_with_coordinator()
 
     def test_validate_token_with_coordinator_throws_auth_error(self):
         tenant_identify = TenantIdentification(
-            self.cache, self.tenant_id, self.token)
+            self.cache, self.tenant_id, self.invalid_message_token)
         response = MagicMock()
         response.status_code = httplib.NOT_FOUND
         http_request = MagicMock(return_value=response)
@@ -283,23 +340,23 @@ class WhenTestingTenantIdentification(unittest.TestCase):
                 'meniscus.personas.worker.correlation.'
                 'correlation_process.http_request', http_request):
             with self.assertRaises(exception.MessageAuthenticationError):
-                tenant_identify. _validate_token_with_coordinator()
+                tenant_identify._validate_token_with_coordinator()
 
     def test_validate_token_with_coordinator_returns_true(self):
         tenant_identify = TenantIdentification(
-            self.cache, self.tenant_id, self.token)
+            self.cache, self.tenant_id, self.valid_message_token)
         response = MagicMock()
         response.status_code = httplib.OK
         http_request = MagicMock(return_value=response)
         with patch(
                 'meniscus.personas.worker.correlation.'
                 'correlation_process.http_request', http_request):
-            result = tenant_identify. _validate_token_with_coordinator()
+            result = tenant_identify._validate_token_with_coordinator()
             self.assertTrue(result)
 
     def test_get_tenant_from_coordinator_exception_on_http_request(self):
         tenant_identify = TenantIdentification(
-            self.cache, self.tenant_id, self.token)
+            self.cache, self.tenant_id, self.valid_message_token)
         http_request = MagicMock(
             side_effect=requests.RequestException)
         with patch(
@@ -310,7 +367,7 @@ class WhenTestingTenantIdentification(unittest.TestCase):
 
     def test_get_tenant_from_coordinator_exception_for_no_tenant_found(self):
         tenant_identify = TenantIdentification(
-            self.cache, self.tenant_id, self.token)
+            self.cache, self.tenant_id, self.valid_message_token)
         response = MagicMock()
         response.status_code = httplib.NOT_FOUND
         http_request = MagicMock(return_value=response)
@@ -322,7 +379,7 @@ class WhenTestingTenantIdentification(unittest.TestCase):
 
     def test_get_tenant_from_coordinator_exception_on_bad_response_code(self):
         tenant_identify = TenantIdentification(
-            self.cache, self.tenant_id, self.token)
+            self.cache, self.tenant_id, self.valid_message_token)
         response = MagicMock()
         response.status_code = httplib.UNAUTHORIZED
         http_request = MagicMock(return_value=response)
@@ -334,7 +391,7 @@ class WhenTestingTenantIdentification(unittest.TestCase):
 
     def test_get_tenant_from_coordinator_returns_tenant(self):
         tenant_identify = TenantIdentification(
-            self.cache, self.tenant_id, self.token)
+            self.cache, self.tenant_id, self.valid_message_token)
         response = MagicMock()
         response.status_code = httplib.OK
         http_request = MagicMock(return_value=response)

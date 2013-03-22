@@ -85,10 +85,10 @@ class CorrelationMessage(object):
 
 
 class TenantIdentification(object):
-    def __init__(self, cache, tenant_id, token):
+    def __init__(self, cache, tenant_id, message_token):
         self.cache = cache
         self.tenant_id = tenant_id
-        self.token = token
+        self.message_token = message_token
 
     def get_validated_tenant(self):
 
@@ -96,7 +96,7 @@ class TenantIdentification(object):
         token = find_token_in_cache(self.cache, self.tenant_id)
         if token:
             #validate token
-            if not token.validate_token(self.token):
+            if not token.validate_token(self.message_token):
                 raise MessageAuthenticationError(
                     'Message not authenticated, check your tenant id '
                     'and or message token for validity')
@@ -110,7 +110,8 @@ class TenantIdentification(object):
                 persist_tenant_to_cache(self.cache, tenant)
         else:
             self._validate_token_with_coordinator()
-            persist_token_to_cache(self.cache, self.tenant_id, token)
+            persist_token_to_cache(
+                self.cache, self.tenant_id, self.message_token)
 
             #get tenant from coordinator
             tenant = self._get_tenant_from_coordinator()
@@ -127,7 +128,7 @@ class TenantIdentification(object):
             'worker_configuration', CACHE_CONFIG))
 
         token_header = {
-            MESSAGE_TOKEN: self.token,
+            MESSAGE_TOKEN: self.message_token,
             "WORKER-ID": config['worker_id'],
             "WORKER-TOKEN": config['worker_token']
         }

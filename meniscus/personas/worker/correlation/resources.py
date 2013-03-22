@@ -3,6 +3,7 @@ import falcon
 
 from meniscus.api import abort
 from meniscus.api import ApiResource
+from meniscus.api import format_response_body
 from meniscus.api import load_body
 from meniscus.api.tenant.resources import MESSAGE_TOKEN
 
@@ -15,11 +16,11 @@ from correlation_process import TenantIdentification
 from correlation_process import validate_event_message_body
 
 
-def _host_not_found():
-    """
-    sends an http 404 response to the caller
-    """
-    abort(falcon.HTTP_404, 'hostname not found for this tenant')
+class VersionResource(ApiResource):
+
+    def on_get(self, req, resp):
+        resp.status = falcon.HTTP_200
+        resp.body = format_response_body({'v1': 'current'})
 
 
 class PublishMessageResource(ApiResource):

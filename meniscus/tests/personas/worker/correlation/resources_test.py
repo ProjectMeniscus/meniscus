@@ -21,7 +21,7 @@ def suite():
     return suite
 
 
-class WhenTestingPublishMessage:
+class WhenTestingPublishMessage(unittest.TestCase):
     def setUp(self):
 
         self.cache = MagicMock()

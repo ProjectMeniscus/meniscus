@@ -44,7 +44,8 @@ class RegisterWorkerOnline(object):
         try:
             resp = http_request(request_uri, token_header,
                                 jsonutils.dumps(status), http_verb='PUT')
-        except requests.ConnectionError:
+
+        except requests.RequestException:
             return False
 
         if resp.status_code == httplib.OK:

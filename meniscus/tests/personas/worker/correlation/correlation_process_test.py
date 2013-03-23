@@ -170,6 +170,12 @@ class WhenTestingCorrelationMessage(unittest.TestCase):
         self.assertEquals(meniscus_dict['pattern'], 'syslog')
         self.assertTrue('job_id' in meniscus_dict.keys())
 
+        durable_job = test_message.get_durable_job_info()
+        self.assertTrue('job_id' in durable_job.keys())
+        self.assertTrue(durable_job['job_id'])
+        self.assertTrue('job_status_uri' in durable_job.keys())
+        self.assertTrue(durable_job['job_status_uri'])
+
     def test_process_message_not_durable(self):
         body = {
             "host": "host1",
@@ -208,7 +214,7 @@ class WhenTestingCorrelationMessage(unittest.TestCase):
         test_message = CorrelationMessage(self.tenant, body)
         test_message.process_message()
         message = test_message.message
-        self.assertFalse(test_message.durable)
+        self.assertFalse(test_message.is_durable())
         self.assertTrue('host' in message.keys())
         self.assertTrue('pname' in message.keys())
         self.assertTrue('time' in message.keys())

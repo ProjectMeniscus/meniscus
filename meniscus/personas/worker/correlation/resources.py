@@ -44,18 +44,19 @@ class PublishMessageResource(ApiResource):
         have a message token and a tenant id which must be validated either
         by the local cache or by a call to this workers coordinator.
         """
-        #Validate the tenant's JSON event log data as valid JSON.
-        body = load_body(req)
-        self._validate_req_body_on_post(body)
 
         #read message token from header
         message_token = req.get_header(MESSAGE_TOKEN, required=True)
 
-        tenant_validator = TenantIdentification(
+        #Validate the tenant's JSON event log data as valid JSON.
+        body = load_body(req)
+        self._validate_req_body_on_post(body)
+
+        tenant_identification = TenantIdentification(
             self.cache, tenant_id, message_token)
 
         try:
-            tenant = tenant_validator.get_validated_tenant()
+            tenant = tenant_identification.get_validated_tenant()
             message = CorrelationMessage(tenant, body)
             message.process_message()
 
@@ -66,9 +67,9 @@ class PublishMessageResource(ApiResource):
         except CoordinatorCommunicationError:
             abort(falcon.HTTP_500)
 
-        #todo(sgonzales) provide job json in response body
-        if message.durable:
+        if message.is_durable():
             resp.status = falcon.HTTP_202
+            resp.body = format_response_body(message.get_durable_job_info())
 
         else:
             resp.status = falcon.HTTP_204

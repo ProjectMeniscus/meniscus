@@ -40,9 +40,18 @@ class CorrelationMessage(object):
     def __init__(self, tenant, message):
         self.tenant = tenant
         self.message = message
-        self.durable = False
-        self.job_id = None
-        self.job_info = None
+        self._durable = False
+        self._job_id = None
+        self._job_status_uri = None
+
+    def is_durable(self):
+        return self._durable
+
+    def get_durable_job_info(self):
+        return {
+            "job_id": self._job_id,
+            "job_status_uri": self._job_status_uri
+        }
 
     def process_message(self):
         host = find_host(self.tenant, host_name=self.message['host'])
@@ -69,10 +78,12 @@ class CorrelationMessage(object):
                 'pattern': producer.pattern
             })
 
+            #todo(sgonzales) persist message and create job
             if producer.durable:
-                job_id = str(uuid4())
-                correlation_dict.update({'job_id': job_id})
-                #todo(sgonzales) persist message and create job
+                self._job_id = str(uuid4())
+                self._job_status_uri = "http://{0}/v1/job/{1}/status"\
+                    .format("meniscus_uri", self._job_id)
+                correlation_dict.update({'job_id': self._job_id})
 
         self.message.update({
             "profile": "http://projectmeniscus.org/cee/profiles/base",
@@ -91,6 +102,9 @@ class TenantIdentification(object):
         self.message_token = message_token
 
     def get_validated_tenant(self):
+        """
+        returns a validated tenant object from cache or from coordinator
+        """
 
         #check if the token is in the cache
         token = find_token_in_cache(self.cache, self.tenant_id)

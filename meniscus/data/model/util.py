@@ -31,11 +31,11 @@ def persist_tenant_to_cache(cache, tenant):
     if cache.cache_exists(tenant_id, CACHE_TENANT):
         cache.cache_update(
             tenant_id, jsonutils.dumps(tenant.format()),
-            CACHE_TENANT, DEFAULT_EXPIRES)
+            DEFAULT_EXPIRES, CACHE_TENANT)
     else:
         cache.cache_set(
             tenant_id, jsonutils.dumps(tenant.format()),
-            CACHE_TENANT, DEFAULT_EXPIRES)
+            DEFAULT_EXPIRES, CACHE_TENANT)
 
 
 def find_tenant_in_cache(cache, tenant_id):
@@ -82,11 +82,11 @@ def persist_token_to_cache(cache, tenant_id, token):
     if cache.cache_exists(tenant_id, CACHE_TOKEN):
         cache.cache_update(
             tenant_id, jsonutils.dumps(token.format()),
-            CACHE_TOKEN, DEFAULT_EXPIRES)
+            DEFAULT_EXPIRES, CACHE_TOKEN)
     else:
         cache.cache_set(
             tenant_id, jsonutils.dumps(token.format()),
-            CACHE_TOKEN, DEFAULT_EXPIRES)
+            DEFAULT_EXPIRES, CACHE_TOKEN)
 
 
 def find_token_in_cache(cache, tenant_id):

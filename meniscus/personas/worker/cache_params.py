@@ -8,11 +8,11 @@ _cache_group = cfg.OptGroup(name='cache', title='Cache Options')
 get_config().register_group(_cache_group)
 
 _CACHE_OPTIONS = [
-    cfg.ListOpt('default_expires',
-                default=900,
-                help="""default time to keep items in cache"""
-                ),
-    cfg.StrOpt('config_expires',
+    cfg.IntOpt('default_expires',
+               default=900,
+               help="""default time to keep items in cache"""
+               ),
+    cfg.IntOpt('config_expires',
                default=0,
                help="""Default time to keep worker config items in cache."""
                ),

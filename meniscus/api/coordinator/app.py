@@ -49,13 +49,13 @@ api.add_route('/v1/worker/{worker_id}/configuration', worker_configuration)
 api.add_route('/v1/worker/{worker_id}/status', worker_registration)
 
 # Tenant Routing
-api.add_route('/v1', tenant)
-api.add_route('/v1/{tenant_id}', user)
-api.add_route('/v1/{tenant_id}/profiles', profiles)
-api.add_route('/v1/{tenant_id}/profiles/{profile_id}', profile)
-api.add_route('/v1/{tenant_id}/producers', event_producers)
-api.add_route('/v1/{tenant_id}/producers/{event_producer_id}',
+api.add_route('/v1/tenant', tenant)
+api.add_route('/v1/tenant/{tenant_id}', user)
+api.add_route('/v1/tenant/{tenant_id}/profiles', profiles)
+api.add_route('/v1/tenant/{tenant_id}/profiles/{profile_id}', profile)
+api.add_route('/v1/tenant/{tenant_id}/producers', event_producers)
+api.add_route('/v1/tenant/{tenant_id}/producers/{event_producer_id}',
               event_producer)
-api.add_route('/v1/{tenant_id}/hosts', hosts)
-api.add_route('/v1/{tenant_id}/hosts/{host_id}', host)
-api.add_route('/v1/{tenant_id}/token', token)
+api.add_route('/v1/tenant/{tenant_id}/hosts', hosts)
+api.add_route('/v1/tenant/{tenant_id}/hosts/{host_id}', host)
+api.add_route('/v1/tenant/{tenant_id}/token', token)

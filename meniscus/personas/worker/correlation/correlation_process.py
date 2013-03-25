@@ -147,7 +147,7 @@ class TenantIdentification(object):
             "WORKER-TOKEN": config['worker_token']
         }
 
-        request_uri = "{0}/{1}/token".format(
+        request_uri = "{0}/tenant/{1}/token".format(
             config['coordinator_uri'], self.tenant_id)
 
         try:
@@ -177,7 +177,7 @@ class TenantIdentification(object):
             "WORKER-TOKEN": config['worker_token']
         }
 
-        request_uri = "{0}/{1}".format(
+        request_uri = "{0}/tenant/{1}".format(
             config['coordinator_uri'], self.tenant_id)
 
         try:

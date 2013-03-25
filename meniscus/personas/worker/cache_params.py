@@ -1,5 +1,4 @@
 from oslo.config import cfg
-
 from meniscus.config import get_config
 from meniscus.config import init_config
 
@@ -32,9 +31,11 @@ _CACHE_OPTIONS = [
 ]
 
 get_config().register_opts(_CACHE_OPTIONS, group=_cache_group)
-
-init_config()
-conf = get_config()
+try:
+    init_config()
+    conf = get_config()
+except cfg.ConfigFilesNotFoundError:
+    conf = get_config()
 
 DEFAULT_EXPIRES = conf.cache.default_expires
 CONFIG_EXPIRES = conf.cache.config_expires

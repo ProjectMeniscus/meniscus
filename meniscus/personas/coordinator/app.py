@@ -37,7 +37,7 @@ def start_up(cfg=dict()):
     hosts = HostsResource(db_handler())
     host = HostResource(db_handler())
     token = TokenResource(db_handler())
-    
+
     # Create API
     application = api = falcon.API()
 

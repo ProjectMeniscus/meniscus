@@ -7,12 +7,12 @@ except ImportError:
     from setuptools import setup, find_packages
 
 setup(
-    name = 'meniscus',
-    version = '0.1',
-    description = '',
-    author = 'Project Meniscus',
-    author_email = '',
-    tests_require = [
+    name='meniscus',
+    version='0.1',
+    description='',
+    author='Project Meniscus',
+    author_email='',
+    tests_require=[
         "mock",
         "nose",
         "nosexcover",
@@ -30,8 +30,8 @@ setup(
         "eventlet",
         "oslo.config",
     ],
-    test_suite = 'nose.collector',
-    zip_safe = False,
+    test_suite='nose.collector',
+    zip_safe=False,
     include_package_data = True,
     packages = find_packages(exclude=['ez_setup'])
 )

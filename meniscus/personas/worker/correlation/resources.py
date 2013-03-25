@@ -73,4 +73,3 @@ class PublishMessageResource(ApiResource):
 
         else:
             resp.status = falcon.HTTP_204
-

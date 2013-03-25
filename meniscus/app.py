@@ -4,7 +4,7 @@ from meniscus.personas.worker.cache_params import CACHE_CONFIG
 from meniscus.proxy import NativeProxy
 
 
-DEFAULT_PERSONALITY_MODULE = 'meniscus.personas.worker.pairing'
+DEFAULT_PERSONALITY_MODULE = 'meniscus.personas.worker.pairing.app'
 cache = NativeProxy()
 
 

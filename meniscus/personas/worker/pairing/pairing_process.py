@@ -76,7 +76,7 @@ class PairingProcess(object):
         except requests.RequestException:
             return False
 
-        if resp.status_code == httplib.NON_AUTHORITATIVE_INFORMATION:
+        if resp.status_code == httplib.ACCEPTED:
             config = resp.json()
             config.update({"personality": personality,
                            "coordinator_uri": coordinator_uri})

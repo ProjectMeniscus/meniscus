@@ -60,7 +60,7 @@ class WhenTestingPairingProcess(unittest.TestCase):
                 routes.assert_called_once()
 
     def test_should_return_true_for_register_with_coordinator(self):
-        self.resp.status_code = httplib.NON_AUTHORITATIVE_INFORMATION
+        self.resp.status_code = httplib.ACCEPTED
         self.resp._content = '{"fake": "json"}'
         with patch('meniscus.personas.worker.pairing.pairing_process.'
                    'http_request', self.http_request):

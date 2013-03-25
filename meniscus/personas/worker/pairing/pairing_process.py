@@ -84,7 +84,7 @@ class PairingProcess(object):
             cache = NativeProxy()
             cache.cache_set('worker_configuration',
                             jsonutils.dumps(config),
-                            CACHE_CONFIG, CONFIG_EXPIRES)
+                            CONFIG_EXPIRES, CACHE_CONFIG)
             return True
 
     @retry(tries=TRIES, delay=DELAY, backoff=BACKOFF)
@@ -115,5 +115,5 @@ class PairingProcess(object):
             cache = NativeProxy()
             cache.cache_set('worker_routes',
                             jsonutils.dumps(routes),
-                            CACHE_CONFIG, CONFIG_EXPIRES)
+                            CONFIG_EXPIRES, CACHE_CONFIG)
             return True

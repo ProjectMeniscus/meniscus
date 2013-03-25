@@ -11,8 +11,8 @@ class ParserError(Exception):
         Simple exception class for the parser
     """
     def __init__(self, msg):
-        super(ParserError, self).__init__()
         self.msg = msg
+        super(ParserError, self).__init__(self.msg)
 
 
 class TailToken(object):

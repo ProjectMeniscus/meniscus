@@ -1,6 +1,7 @@
 class PublishMessageError(Exception):
-    def __init__(self, message=str()):
-        self.message = message
+    def __init__(self, msg=str()):
+        self.msg = msg
+        super(PublishMessageError, self).__init__(self.msg)
 
 
 class MessageValidationError(PublishMessageError):

@@ -33,6 +33,7 @@ class DatabaseHandlerError(Exception):
 
     def __init__(self, msg):
         self.msg = msg
+        super(DatabaseHandlerError, self).__init__(self.msg)
 
 
 class DatasourceHandlerManager():

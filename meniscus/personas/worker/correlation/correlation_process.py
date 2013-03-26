@@ -121,14 +121,16 @@ class TenantIdentification(object):
             #if tenant is not in cache, ask the coordinator
             if not tenant:
                 tenant = self._get_tenant_from_coordinator()
+                persist_token_to_cache(
+                    self.cache, self.tenant_id, tenant.token)
                 persist_tenant_to_cache(self.cache, tenant)
         else:
             self._validate_token_with_coordinator()
-            persist_token_to_cache(
-                self.cache, self.tenant_id, self.message_token)
 
             #get tenant from coordinator
             tenant = self._get_tenant_from_coordinator()
+            persist_token_to_cache(
+                self.cache, self.tenant_id, tenant.token)
             persist_tenant_to_cache(self.cache, tenant)
 
         return tenant

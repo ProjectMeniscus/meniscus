@@ -69,9 +69,13 @@ def load_tenant_from_dict(tenant_dict):
 
     token = load_token_from_dict(tenant_dict['token'])
 
+    _id = None
+    if "_id" in tenant_dict.keys():
+        _id = tenant_dict['_id']
+
     #Create the parent tenant object
     tenant = Tenant(tenant_dict['tenant_id'], token, hosts, profiles,
-                    event_producers, tenant_dict['_id'])
+                    event_producers, _id)
 
     #return tenant object
     return tenant

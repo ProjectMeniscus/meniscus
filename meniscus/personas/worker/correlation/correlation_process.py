@@ -72,7 +72,7 @@ class CorrelationMessage(object):
             self.tenant, host, self.message['pname'])
 
         if producer:
-            self.durable = producer.durable
+            self._durable = producer.durable
             correlation_dict.update({
                 'ep_id': producer.get_id(),
                 'pattern': producer.pattern

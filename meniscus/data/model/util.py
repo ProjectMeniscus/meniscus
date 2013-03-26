@@ -26,15 +26,13 @@ def find_tenant(ds_handler, tenant_id):
 
 
 def persist_tenant_to_cache(cache, tenant):
-    tenant_id = tenant.get_id()
-
-    if cache.cache_exists(tenant_id, CACHE_TENANT):
+    if cache.cache_exists(tenant.tenant_id, CACHE_TENANT):
         cache.cache_update(
-            tenant_id, jsonutils.dumps(tenant.format()),
+            tenant.tenant_id, jsonutils.dumps(tenant.format()),
             DEFAULT_EXPIRES, CACHE_TENANT)
     else:
         cache.cache_set(
-            tenant_id, jsonutils.dumps(tenant.format()),
+            tenant.tenant_id, jsonutils.dumps(tenant.format()),
             DEFAULT_EXPIRES, CACHE_TENANT)
 
 

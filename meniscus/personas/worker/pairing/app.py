@@ -16,4 +16,3 @@ def start_up(cfg=dict()):
     api.add_route('/v1/pairing/configure', configuration)
 
     return application
-

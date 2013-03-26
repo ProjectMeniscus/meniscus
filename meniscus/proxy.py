@@ -23,7 +23,7 @@ class NativeProxy(object):
         else:
             return None
 
-    def cache_set(self, key, value, cache_expires, cache_name ):
+    def cache_set(self, key, value, cache_expires, cache_name):
         if UWSGI:
             self.server.cache_set(
                 key, value, cache_expires, cache_name)

@@ -198,6 +198,3 @@ class TenantIdentification(object):
             raise ResourceNotFoundError('Unable to locate tenant.')
         else:
             raise CoordinatorCommunicationError
-
-
-

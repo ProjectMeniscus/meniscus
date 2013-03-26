@@ -26,15 +26,13 @@ def find_tenant(ds_handler, tenant_id):
 
 
 def persist_tenant_to_cache(cache, tenant):
-    tenant_id = tenant.get_id()
-
-    if cache.cache_exists(tenant_id, CACHE_TENANT):
+    if cache.cache_exists(tenant.tenant_id, CACHE_TENANT):
         cache.cache_update(
-            tenant_id, jsonutils.dumps(tenant.format()),
+            tenant.tenant_id, jsonutils.dumps(tenant.format()),
             DEFAULT_EXPIRES, CACHE_TENANT)
     else:
         cache.cache_set(
-            tenant_id, jsonutils.dumps(tenant.format()),
+            tenant.tenant_id, jsonutils.dumps(tenant.format()),
             DEFAULT_EXPIRES, CACHE_TENANT)
 
 
@@ -69,9 +67,13 @@ def load_tenant_from_dict(tenant_dict):
 
     token = load_token_from_dict(tenant_dict['token'])
 
+    _id = None
+    if "_id" in tenant_dict.keys():
+        _id = tenant_dict['_id']
+
     #Create the parent tenant object
     tenant = Tenant(tenant_dict['tenant_id'], token, hosts, profiles,
-                    event_producers, tenant_dict['_id'])
+                    event_producers, _id)
 
     #return tenant object
     return tenant

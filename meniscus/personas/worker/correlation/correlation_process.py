@@ -72,7 +72,7 @@ class CorrelationMessage(object):
             self.tenant, host, self.message['pname'])
 
         if producer:
-            self.durable = producer.durable
+            self._durable = producer.durable
             correlation_dict.update({
                 'ep_id': producer.get_id(),
                 'pattern': producer.pattern
@@ -121,14 +121,16 @@ class TenantIdentification(object):
             #if tenant is not in cache, ask the coordinator
             if not tenant:
                 tenant = self._get_tenant_from_coordinator()
+                persist_token_to_cache(
+                    self.cache, self.tenant_id, tenant.token)
                 persist_tenant_to_cache(self.cache, tenant)
         else:
             self._validate_token_with_coordinator()
-            persist_token_to_cache(
-                self.cache, self.tenant_id, self.message_token)
 
             #get tenant from coordinator
             tenant = self._get_tenant_from_coordinator()
+            persist_token_to_cache(
+                self.cache, self.tenant_id, tenant.token)
             persist_tenant_to_cache(self.cache, tenant)
 
         return tenant
@@ -196,6 +198,3 @@ class TenantIdentification(object):
             raise ResourceNotFoundError('Unable to locate tenant.')
         else:
             raise CoordinatorCommunicationError
-
-
-

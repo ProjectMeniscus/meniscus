@@ -152,7 +152,7 @@ class WhenTestingCorrelationMessage(unittest.TestCase):
         test_message = CorrelationMessage(self.tenant, body)
         test_message.process_message()
         message = test_message.message
-        self.assertTrue(test_message.durable)
+        self.assertTrue(test_message.is_durable())
         self.assertTrue('host' in message.keys())
         self.assertTrue('pname' in message.keys())
         self.assertTrue('time' in message.keys())
@@ -186,7 +186,7 @@ class WhenTestingCorrelationMessage(unittest.TestCase):
         test_message = CorrelationMessage(self.tenant, body)
         test_message.process_message()
         message = test_message.message
-        self.assertFalse(test_message.durable)
+        self.assertFalse(test_message.is_durable())
         self.assertTrue('host' in message.keys())
         self.assertTrue('pname' in message.keys())
         self.assertTrue('time' in message.keys())

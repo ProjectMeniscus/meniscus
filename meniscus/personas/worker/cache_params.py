@@ -23,11 +23,11 @@ _CACHE_OPTIONS = [
     cfg.StrOpt('cache_tenant',
                default='cache-tenant',
                help="""The name of the cache to store worker config values"""
-    ),
+               ),
     cfg.StrOpt('cache_token',
                default='cache-token',
                help="""The name of the cache to store worker config values"""
-    )
+               )
 ]
 
 get_config().register_opts(_CACHE_OPTIONS, group=_cache_group)
@@ -42,4 +42,3 @@ CONFIG_EXPIRES = conf.cache.config_expires
 CACHE_CONFIG = conf.cache.cache_config
 CACHE_TENANT = conf.cache.cache_tenant
 CACHE_TOKEN = conf.cache.cache_token
-

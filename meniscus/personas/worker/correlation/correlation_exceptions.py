@@ -18,5 +18,3 @@ class ResourceNotFoundError(PublishMessageError):
 
 class CoordinatorCommunicationError(PublishMessageError):
     pass
-
-

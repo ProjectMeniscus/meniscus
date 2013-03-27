@@ -48,6 +48,15 @@ def _hostname_not_provided():
     abort(falcon.HTTP_400, 'Malformed request, hostname cannot be empty')
 
 
+def _host_profile_id_invalid():
+    """
+    sends an http 400 response to the caller
+    """
+    abort(
+        falcon.HTTP_400,
+        'Malformed request, invalid value for profile_id')
+
+
 def _profile_not_found():
     """
     sends an http 400 response to the caller
@@ -64,9 +73,18 @@ def _profile_name_not_provided():
 
 def _producer_not_found():
     """
+    sends an http 404 response to the caller
+    """
+    abort(falcon.HTTP_404, 'Unable to locate event producer.')
+
+
+def _profile_producer_ids_invalid():
+    """
     sends an http 400 response to the caller
     """
-    abort(falcon.HTTP_400, 'Unable to locate event producer.')
+    abort(
+        falcon.HTTP_400,
+        'Malformed request, event_producer_ids must be a list of integers')
 
 
 def _producer_name_not_provided():
@@ -107,6 +125,14 @@ def _token_min_time_limit_not_reached():
           .format(MIN_TOKEN_TIME_LIMIT_HRS))
 
 
+def _encrypted_must_be_bool():
+    """
+    sends an http 400 response to the caller
+    """
+    abort(falcon.HTTP_400,
+          'Malformed request, encrypted must be a boolean ')
+
+
 class VersionResource(ApiResource):
 
     def on_get(self, req, resp):
@@ -128,7 +154,7 @@ class TenantResource(ApiResource):
 
         self._validate_req_body_on_post(body)
 
-        tenant_id = body['tenant_id']
+        tenant_id = str(body['tenant_id'])
 
         #validate that tenant does not already exists
         tenant = find_tenant(self.db, tenant_id=tenant_id)
@@ -193,6 +219,14 @@ class HostProfilesResource(ApiResource):
     def _validate_req_body_on_post(self, body):
         if 'name' not in body.keys() or not body['name']:
             _profile_name_not_provided()
+
+        #validate that event_producer_ids is a list of integers
+        if 'event_producer_ids' in body.keys() and body['event_producer_ids']:
+            event_producer_ids = body['event_producer_ids']
+            try:
+                [int(p_id) for p_id in event_producer_ids]
+            except (TypeError, ValueError):
+                _profile_producer_ids_invalid()
 
     def on_post(self, req, resp, tenant_id):
         body = load_body(req)
@@ -264,6 +298,14 @@ class HostProfileResource(ApiResource):
         if 'name' in body.keys():
             if not body['name']:
                 _profile_name_not_provided()
+
+        #validate that event_producer_ids is a list of integers
+        if 'event_producer_ids' in body.keys() and body['event_producer_ids']:
+            event_producer_ids = body['event_producer_ids']
+            try:
+                [int(p_id) for p_id in event_producer_ids]
+            except (TypeError, ValueError):
+                _profile_producer_ids_invalid()
 
     def on_put(self, req, resp, tenant_id, profile_id):
         #load the message
@@ -357,6 +399,14 @@ class EventProducersResource(ApiResource):
         if 'pattern' not in body.keys() or not body['pattern']:
             _producer_pattern_not_provided()
 
+        if 'durable' in body.keys():
+            if body['durable'] != True and body['durable'] != False:
+                _encrypted_must_be_bool()
+
+        if 'encrypted' in body.keys():
+            if body['encrypted'] != True and body['encrypted'] != False:
+                _encrypted_must_be_bool()
+
     def on_post(self, req, resp, tenant_id):
         body = load_body(req)
 
@@ -437,6 +487,14 @@ class EventProducerResource(ApiResource):
             if not body['pattern']:
                 _producer_pattern_not_provided()
 
+        if 'durable' in body.keys():
+            if body['durable'] != True and body['durable'] != False:
+                _encrypted_must_be_bool()
+
+        if 'encrypted' in body.keys():
+            if body['encrypted'] != True and body['encrypted'] != False:
+                _encrypted_must_be_bool()
+
     def on_put(self, req, resp, tenant_id, event_producer_id):
         body = load_body(req)
 
@@ -467,7 +525,7 @@ class EventProducerResource(ApiResource):
             event_producer.name = body['name']
 
         if 'pattern' in body.keys():
-            event_producer.pattern = body['pattern']
+            event_producer.pattern = str(body['pattern'])
 
         if 'durable' in body.keys():
             event_producer.durable = body['durable']
@@ -523,6 +581,12 @@ class HostsResource(ApiResource):
         if 'hostname' not in body.keys() or not body['hostname']:
             _hostname_not_provided()
 
+        if 'profile_id' in body.keys() and body['profile_id']:
+            try:
+                int(body['profile_id'])
+            except (TypeError, ValueError):
+                _host_profile_id_invalid()
+
     def on_post(self, req, resp, tenant_id):
         body = load_body(req)
 
@@ -554,7 +618,8 @@ class HostsResource(ApiResource):
         profile_id = None
         #if profile id is not in post message, then use a null profile
         if 'profile_id' in body.keys():
-            profile_id = body['profile_id']
+            if  body['profile_id']:
+                profile_id = body['profile_id']
 
         #if profile id is in post message, then make sure it is valid profile
         if profile_id:
@@ -603,6 +668,12 @@ class HostResource(ApiResource):
             if not body['hostname']:
                 _hostname_not_provided()
 
+        if 'profile_id' in body.keys() and body['profile_id']:
+            try:
+                int(body['profile_id'])
+            except (TypeError, ValueError):
+                _host_profile_id_invalid()
+
     def on_put(self, req, resp, tenant_id, host_id):
         body = load_body(req)
 
@@ -621,7 +692,7 @@ class HostResource(ApiResource):
 
         if 'hostname' in body.keys() and host.hostname != body['hostname']:
             # Check if the tenant already has a host with this hostname
-            hostname = body['hostname']
+            hostname = str(body['hostname'])
             for duplicate_host in tenant.hosts:
                 if duplicate_host.hostname == hostname:
                     abort(falcon.HTTP_400,
@@ -636,14 +707,16 @@ class HostResource(ApiResource):
             host.ip_address_v6 = body['ip_address_v6']
 
         if 'profile_id' in body.keys():
-            profile_id = body['profile_id']
+            if body['profile_id']:
+                host.profile = int(body['profile_id'])
+            else:
+                host.profile = None
 
-            #verify the profile exists and belongs to the tenant
-            profile = find_host_profile(tenant, profile_id=profile_id)
-            if not profile:
-                _profile_not_found()
-
-            host.profile = profile_id
+            if host.profile:
+                #verify the profile exists and belongs to the tenant
+                profile = find_host_profile(tenant, profile_id=host.profile)
+                if not profile:
+                    _profile_not_found()
 
         self.db.update('tenant', tenant.format_for_save())
 
@@ -689,12 +762,23 @@ class TokenResource(ApiResource):
 
         resp.status = falcon.HTTP_200
 
+    def on_get(self, req, resp, tenant_id):
+
+        #verify the tenant exists
+        tenant = find_tenant(self.db, tenant_id=tenant_id)
+
+        if not tenant:
+            _tenant_not_found()
+
+        resp.status = falcon.HTTP_200
+        resp.body = format_response_body({'token': tenant.token.format()})
+
     def _validate_req_body_on_post(self, body):
         #if invalidate_now is included in request,
         # verify the value is True or False
         if 'token' in body.keys() and 'invalidate_now' in body['token']:
             invalidate_now = body['token']['invalidate_now']
-            if not isinstance(invalidate_now, bool):
+            if invalidate_now != True and invalidate_now != False:
                 _token_invalidate_now_malformed()
 
     def _validate_token_min_time_limit_reached(self, token):
@@ -739,3 +823,4 @@ class TokenResource(ApiResource):
         self.db.update('tenant', tenant.format_for_save())
 
         resp.status = falcon.HTTP_203
+        resp.set_header('Location', '/v1/{0}/token'.format(tenant_id))

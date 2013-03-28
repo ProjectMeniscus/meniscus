@@ -24,42 +24,42 @@ from meniscus.openstack.common import jsonutils
 
 def suite():
 
-    suite = unittest.TestSuite()
-    suite.addTest(WhenTestingVersionResource())
+    test_suite = unittest.TestSuite()
+    test_suite.addTest(WhenTestingVersionResource())
 
-    suite.addTest(WhenTestingTenantResourceOnPost())
+    test_suite.addTest(WhenTestingTenantResourceOnPost())
 
-    suite.addTest(WhenTestingUserResourceOnGet())
-    suite.addTest(WhenTestingUserResourceOnDelete())
+    test_suite.addTest(WhenTestingUserResourceOnGet())
+    test_suite.addTest(WhenTestingUserResourceOnDelete())
 
-    suite.addTest(WhenTestingHostProfilesResourceOnGet())
-    suite.addTest(WhenTestingHostProfilesResourceOnPost())
+    test_suite.addTest(WhenTestingHostProfilesResourceOnGet())
+    test_suite.addTest(WhenTestingHostProfilesResourceOnPost())
 
-    suite.addTest(WhenTestingHostProfileResourceOnGet())
-    suite.addTest(WhenTestingHostProfileResourceOnPut())
-    suite.addTest(WhenTestingHostProfileResourceOnDelete())
+    test_suite.addTest(WhenTestingHostProfileResourceOnGet())
+    test_suite.addTest(WhenTestingHostProfileResourceOnPut())
+    test_suite.addTest(WhenTestingHostProfileResourceOnDelete())
 
-    suite.addTest(WhenTestingEventProducersResourceOnGet())
-    suite.addTest(WhenTestingEventProducersResourceOnPost())
+    test_suite.addTest(WhenTestingEventProducersResourceOnGet())
+    test_suite.addTest(WhenTestingEventProducersResourceOnPost())
 
-    suite.addTest(WhenTestingEventProducerResourceOnGet())
-    suite.addTest(WhenTestingEventProducerResourceOnPut())
-    suite.addTest(WhenTestingEventProducerResourceOnDelete())
+    test_suite.addTest(WhenTestingEventProducerResourceOnGet())
+    test_suite.addTest(WhenTestingEventProducerResourceOnPut())
+    test_suite.addTest(WhenTestingEventProducerResourceOnDelete())
 
-    suite.addTest(WhenTestingHostsResourceValidation())
-    suite.addTest(WhenTestingHostsResourceOnGet())
-    suite.addTest(WhenTestingHostsResourceOnPost())
+    test_suite.addTest(WhenTestingHostsResourceValidation())
+    test_suite.addTest(WhenTestingHostsResourceOnGet())
+    test_suite.addTest(WhenTestingHostsResourceOnPost())
 
-    suite.addTest(WhenTestingHostResourceValidation())
-    suite.addTest(WhenTestingHostResourceOnGet())
-    suite.addTest(WhenTestingHostResourceOnPut())
-    suite.addTest(WhenTestingHostResourceOnDelete())
-    
-    suite.addTest(WhenTestingTokenResourceOnHead())
-    suite.addTest(WhenTestingTokenResourceOnGet())
-    suite.addTest(WhenTestingTokenResourceOnPost())
+    test_suite.addTest(WhenTestingHostResourceValidation())
+    test_suite.addTest(WhenTestingHostResourceOnGet())
+    test_suite.addTest(WhenTestingHostResourceOnPut())
+    test_suite.addTest(WhenTestingHostResourceOnDelete())
 
-    return suite
+    test_suite.addTest(WhenTestingTokenResourceOnHead())
+    test_suite.addTest(WhenTestingTokenResourceOnGet())
+    test_suite.addTest(WhenTestingTokenResourceOnPost())
+
+    return test_suite
 
 
 class TestingTenantApiBase(unittest.TestCase):

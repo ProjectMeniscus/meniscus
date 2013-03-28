@@ -1,12 +1,12 @@
-from meniscus.personas.worker.pairing.resources \
-    import VersionResource, PairingConfigurationResource
+import unittest
+import json
 
 from mock import MagicMock
 from mock import patch
-
 import falcon
-import unittest
-import json
+
+from meniscus.api.pairing.resources \
+    import VersionResource, PairingConfigurationResource
 
 
 def suite():
@@ -47,7 +47,7 @@ class WhenTestingPairingConfigurationResource(unittest.TestCase):
             u'{ "api_secret" : "1234", ' \
             u'"coordinator_uri" : "http://localhost:8080/v1" , ' \
             u'"personality" : "1234"  }'
-        with patch('meniscus.personas.worker.pairing.resources.PairingProcess',
+        with patch('meniscus.api.pairing.resources.PairingProcess',
                    MagicMock()):
             self.resource.on_post(self.req, self.resp)
 

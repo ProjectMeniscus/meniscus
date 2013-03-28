@@ -1,5 +1,6 @@
-from mock import MagicMock
 import unittest
+
+from mock import MagicMock
 
 from meniscus.data.model.tenant import EventProducer
 from meniscus.data.model.tenant import Host
@@ -18,9 +19,9 @@ from meniscus.data.model.util import load_token_from_dict
 from meniscus.data.model.util import persist_tenant_to_cache
 from meniscus.data.model.util import persist_token_to_cache
 from meniscus.openstack.common import jsonutils
-from meniscus.personas.worker.cache_params import CACHE_TENANT
-from meniscus.personas.worker.cache_params import CACHE_TOKEN
-from meniscus.personas.worker.cache_params import DEFAULT_EXPIRES
+from meniscus.api.utils.cache_params import CACHE_TENANT
+from meniscus.api.utils.cache_params import CACHE_TOKEN
+from meniscus.api.utils.cache_params import DEFAULT_EXPIRES
 
 
 def suite():

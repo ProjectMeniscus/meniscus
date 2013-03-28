@@ -1,6 +1,6 @@
 from meniscus.ext.plugin import import_module
 from meniscus.openstack.common import jsonutils
-from meniscus.personas.worker.cache_params import CACHE_CONFIG
+from meniscus.api.utils.cache_params import CACHE_CONFIG
 from meniscus.proxy import NativeProxy
 
 

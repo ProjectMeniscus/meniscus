@@ -1,15 +1,17 @@
 import httplib
 import platform
+from multiprocessing import Process
+
 import requests
 
 import meniscus.api.utils.sys_assist as sys_assist
 from meniscus.api.utils.request import http_request
 from meniscus.api.utils.retry import retry
 from meniscus.openstack.common import jsonutils
-from meniscus.personas.worker.cache_params import CACHE_CONFIG
-from meniscus.personas.worker.cache_params import CONFIG_EXPIRES
+from meniscus.api.utils.cache_params import CACHE_CONFIG
+from meniscus.api.utils.cache_params import CONFIG_EXPIRES
 from meniscus.proxy import NativeProxy
-from multiprocessing import Process
+
 
 #constants for retry methods
 TRIES = 6

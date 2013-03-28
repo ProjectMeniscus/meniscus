@@ -2,11 +2,16 @@ import httplib
 from uuid import uuid4
 import requests
 
-from correlation_exceptions import CoordinatorCommunicationError
-from correlation_exceptions import MessageAuthenticationError
-from correlation_exceptions import MessageValidationError
-from correlation_exceptions import ResourceNotFoundError
+from meniscus.api.correlation.correlation_exceptions \
+    import CoordinatorCommunicationError
+from meniscus.api.correlation.correlation_exceptions \
+    import MessageAuthenticationError
+from meniscus.api.correlation.correlation_exceptions \
+    import MessageValidationError
+from meniscus.api.correlation.correlation_exceptions \
+    import ResourceNotFoundError
 from meniscus.api.tenant.resources import MESSAGE_TOKEN
+from meniscus.api.utils.cache_params import CACHE_CONFIG
 from meniscus.api.utils.request import http_request
 from meniscus.data.model.util import find_event_producer_for_host
 from meniscus.data.model.util import find_host
@@ -16,7 +21,6 @@ from meniscus.data.model.util import load_tenant_from_dict
 from meniscus.data.model.util import persist_tenant_to_cache
 from meniscus.data.model.util import persist_token_to_cache
 from meniscus.openstack.common import jsonutils
-from meniscus.personas.worker.cache_params import CACHE_CONFIG
 
 
 def validate_event_message_body(body):

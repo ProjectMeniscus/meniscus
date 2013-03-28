@@ -7,13 +7,13 @@ from meniscus.api import format_response_body
 from meniscus.api import load_body
 from meniscus.api.tenant.resources import MESSAGE_TOKEN
 
-from correlation_exceptions import CoordinatorCommunicationError
-from correlation_exceptions import MessageAuthenticationError
-from correlation_exceptions import MessageValidationError
-from correlation_exceptions import ResourceNotFoundError
-from correlation_process import CorrelationMessage
-from correlation_process import TenantIdentification
-from correlation_process import validate_event_message_body
+from meniscus.api.correlation.correlation_exceptions import CoordinatorCommunicationError
+from meniscus.api.correlation.correlation_exceptions import MessageAuthenticationError
+from meniscus.api.correlation.correlation_exceptions import MessageValidationError
+from meniscus.api.correlation.correlation_exceptions import ResourceNotFoundError
+from meniscus.api.correlation.correlation_process import CorrelationMessage
+from meniscus.api.correlation.correlation_process import TenantIdentification
+from meniscus.api.correlation.correlation_process import validate_event_message_body
 
 
 class VersionResource(ApiResource):

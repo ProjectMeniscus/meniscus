@@ -4,9 +4,9 @@ from meniscus.data.model.tenant import HostProfile
 from meniscus.data.model.tenant import Tenant
 from meniscus.data.model.tenant import Token
 from meniscus.openstack.common import jsonutils
-from meniscus.personas.worker.cache_params import CACHE_TENANT
-from meniscus.personas.worker.cache_params import CACHE_TOKEN
-from meniscus.personas.worker.cache_params import DEFAULT_EXPIRES
+from meniscus.api.utils.cache_params import CACHE_TENANT
+from meniscus.api.utils.cache_params import CACHE_TOKEN
+from meniscus.api.utils.cache_params import DEFAULT_EXPIRES
 
 
 def find_tenant(ds_handler, tenant_id):

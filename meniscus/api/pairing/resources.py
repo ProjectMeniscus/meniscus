@@ -1,5 +1,5 @@
 import falcon
-from pairing_process import PairingProcess
+from meniscus.api.pairing.pairing_process import PairingProcess
 from meniscus.api import ApiResource, load_body, format_response_body
 
 

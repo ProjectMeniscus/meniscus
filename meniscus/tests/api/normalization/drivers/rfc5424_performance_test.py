@@ -1,7 +1,7 @@
-from meniscus.personas.worker.normalization.drivers.rfc5424 import *
-
 import time
 import cProfile
+
+from meniscus.api.normalization.drivers.rfc5424 import *
 
 HAPPY_PATH_MESSAGE = ('<46>1 2012-12-11T15:48:23.217459-06:00 tohru ' +
                       'rsyslogd 6611 12512  [origin software="rsyslogd" ' +

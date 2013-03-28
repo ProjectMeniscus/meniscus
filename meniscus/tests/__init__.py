@@ -1,11 +1,11 @@
+import unittest
+
 import meniscus.tests.config_test
-import meniscus.tests.personas.worker.normalization.drivers.rfc5424_test
+import meniscus.tests.api.normalization.drivers.rfc5424_test
 import meniscus.tests.api.tenant.resources_test
 import meniscus.tests.data.handler_test
 import meniscus.tests.data.adapters.mongodb_test
 import meniscus.tests.ext.plugin_test
-
-import unittest
 
 
 def suite():

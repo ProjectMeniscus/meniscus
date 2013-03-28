@@ -13,7 +13,6 @@ from meniscus.api.tenant.resources import HostProfilesResource
 from meniscus.api.tenant.resources import TenantResource
 from meniscus.api.tenant.resources import TokenResource
 from meniscus.api.tenant.resources import UserResource
-from meniscus.api.tenant.resources import VersionResource
 from meniscus.data.model.tenant import EventProducer
 from meniscus.data.model.tenant import Host
 from meniscus.data.model.tenant import HostProfile
@@ -24,42 +23,41 @@ from meniscus.openstack.common import jsonutils
 
 def suite():
 
-    suite = unittest.TestSuite()
-    suite.addTest(WhenTestingVersionResource())
+    test_suite = unittest.TestSuite()
 
-    suite.addTest(WhenTestingTenantResourceOnPost())
+    test_suite.addTest(WhenTestingTenantResourceOnPost())
 
-    suite.addTest(WhenTestingUserResourceOnGet())
-    suite.addTest(WhenTestingUserResourceOnDelete())
+    test_suite.addTest(WhenTestingUserResourceOnGet())
+    test_suite.addTest(WhenTestingUserResourceOnDelete())
 
-    suite.addTest(WhenTestingHostProfilesResourceOnGet())
-    suite.addTest(WhenTestingHostProfilesResourceOnPost())
+    test_suite.addTest(WhenTestingHostProfilesResourceOnGet())
+    test_suite.addTest(WhenTestingHostProfilesResourceOnPost())
 
-    suite.addTest(WhenTestingHostProfileResourceOnGet())
-    suite.addTest(WhenTestingHostProfileResourceOnPut())
-    suite.addTest(WhenTestingHostProfileResourceOnDelete())
+    test_suite.addTest(WhenTestingHostProfileResourceOnGet())
+    test_suite.addTest(WhenTestingHostProfileResourceOnPut())
+    test_suite.addTest(WhenTestingHostProfileResourceOnDelete())
 
-    suite.addTest(WhenTestingEventProducersResourceOnGet())
-    suite.addTest(WhenTestingEventProducersResourceOnPost())
+    test_suite.addTest(WhenTestingEventProducersResourceOnGet())
+    test_suite.addTest(WhenTestingEventProducersResourceOnPost())
 
-    suite.addTest(WhenTestingEventProducerResourceOnGet())
-    suite.addTest(WhenTestingEventProducerResourceOnPut())
-    suite.addTest(WhenTestingEventProducerResourceOnDelete())
+    test_suite.addTest(WhenTestingEventProducerResourceOnGet())
+    test_suite.addTest(WhenTestingEventProducerResourceOnPut())
+    test_suite.addTest(WhenTestingEventProducerResourceOnDelete())
 
-    suite.addTest(WhenTestingHostsResourceValidation())
-    suite.addTest(WhenTestingHostsResourceOnGet())
-    suite.addTest(WhenTestingHostsResourceOnPost())
+    test_suite.addTest(WhenTestingHostsResourceValidation())
+    test_suite.addTest(WhenTestingHostsResourceOnGet())
+    test_suite.addTest(WhenTestingHostsResourceOnPost())
 
-    suite.addTest(WhenTestingHostResourceValidation())
-    suite.addTest(WhenTestingHostResourceOnGet())
-    suite.addTest(WhenTestingHostResourceOnPut())
-    suite.addTest(WhenTestingHostResourceOnDelete())
-    
-    suite.addTest(WhenTestingTokenResourceOnHead())
-    suite.addTest(WhenTestingTokenResourceOnGet())
-    suite.addTest(WhenTestingTokenResourceOnPost())
+    test_suite.addTest(WhenTestingHostResourceValidation())
+    test_suite.addTest(WhenTestingHostResourceOnGet())
+    test_suite.addTest(WhenTestingHostResourceOnPut())
+    test_suite.addTest(WhenTestingHostResourceOnDelete())
 
-    return suite
+    test_suite.addTest(WhenTestingTokenResourceOnHead())
+    test_suite.addTest(WhenTestingTokenResourceOnGet())
+    test_suite.addTest(WhenTestingTokenResourceOnPost())
+
+    return test_suite
 
 
 class TestingTenantApiBase(unittest.TestCase):
@@ -110,26 +108,6 @@ class TestingTenantApiBase(unittest.TestCase):
 
     def _set_resource(self):
         pass
-
-
-class WhenTestingVersionResource(unittest.TestCase):
-
-    def setUp(self):
-        self.req = MagicMock()
-        self.resp = MagicMock()
-        self.resource = VersionResource()
-
-    def test_should_return_200_on_get(self):
-        self.resource.on_get(self.req, self.resp)
-        self.assertEqual(falcon.HTTP_200, self.resp.status)
-
-    def test_should_return_version_json(self):
-        self.resource.on_get(self.req, self.resp)
-
-        parsed_body = jsonutils.loads(self.resp.body)
-
-        self.assertTrue('v1' in parsed_body)
-        self.assertEqual('current', parsed_body['v1'])
 
 
 class WhenTestingTenantResourceOnPost(TestingTenantApiBase):
@@ -449,12 +427,20 @@ class WhenTestingEventProducersResourceValidate(TestingTenantApiBase):
         self.resource = EventProducersResource(self.db_handler)
 
     def test_should_throw_exception_for_bad_durable_val(self):
-        body = {'name': 'ep_name', 'pattern': 'syslog', 'durable': "bad_data"}
+        body = {
+            'name': 'ep_name',
+            'pattern': 'syslog',
+            'durable': "bad_data"
+        }
         with self.assertRaises(falcon.HTTPError):
             self.resource._validate_req_body_on_post(body)
 
     def test_should_throw_exception_for_bad_encrypted_val(self):
-        body = {'name': 'ep_name', 'pattern': 'syslog', 'encrypted': "bad_data"}
+        body = {
+            'name': 'ep_name',
+            'pattern': 'syslog',
+            'encrypted': "bad_data"
+        }
         with self.assertRaises(falcon.HTTPError):
             self.resource._validate_req_body_on_post(body)
 

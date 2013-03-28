@@ -1,12 +1,13 @@
 import httplib
+import unittest
+
 from mock import MagicMock
 from mock import patch
 import requests
-import unittest
 
-from meniscus.personas.worker.cache_params import CACHE_CONFIG
-from meniscus.personas.worker.pairing.pairing_process import PairingProcess
-import meniscus.personas.worker.pairing.pairing_process as pairing_process
+from meniscus.api.utils.cache_params import CACHE_CONFIG
+from meniscus.api.pairing.pairing_process import PairingProcess
+import meniscus.api.pairing.pairing_process as pairing_process
 
 
 def suite():
@@ -43,7 +44,7 @@ class WhenTestingPairingProcess(unittest.TestCase):
         sys_assist.get_cpu_core_count.return_value = "4"
         sys_assist.get_disk_size_GB.return_value = "20"
         sys_assist.get_sys_mem_total_MB.return_value = "4090"
-        with patch('meniscus.personas.worker.pairing.pairing_process.'
+        with patch('meniscus.api.pairing.pairing_process.'
                    'sys_assist', sys_assist), \
                 patch.object(pairing_process.NativeProxy, 'restart') \
                 as server_restart, \
@@ -62,7 +63,7 @@ class WhenTestingPairingProcess(unittest.TestCase):
     def test_should_return_true_for_register_with_coordinator(self):
         self.resp.status_code = httplib.ACCEPTED
         self.resp._content = '{"fake": "json"}'
-        with patch('meniscus.personas.worker.pairing.pairing_process.'
+        with patch('meniscus.api.pairing.pairing_process.'
                    'http_request', self.http_request):
             self.assertTrue(
                 self.pairing_process._register_with_coordinator(
@@ -74,7 +75,7 @@ class WhenTestingPairingProcess(unittest.TestCase):
         self.resp._content = '{"fake": "json"}'
         with patch.object(pairing_process.NativeProxy, 'cache_get',
                           return_value=self.cache_get) as cache_get:
-            with patch('meniscus.personas.worker.pairing.pairing_process.'
+            with patch('meniscus.api.pairing.pairing_process.'
                        'http_request', self.http_request):
                 self.assertTrue(self.pairing_process._get_worker_routes())
                 cache_get.assert_called_once_with('worker_configuration',

@@ -1,12 +1,13 @@
 import httplib
+from multiprocessing import Process
+
 import requests
 
 from meniscus.openstack.common import jsonutils
 from meniscus.api.utils.request import http_request
 from meniscus.api.utils.retry import retry
 from meniscus.proxy import NativeProxy
-from meniscus.personas.worker.cache_params import CACHE_CONFIG
-from multiprocessing import Process
+from meniscus.api.utils.cache_params import CACHE_CONFIG
 
 
 #constants for retry methods

@@ -19,8 +19,8 @@ setup(
         "testtools",
         "httpretty",
         "tox",
-        ],
-    install_requires = [
+    ],
+    install_requires=[
         "falcon",
         "iso8601",
         "wsgiref",
@@ -32,6 +32,6 @@ setup(
     ],
     test_suite='nose.collector',
     zip_safe=False,
-    include_package_data = True,
-    packages = find_packages(exclude=['ez_setup'])
+    include_package_data=True,
+    packages=find_packages(exclude=['ez_setup'])
 )

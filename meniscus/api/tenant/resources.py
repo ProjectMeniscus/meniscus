@@ -116,7 +116,7 @@ def _token_invalidate_now_malformed():
           'Malformed request, invalidate_now must be a boolean ')
 
 
-def _token_min_time_limit_not_reached():
+def _token_time_limit_not_reached():
     """
     sends an http 409 response to the caller
     """
@@ -130,14 +130,15 @@ def _encrypted_must_be_bool():
     sends an http 400 response to the caller
     """
     abort(falcon.HTTP_400,
-          'Malformed request, encrypted must be a boolean ')
+          'Malformed request, encrypted must be true or false')
 
 
-class VersionResource(ApiResource):
-
-    def on_get(self, req, resp):
-        resp.status = falcon.HTTP_200
-        resp.body = format_response_body({'v1': 'current'})
+def _durable_must_be_bool():
+    """
+    sends an http 400 response to the caller
+    """
+    abort(falcon.HTTP_400,
+          'Malformed request, durable must be true or false')
 
 
 class TenantResource(ApiResource):
@@ -400,11 +401,11 @@ class EventProducersResource(ApiResource):
             _producer_pattern_not_provided()
 
         if 'durable' in body.keys():
-            if body['durable'] != True and body['durable'] != False:
-                _encrypted_must_be_bool()
+            if body['durable'] not in [True, False]:
+                _durable_must_be_bool()
 
         if 'encrypted' in body.keys():
-            if body['encrypted'] != True and body['encrypted'] != False:
+            if body['encrypted'] not in [True, False]:
                 _encrypted_must_be_bool()
 
     def on_post(self, req, resp, tenant_id):
@@ -488,11 +489,11 @@ class EventProducerResource(ApiResource):
                 _producer_pattern_not_provided()
 
         if 'durable' in body.keys():
-            if body['durable'] != True and body['durable'] != False:
-                _encrypted_must_be_bool()
+            if body['durable'] not in [True, False]:
+                _durable_must_be_bool()
 
         if 'encrypted' in body.keys():
-            if body['encrypted'] != True and body['encrypted'] != False:
+            if body['encrypted'] not in [True, False]:
                 _encrypted_must_be_bool()
 
     def on_put(self, req, resp, tenant_id, event_producer_id):
@@ -618,7 +619,7 @@ class HostsResource(ApiResource):
         profile_id = None
         #if profile id is not in post message, then use a null profile
         if 'profile_id' in body.keys():
-            if  body['profile_id']:
+            if body['profile_id']:
                 profile_id = body['profile_id']
 
         #if profile id is in post message, then make sure it is valid profile
@@ -778,7 +779,7 @@ class TokenResource(ApiResource):
         # verify the value is True or False
         if 'token' in body.keys() and 'invalidate_now' in body['token']:
             invalidate_now = body['token']['invalidate_now']
-            if invalidate_now != True and invalidate_now != False:
+            if invalidate_now not in [True, False]:
                 _token_invalidate_now_malformed()
 
     def _validate_token_min_time_limit_reached(self, token):
@@ -792,7 +793,7 @@ class TokenResource(ApiResource):
 
         #if the time limit has not been reached, abort and alert the caller
         if hours_diff < MIN_TOKEN_TIME_LIMIT_HRS:
-            _token_min_time_limit_not_reached()
+            _token_time_limit_not_reached()
 
     def on_post(self, req, resp, tenant_id):
 

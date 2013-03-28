@@ -10,7 +10,6 @@ from meniscus.proxy import NativeProxy
 from meniscus.api.utils.cache_params import CACHE_CONFIG
 
 
-
 #constants for retry methods
 TRIES = 6
 DELAY = 60

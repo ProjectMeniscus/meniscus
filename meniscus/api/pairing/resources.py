@@ -3,14 +3,6 @@ from meniscus.api.pairing.pairing_process import PairingProcess
 from meniscus.api import ApiResource, load_body, format_response_body
 
 
-class VersionResource(ApiResource):
-    """ Return the current version of the Pairing API """
-
-    def on_get(self, req, resp):
-        resp.status = falcon.HTTP_200
-        resp.body = format_response_body({'v1': 'current'})
-
-
 class PairingConfigurationResource(ApiResource):
     """
     Webhook callback for the system package coordinator to

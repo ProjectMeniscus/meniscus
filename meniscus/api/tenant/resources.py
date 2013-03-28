@@ -141,13 +141,6 @@ def _durable_must_be_bool():
           'Malformed request, durable must be true or false')
 
 
-class VersionResource(ApiResource):
-
-    def on_get(self, req, resp):
-        resp.status = falcon.HTTP_200
-        resp.body = format_response_body({'v1': 'current'})
-
-
 class TenantResource(ApiResource):
 
     def __init__(self, db_handler):

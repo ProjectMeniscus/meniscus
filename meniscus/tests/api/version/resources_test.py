@@ -1,14 +1,18 @@
-from meniscus.openstack.common import jsonutils
-import falcon
 import unittest
-
 from mock import MagicMock
-from meniscus.api.coordinator.version_resource import VersionResource
+
+import falcon
+
+from meniscus.api.version.resources import VersionResource
+from meniscus.openstack.common import jsonutils
 
 
 def suite():
-    suite = unittest.TestSuite()
-    return suite
+
+    test_suite = unittest.TestSuite()
+    test_suite.addTest(WhenTestingVersionResource())
+
+    return test_suite
 
 
 class WhenTestingVersionResource(unittest.TestCase):
@@ -29,6 +33,3 @@ class WhenTestingVersionResource(unittest.TestCase):
 
         self.assertTrue('v1' in parsed_body)
         self.assertEqual('current', parsed_body['v1'])
-
-if __name__ == '__main__':
-    unittest.main()

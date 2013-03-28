@@ -7,7 +7,6 @@ import falcon
 import meniscus.api.correlation.correlation_exceptions as exception
 import meniscus.api.correlation.correlation_process as process
 from meniscus.api.correlation.resources import PublishMessageResource
-from meniscus.api.correlation.resources import VersionResource
 from meniscus.data.model.tenant import Tenant
 from meniscus.openstack.common import jsonutils
 
@@ -16,26 +15,6 @@ def suite():
     suite = unittest.TestSuite()
     suite.addTest(WhenTestingPublishMessage())
     return suite
-
-
-class WhenTestingVersionResource(unittest.TestCase):
-
-    def setUp(self):
-        self.req = MagicMock()
-        self.resp = MagicMock()
-        self.resource = VersionResource()
-
-    def test_should_return_200_on_get(self):
-        self.resource.on_get(self.req, self.resp)
-        self.assertEqual(falcon.HTTP_200, self.resp.status)
-
-    def test_should_return_version_json(self):
-        self.resource.on_get(self.req, self.resp)
-
-        parsed_body = jsonutils.loads(self.resp.body)
-
-        self.assertTrue('v1' in parsed_body)
-        self.assertEqual('current', parsed_body['v1'])
 
 
 class WhenTestingPublishMessage(unittest.TestCase):

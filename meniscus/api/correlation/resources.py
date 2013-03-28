@@ -5,22 +5,19 @@ from meniscus.api import abort
 from meniscus.api import ApiResource
 from meniscus.api import format_response_body
 from meniscus.api import load_body
-from meniscus.api.tenant.resources import MESSAGE_TOKEN
-
-from meniscus.api.correlation.correlation_exceptions import CoordinatorCommunicationError
-from meniscus.api.correlation.correlation_exceptions import MessageAuthenticationError
-from meniscus.api.correlation.correlation_exceptions import MessageValidationError
-from meniscus.api.correlation.correlation_exceptions import ResourceNotFoundError
+from meniscus.api.correlation.correlation_exceptions \
+    import CoordinatorCommunicationError
+from meniscus.api.correlation.correlation_exceptions \
+    import MessageAuthenticationError
+from meniscus.api.correlation.correlation_exceptions \
+    import MessageValidationError
+from meniscus.api.correlation.correlation_exceptions \
+    import ResourceNotFoundError
 from meniscus.api.correlation.correlation_process import CorrelationMessage
 from meniscus.api.correlation.correlation_process import TenantIdentification
-from meniscus.api.correlation.correlation_process import validate_event_message_body
-
-
-class VersionResource(ApiResource):
-
-    def on_get(self, req, resp):
-        resp.status = falcon.HTTP_200
-        resp.body = format_response_body({'v1': 'current'})
+from meniscus.api.correlation.correlation_process \
+    import validate_event_message_body
+from meniscus.api.tenant.resources import MESSAGE_TOKEN
 
 
 class PublishMessageResource(ApiResource):

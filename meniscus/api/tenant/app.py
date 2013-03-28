@@ -10,7 +10,7 @@ from meniscus.api.tenant.resources import HostsResource
 from meniscus.api.tenant.resources import TenantResource
 from meniscus.api.tenant.resources import TokenResource
 from meniscus.api.tenant.resources import UserResource
-from meniscus.api.tenant.resources import VersionResource
+from meniscus.api.version.resources import VersionResource
 
 
 # Resources

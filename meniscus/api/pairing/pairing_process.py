@@ -1,15 +1,16 @@
 import httplib
-import platform
+
 from multiprocessing import Process
 
 import requests
 
-import meniscus.api.utils.sys_assist as sys_assist
-from meniscus.api.utils.request import http_request
-from meniscus.api.utils.retry import retry
-from meniscus.openstack.common import jsonutils
 from meniscus.api.utils.cache_params import CACHE_CONFIG
 from meniscus.api.utils.cache_params import CONFIG_EXPIRES
+from meniscus.api.utils.request import http_request
+from meniscus.api.utils.retry import retry
+from meniscus.data.model.worker import WorkerRegistration
+from meniscus.openstack.common import jsonutils
+
 from meniscus.proxy import NativeProxy
 
 
@@ -34,29 +35,14 @@ class PairingProcess(object):
 
     def _pair_with_coordinator(self, api_secret, coordinator_uri, personality):
 
-        ip_address_v4 = sys_assist.get_lan_ip()
         #get registration info and call the coordinator
-        registration = {"worker_registration": {
-            "hostname": platform.node(),
-            "callback": ip_address_v4 + ':8080/v1/configuration',
-            "ip_address_v4": ip_address_v4,
-            "ip_address_v6": "",
-            "personality":  personality,
-            "status": "waiting",
-            "system_info": {
-                "cpu_cores": sys_assist.get_cpu_core_count(),
-                "disk_gb": sys_assist.get_disk_size_GB(),
-                "os_type": platform.platform(),
-                "memory_mb": sys_assist.get_sys_mem_total_MB(),
-                "architecture": platform.machine()
-            }
-        }}
+        registration = WorkerRegistration(personality)
 
         auth_header = {'X-AUTH-TOKEN': api_secret}
         #register with coordinator
-        if self._register_with_coordinator(
-                coordinator_uri, personality, registration, auth_header):
-            #if registered successfully, get worker routes
+        if self._register_with_coordinator(coordinator_uri, personality,
+                                           registration.format(), auth_header):
+            #if registered successfully, get worker routes and restart
             if self._get_worker_routes():
                 server = NativeProxy()
                 server.restart()
@@ -112,10 +98,10 @@ class PairingProcess(object):
         #if the coordinator issues a response, cache the worker routes
         #and return true
         if resp.status_code == httplib.OK:
-            routes = resp.json()
+            pipeline_workers = resp.json()
 
             cache = NativeProxy()
-            cache.cache_set('worker_routes',
-                            jsonutils.dumps(routes),
+            cache.cache_set('pipeline_workers',
+                            jsonutils.dumps(pipeline_workers),
                             CONFIG_EXPIRES, CACHE_CONFIG)
             return True

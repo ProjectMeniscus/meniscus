@@ -99,7 +99,7 @@ class WorkerRegistrationResource(ApiResource):
         self._validate_req_body_on_post(body)
 
         #instantiate new worker object
-        new_worker = Worker(body['worker_registration'])
+        new_worker = Worker(**body['worker_registration'])
 
         #persist the new worker
         self.db.put('worker', new_worker.format())

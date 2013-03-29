@@ -16,7 +16,7 @@ class Worker(object):
         self.ip_address_v6 = kwargs['ip_address_v6']
         self.personality = kwargs['personality']
         self.status = kwargs['status']
-        self.system_info = SystemInfo(kwargs['system_info'])
+        self.system_info = SystemInfo(**kwargs['system_info'])
 
     def format(self):
         return{

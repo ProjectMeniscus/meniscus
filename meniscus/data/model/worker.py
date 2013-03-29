@@ -32,7 +32,9 @@ class Worker(object):
         }
 
     def format_for_save(self):
-        return self.format().update({'_id': self._id})
+        worker_dict = self.format()
+        worker_dict['_id'] = self._id
+        return worker_dict
 
     def get_registration_identity(self):
         return{

@@ -139,4 +139,6 @@ application events.
                 'token': self.token.format()}
 
     def format_for_save(self):
-        return self.format().update({'_id': self._id})
+        tenant_dict = self.format()
+        tenant_dict['_id'] = self._id
+        return tenant_dict

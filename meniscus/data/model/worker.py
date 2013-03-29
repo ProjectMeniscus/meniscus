@@ -68,6 +68,7 @@ class WorkerRegistration(object):
             'ip_address_v4': self.ip_address_v4,
             'ip_address_v6': self.ip_address_v6,
             'personality': self.personality,
+            'status': self.status,
             'system_info': self.system_info.format()
         }
 

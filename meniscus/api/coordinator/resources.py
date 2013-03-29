@@ -48,7 +48,7 @@ class WorkerConfigurationResource(ApiResource):
         if not worker_dict:
             _worker_not_found()
 
-        worker = Worker(worker_dict)
+        worker = Worker(**worker_dict)
         downstream = PERSONALITIES.get(worker.personality).get('downstream')
         downstream_workers = self.db.find(
             'worker', {'personality': downstream})

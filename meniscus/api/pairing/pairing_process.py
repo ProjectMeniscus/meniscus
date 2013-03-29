@@ -36,12 +36,14 @@ class PairingProcess(object):
     def _pair_with_coordinator(self, api_secret, coordinator_uri, personality):
 
         #get registration info and call the coordinator
-        registration = WorkerRegistration(personality)
+        worker_registration = WorkerRegistration(personality)
+        registration = {'worker_registration': worker_registration.format()}
 
         auth_header = {'X-AUTH-TOKEN': api_secret}
+
         #register with coordinator
-        if self._register_with_coordinator(coordinator_uri, personality,
-                                           registration.format(), auth_header):
+        if self._register_with_coordinator(
+                coordinator_uri, personality, registration, auth_header):
             #if registered successfully, get worker routes and restart
             if self._get_worker_routes():
                 server = NativeProxy()

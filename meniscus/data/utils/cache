@@ -4,6 +4,7 @@ from meniscus.config import get_config
 from meniscus.config import init_config
 from meniscus.data.model.util import load_tenant_from_dict
 from meniscus.data.model.util import load_token_from_dict
+from meniscus.data.model.worker import WorkerConfiguration
 from meniscus.openstack.common import jsonutils
 from meniscus.proxy import NativeProxy
 
@@ -64,8 +65,27 @@ class ConfigCache(Cache):
     def set_config(self, worker_config):
         if self.cache.cache_exists('worker_configuration', CACHE_CONFIG):
             self.cache.cache_update(
-                'worker_configuration', jsonutils.dumps(tenant.format()),
+                'worker_configuration',
+                jsonutils.dumps(worker_config.format()),
                 DEFAULT_EXPIRES, CACHE_TENANT)
+
+    def get_config(self):
+        if self.cache.cache_exists('worker_configuration', CACHE_CONFIG):
+            config = jsonutils.loads(
+                self.cache.cache_get('worker_configuration', CACHE_CONFIG))
+            worker_config = WorkerConfiguration(
+                config['personality'],
+                config['personality_module'],
+                config['worker_token'],
+                config['worker_id'],
+                config['coordinator_uri'])
+            return worker_config
+        return None
+
+    def delete_config(self):
+        if self.cache.cache_exists('worker_configuration', CACHE_CONFIG):
+            self.cache.cache_del('worker_configuration', CACHE_TENANT)
+
 
 class TenantCache(Cache):
 
@@ -92,7 +112,8 @@ class TenantCache(Cache):
         return None
 
     def delete_tenant(self, tenant_id):
-        self.cache.cache_del(tenant_id, CACHE_TENANT)
+        if  self.cache.cache_exists(tenant_id, CACHE_TENANT):
+            self.cache.cache_del(tenant_id, CACHE_TENANT)
 
 
 class TokenCache(Cache):
@@ -120,4 +141,5 @@ class TokenCache(Cache):
         return None
 
     def delete_token(self, tenant_id):
-        self.cache.cache_del(tenant_id, CACHE_TOKEN)
+        if self.cache.cache_exists(tenant_id, CACHE_TOKEN):
+            self.cache.cache_del(tenant_id, CACHE_TOKEN)

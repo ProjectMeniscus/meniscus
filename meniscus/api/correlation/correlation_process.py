@@ -1,26 +1,17 @@
 import httplib
 from uuid import uuid4
+
 import requests
 
-from meniscus.api.correlation.correlation_exceptions \
-    import CoordinatorCommunicationError
-from meniscus.api.correlation.correlation_exceptions \
-    import MessageAuthenticationError
-from meniscus.api.correlation.correlation_exceptions \
-    import MessageValidationError
-from meniscus.api.correlation.correlation_exceptions \
-    import ResourceNotFoundError
+import meniscus.api.correlation.correlation_exceptions as errors
 from meniscus.api.tenant.resources import MESSAGE_TOKEN
-from meniscus.api.utils.cache_params import CACHE_CONFIG
 from meniscus.api.utils.request import http_request
+from meniscus.data.cache_handler import ConfigCache
+from meniscus.data.cache_handler import TenantCache
+from meniscus.data.cache_handler import TokenCache
 from meniscus.data.model.util import find_event_producer_for_host
 from meniscus.data.model.util import find_host
-from meniscus.data.model.util import find_tenant_in_cache
-from meniscus.data.model.util import find_token_in_cache
 from meniscus.data.model.util import load_tenant_from_dict
-from meniscus.data.model.util import persist_tenant_to_cache
-from meniscus.data.model.util import persist_token_to_cache
-from meniscus.openstack.common import jsonutils
 
 
 def validate_event_message_body(body):
@@ -29,13 +20,13 @@ def validate_event_message_body(body):
     """
     # validate host with tenant
     if 'host' not in body.keys() or not body['host']:
-        raise MessageValidationError("host cannot be empty")
+        raise errors.MessageValidationError("host cannot be empty")
 
     if 'pname' not in body.keys() or not body['pname']:
-        raise MessageValidationError("pname cannot be empty")
+        raise errors.MessageValidationError("pname cannot be empty")
 
     if 'time' not in body.keys() or not body['time']:
-        raise MessageValidationError("time cannot be empty")
+        raise errors.MessageValidationError("time cannot be empty")
 
     return True
 
@@ -61,7 +52,7 @@ class CorrelationMessage(object):
         host = find_host(self.tenant, host_name=self.message['host'])
 
         if not host:
-            raise MessageValidationError(
+            raise errors.MessageValidationError(
                 "invalid host, host with name {0} cannot be located"
                 .format(self.message['host']))
 
@@ -109,33 +100,33 @@ class TenantIdentification(object):
         """
         returns a validated tenant object from cache or from coordinator
         """
+        token_cache = TokenCache()
+        tenant_cache = TenantCache()
 
         #check if the token is in the cache
-        token = find_token_in_cache(self.cache, self.tenant_id)
+        token = token_cache.get_token(self.tenant_id)
         if token:
             #validate token
             if not token.validate_token(self.message_token):
-                raise MessageAuthenticationError(
+                raise errors.MessageAuthenticationError(
                     'Message not authenticated, check your tenant id '
                     'and or message token for validity')
 
             #get the tenant object from cache
-            tenant = find_tenant_in_cache(self.cache, self.tenant_id)
+            tenant = tenant_cache.get_tenant(self.tenant_id)
 
             #if tenant is not in cache, ask the coordinator
             if not tenant:
                 tenant = self._get_tenant_from_coordinator()
-                persist_token_to_cache(
-                    self.cache, self.tenant_id, tenant.token)
-                persist_tenant_to_cache(self.cache, tenant)
+                token_cache.set_token(self.tenant_id, tenant.token)
+                tenant_cache.set_tenant(tenant)
         else:
             self._validate_token_with_coordinator()
 
             #get tenant from coordinator
             tenant = self._get_tenant_from_coordinator()
-            persist_token_to_cache(
-                self.cache, self.tenant_id, tenant.token)
-            persist_tenant_to_cache(self.cache, tenant)
+            token_cache.set_token(self.tenant_id, tenant.token)
+            tenant_cache.set_tenant(tenant)
 
         return tenant
 
@@ -144,27 +135,27 @@ class TenantIdentification(object):
         This method calls to the coordinator to validate the message token
         """
 
-        config = jsonutils.loads(self.cache.cache_get(
-            'worker_configuration', CACHE_CONFIG))
+        config_cache = ConfigCache()
+        config = config_cache.get_config()
 
         token_header = {
             MESSAGE_TOKEN: self.message_token,
-            "WORKER-ID": config['worker_id'],
-            "WORKER-TOKEN": config['worker_token']
+            "WORKER-ID": config.worker_id,
+            "WORKER-TOKEN": config.worker_token
         }
 
         request_uri = "{0}/tenant/{1}/token".format(
-            config['coordinator_uri'], self.tenant_id)
+            config.coordinator_uri, self.tenant_id)
 
         try:
             resp = http_request(request_uri, token_header,
                                 http_verb='HEAD')
 
         except requests.RequestException:
-            raise CoordinatorCommunicationError
+            raise errors.CoordinatorCommunicationError
 
         if resp.status_code != httplib.OK:
-            raise MessageAuthenticationError(
+            raise errors.MessageAuthenticationError(
                 'Message not authenticated, check your tenant id '
                 'and or message token for validity')
 
@@ -175,23 +166,24 @@ class TenantIdentification(object):
         This method calls to the coordinator to retrieve tenant
         """
 
-        config = jsonutils.loads(self.cache.cache_get(
-            'worker_configuration', CACHE_CONFIG))
+        config_cache = ConfigCache()
+        config = config_cache.get_config()
 
         token_header = {
-            "WORKER-ID": config['worker_id'],
-            "WORKER-TOKEN": config['worker_token']
+            MESSAGE_TOKEN: self.message_token,
+            "WORKER-ID": config.worker_id,
+            "WORKER-TOKEN": config.worker_token
         }
 
         request_uri = "{0}/tenant/{1}".format(
-            config['coordinator_uri'], self.tenant_id)
+            config.coordinator_uri, self.tenant_id)
 
         try:
             resp = http_request(request_uri, token_header,
                                 http_verb='GET')
 
         except requests.RequestException:
-            raise CoordinatorCommunicationError
+            raise errors.CoordinatorCommunicationError
 
         if resp.status_code == httplib.OK:
             response_body = resp.json()
@@ -199,6 +191,6 @@ class TenantIdentification(object):
             return tenant
 
         elif resp.status_code == httplib.NOT_FOUND:
-            raise ResourceNotFoundError('Unable to locate tenant.')
+            raise errors.ResourceNotFoundError('Unable to locate tenant.')
         else:
-            raise CoordinatorCommunicationError
+            raise errors.CoordinatorCommunicationError

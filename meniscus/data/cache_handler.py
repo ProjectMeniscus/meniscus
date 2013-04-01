@@ -71,7 +71,7 @@ class ConfigCache(Cache):
         else:
             self.cache.cache_set(
                 'worker_configuration',
-                jsonutils.dumps(worker_config),
+                jsonutils.dumps(worker_config.format()),
                 DEFAULT_EXPIRES, CACHE_CONFIG)
 
     def get_config(self):

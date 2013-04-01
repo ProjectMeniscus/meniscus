@@ -130,6 +130,7 @@ class WorkerRegistrationResource(ApiResource):
             _worker_not_found()
 
         worker = Worker(**worker_dict)
+        worker.status = body['worker_status']
 
         self.db.update('worker', worker.format_for_save())
         resp.status = falcon.HTTP_200

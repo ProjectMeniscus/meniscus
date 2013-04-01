@@ -110,3 +110,12 @@ class WorkerConfiguration(object):
         self.worker_id = worker_id
         self.coordinator_uri = coordinator_uri
 
+    def format(self):
+
+        return{
+            'personality': self.personality,
+            'personality_module': self.personality_module,
+            'worker_token': self.worker_token,
+            'worker_id': self.worker_id,
+            'coordinator_uri': self.coordinator_uri
+        }

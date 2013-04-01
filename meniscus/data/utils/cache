@@ -61,6 +61,11 @@ class ConfigCache(Cache):
     def clear(self):
         self.cache.cache_clear(CACHE_CONFIG)
 
+    def set_config(self, worker_config):
+        if self.cache.cache_exists('worker_configuration', CACHE_CONFIG):
+            self.cache.cache_update(
+                'worker_configuration', jsonutils.dumps(tenant.format()),
+                DEFAULT_EXPIRES, CACHE_TENANT)
 
 class TenantCache(Cache):
 

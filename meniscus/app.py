@@ -3,11 +3,10 @@ from meniscus.data.cache_handler import ConfigCache
 
 
 DEFAULT_PERSONALITY_MODULE = 'meniscus.personas.worker.pairing.app'
+config_cache = ConfigCache()
 
 
 def bootstrap_api():
-
-    config_cache = ConfigCache()
 
     #if the configuration exists in the cache,
     # retrieve the personality module

@@ -3,7 +3,6 @@ from meniscus.data.model.tenant import Host
 from meniscus.data.model.tenant import HostProfile
 from meniscus.data.model.tenant import Tenant
 from meniscus.data.model.tenant import Token
-from meniscus.openstack.common import jsonutils
 
 
 def find_tenant(ds_handler, tenant_id):

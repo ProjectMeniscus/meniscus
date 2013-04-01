@@ -3,7 +3,6 @@ import unittest
 from meniscus.data.model.worker import SystemInfo
 from meniscus.data.model.worker import Worker
 from meniscus.data.model.worker import WorkerConfiguration
-from meniscus.data.model.worker import WorkerPipeline
 from meniscus.data.model.worker import WorkerRegistration
 
 
@@ -13,7 +12,6 @@ def suite():
     suite.addTest(WhenTestingWorkerRegistrationObject())
     suite.addTest(WhenTestingSystemInfoObject())
     suite.addTest(WhenTestingWorkerConfigurationObject())
-    suite.addTest(WhenTestingWorkerPipelineObject())
 
 
 class WhenTestingWorkerObject(unittest.TestCase):
@@ -75,13 +73,13 @@ class WhenTestingWorkerObject(unittest.TestCase):
                                   status='new',
                                   system_info=self.system_info.format())
         self.worker_pipeline = self.test_worker.get_pipeline_info()
-        self.assertEqual(self.worker_pipeline.format()['hostname'],
+        self.assertEqual(self.worker_pipeline['hostname'],
                          'worker01')
-        self.assertEqual(self.worker_pipeline.format()['ip_address_v4'],
+        self.assertEqual(self.worker_pipeline['ip_address_v4'],
                          '172.23.1.100')
-        self.assertEqual(self.worker_pipeline.format()['ip_address_v6'],
+        self.assertEqual(self.worker_pipeline['ip_address_v6'],
                          '::1')
-        self.assertEqual(self.worker_pipeline.format()['personality'],
+        self.assertEqual(self.worker_pipeline['personality'],
                          'worker.correlation')
 
 
@@ -139,22 +137,6 @@ class WhenTestingWorkerConfigurationObject(unittest.TestCase):
                          '8cc3b103-9b23-4e1c-afb1-8c5973621b55')
         self.assertEqual(self.worker_config.format()['coordinator_uri'],
                          'http://172.22.15.25:8080/v1')
-
-
-class WhenTestingWorkerPipelineObject(unittest.TestCase):
-    def test_worker_pipeline(self):
-        self.worker_pipeline = WorkerPipeline('worker-01',
-                                              '192.168.100.101',
-                                              '::1',
-                                              'correlation')
-        self.assertEqual(self.worker_pipeline.format()['hostname'],
-                         'worker-01')
-        self.assertEqual(self.worker_pipeline.format()['ip_address_v4'],
-                         '192.168.100.101')
-        self.assertEqual(self.worker_pipeline.format()['ip_address_v6'],
-                         '::1')
-        self.assertEqual(self.worker_pipeline.format()['personality'],
-                         'correlation')
 
 
 if __name__ == '__main__':

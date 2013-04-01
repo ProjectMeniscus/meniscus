@@ -102,11 +102,11 @@ class SystemInfo(object):
 
 class WorkerConfiguration(object):
     def __init__(self, personality, personality_module, worker_token,
-                 worker_id, coordinator_uri, pipeline_workers=None):
+                 worker_id, coordinator_uri):
 
         self.personality = personality
         self.personality_module = personality_module
         self.worker_token = worker_token
         self.worker_id = worker_id
         self.coordinator_uri = coordinator_uri
-        self.pipeline_workers = pipeline_workers if pipeline_workers else []
+

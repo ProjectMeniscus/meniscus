@@ -1,7 +1,9 @@
+import unittest
+
 import falcon
 from mock import MagicMock
 from mock import patch
-import unittest
+
 
 from meniscus.app import bootstrap_api
 from meniscus.data.model.worker import WorkerConfiguration

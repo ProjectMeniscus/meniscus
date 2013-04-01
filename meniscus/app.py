@@ -1,25 +1,21 @@
 from meniscus.ext.plugin import import_module
-from meniscus.openstack.common import jsonutils
-from meniscus.api.utils.cache_params import CACHE_CONFIG
-from meniscus.proxy import NativeProxy
+from meniscus.data.cache_handler import ConfigCache
 
 
 DEFAULT_PERSONALITY_MODULE = 'meniscus.personas.worker.pairing.app'
-cache = NativeProxy()
 
 
 def bootstrap_api():
-    personality_module = None
+
+    config_cache = ConfigCache()
 
     #if the configuration exists in the cache,
     # retrieve the personality module
-    if cache.cache_exists('worker_configuration', CACHE_CONFIG):
-        cached_config = jsonutils.loads(
-            cache.cache_get('worker_configuration', CACHE_CONFIG))
-        personality_module = cached_config['personality_module']
+    config = config_cache.get_config()
 
-    #if no personality module was pulled form the cache, use the default
-    if not personality_module:
+    if config:
+        personality_module = config.personality_module
+    else:
         personality_module = DEFAULT_PERSONALITY_MODULE
 
     #load the personality module as a plug in

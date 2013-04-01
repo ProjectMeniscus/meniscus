@@ -73,18 +73,36 @@ class ConfigCache(Cache):
         if self.cache.cache_exists('worker_configuration', CACHE_CONFIG):
             config = jsonutils.loads(
                 self.cache.cache_get('worker_configuration', CACHE_CONFIG))
-            worker_config = WorkerConfiguration(
-                config['personality'],
-                config['personality_module'],
-                config['worker_token'],
-                config['worker_id'],
-                config['coordinator_uri'])
+            worker_config = WorkerConfiguration(**config)
             return worker_config
         return None
 
     def delete_config(self):
         if self.cache.cache_exists('worker_configuration', CACHE_CONFIG):
-            self.cache.cache_del('worker_configuration', CACHE_TENANT)
+            self.cache.cache_del('worker_configuration', CACHE_CONFIG)
+
+    def set_pipeline(self, pipeline_workers):
+        if self.cache.cache_exists('pipeline_workers', CACHE_CONFIG):
+            self.cache.cache_update(
+                'pipeline_workers',
+                jsonutils.dumps(pipeline_workers),
+                DEFAULT_EXPIRES, CACHE_CONFIG)
+        else:
+            self.cache.cache_set(
+                'pipeline_workers',
+                jsonutils.dumps(pipeline_workers),
+                DEFAULT_EXPIRES, CACHE_CONFIG)
+
+    def get_pipeline(self):
+        if self.cache.cache_exists('pipeline_workers', CACHE_CONFIG):
+            pipeline_workers = jsonutils.loads(
+                self.cache.cache_get('pipeline_workers', CACHE_CONFIG))
+            return pipeline_workers
+        return None
+
+    def delete_pipeline(self):
+        if self.cache.cache_exists('pipeline_workers', CACHE_CONFIG):
+            self.cache.cache_del('pipeline_workers', CACHE_CONFIG)
 
 
 class TenantCache(Cache):

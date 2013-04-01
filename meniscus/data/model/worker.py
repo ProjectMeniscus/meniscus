@@ -45,12 +45,12 @@ class Worker(object):
         }
 
     def get_pipeline_info(self):
-        worker_pipeline = WorkerPipeline(
-            self.hostname,
-            self.ip_address_v4,
-            self.ip_address_v6,
-            self.personality)
-        return worker_pipeline
+        return {
+            'hostname': self.hostname,
+            'ip_address_v4': self.ip_address_v4,
+            'ip_address_v6': self.ip_address_v6,
+            'personality': self.personality
+        }
 
 
 class WorkerRegistration(object):
@@ -118,20 +118,4 @@ class WorkerConfiguration(object):
             'worker_token': self.worker_token,
             'worker_id': self.worker_id,
             'coordinator_uri': self.coordinator_uri
-        }
-
-
-class WorkerPipeline(object):
-    def __init__(self, hostname, ipv4, ipv6, personality):
-        self.hostname = hostname
-        self.ip_address_v4 = ipv4
-        self.ip_address_v6 = ipv6
-        self.personality = personality
-
-    def format(self):
-        return {
-            'hostname': self.hostname,
-            'ip_address_v4': self.ip_address_v4,
-            'ip_address_v6': self.ip_address_v6,
-            'personality': self.personality
         }

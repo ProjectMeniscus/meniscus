@@ -86,13 +86,14 @@ class WhenTestingWorkerObject(unittest.TestCase):
 class WhenTestingWorkerRegistrationObject(unittest.TestCase):
     def test_WorkerRegistration_new(self):
         self.worker_reg = WorkerRegistration('correlation', 'new')
-        self.assertTrue('hostname' in self.worker_reg.format())
-        self.assertTrue('callback' in self.worker_reg.format())
-        self.assertTrue('ip_address_v4' in self.worker_reg.format())
-        self.assertTrue('ip_address_v6' in self.worker_reg.format())
-        self.assertTrue('personality' in self.worker_reg.format())
-        self.assertTrue('status' in self.worker_reg.format())
-        self.assertTrue('system_info' in self.worker_reg.format())
+        worker_dict = self.worker_reg.format()
+        self.assertTrue('hostname' in worker_dict)
+        self.assertTrue('callback' in worker_dict)
+        self.assertTrue('ip_address_v4' in worker_dict)
+        self.assertTrue('ip_address_v6' in worker_dict)
+        self.assertTrue('personality' in worker_dict)
+        self.assertTrue('status' in worker_dict)
+        self.assertTrue('system_info' in worker_dict)
 
 
 class WhenTestingSystemInfoObject(unittest.TestCase):
@@ -102,21 +103,21 @@ class WhenTestingSystemInfoObject(unittest.TestCase):
                                       os_type='Darwin-11.4.2-x86-64bit',
                                       memory_mb='1024',
                                       architecture='x86_64')
-
-        self.assertEqual(self.system_info.format()['cpu_cores'], '4')
-        self.assertEqual(self.system_info.format()['disk_gb'], '20')
-        self.assertEqual(
-            self.system_info.format()['os_type'], 'Darwin-11.4.2-x86-64bit')
-        self.assertEqual(self.system_info.format()['memory_mb'], '1024')
-        self.assertEqual(self.system_info.format()['architecture'], 'x86_64')
+        system_dict = self.system_info.format()
+        self.assertEqual(system_dict['cpu_cores'], '4')
+        self.assertEqual(system_dict['disk_gb'], '20')
+        self.assertEqual(system_dict['os_type'], 'Darwin-11.4.2-x86-64bit')
+        self.assertEqual(system_dict['memory_mb'], '1024')
+        self.assertEqual(system_dict['architecture'], 'x86_64')
 
     def test_new_system_info_empty_obj(self):
         self.system_info = SystemInfo()
-        self.assertTrue('cpu_cores' in self.system_info.format())
-        self.assertTrue('disk_gb' in self.system_info.format())
-        self.assertTrue('os_type' in self.system_info.format())
-        self.assertTrue('memory_mb' in self.system_info.format())
-        self.assertTrue('architecture' in self.system_info.format())
+        system_dict = self.system_info.format()
+        self.assertTrue('cpu_cores' in system_dict)
+        self.assertTrue('disk_gb' in system_dict)
+        self.assertTrue('os_type' in system_dict)
+        self.assertTrue('memory_mb' in system_dict)
+        self.assertTrue('architecture' in system_dict)
 
 
 class WhenTestingWorkerConfigurationObject(unittest.TestCase):
@@ -127,15 +128,15 @@ class WhenTestingWorkerConfigurationObject(unittest.TestCase):
             "94d6176b-9188-4409-8648-7374d0326e6b",
             "8cc3b103-9b23-4e1c-afb1-8c5973621b55",
             "http://172.22.15.25:8080/v1")
-        self.assertEqual(self.worker_config.format()['personality'],
-                         'correlation')
-        self.assertEqual(self.worker_config.format()['personality_module'],
+        worker_dict = self.worker_config.format()
+        self.assertEqual(worker_dict['personality'], 'correlation')
+        self.assertEqual(worker_dict['personality_module'],
                          'meniscus.personas.worker.correlation')
-        self.assertEqual(self.worker_config.format()['worker_token'],
+        self.assertEqual(worker_dict['worker_token'],
                          '94d6176b-9188-4409-8648-7374d0326e6b')
-        self.assertEqual(self.worker_config.format()['worker_id'],
+        self.assertEqual(worker_dict['worker_id'],
                          '8cc3b103-9b23-4e1c-afb1-8c5973621b55')
-        self.assertEqual(self.worker_config.format()['coordinator_uri'],
+        self.assertEqual(worker_dict['coordinator_uri'],
                          'http://172.22.15.25:8080/v1')
 
 

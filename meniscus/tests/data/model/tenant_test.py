@@ -29,11 +29,12 @@ class WhenTestingEventProducerObject(unittest.TestCase):
         self.assertEqual(self.event_producer.get_id(), 'EVid')
 
     def test_event_producer_object_format(self):
-        self.assertEqual(self.event_producer.format()['id'], 'EVid')
-        self.assertEqual(self.event_producer.format()['name'], 'mybillingsapp')
-        self.assertEqual(self.event_producer.format()['pattern'], 'syslog')
-        self.assertEqual(self.event_producer.format()['durable'], 'true')
-        self.assertEqual(self.event_producer.format()['encrypted'], 'false')
+        ep_dict = self.event_producer.format()
+        self.assertEqual(ep_dict['id'], 'EVid')
+        self.assertEqual(ep_dict['name'], 'mybillingsapp')
+        self.assertEqual(ep_dict['pattern'], 'syslog')
+        self.assertEqual(ep_dict['durable'], 'true')
+        self.assertEqual(ep_dict['encrypted'], 'false')
 
 
 class WhenTestingHostProfileObject(unittest.TestCase):
@@ -46,17 +47,19 @@ class WhenTestingHostProfileObject(unittest.TestCase):
                                           'appservers-1')
 
     def test_host_profile_object_no_event_producers(self):
-        self.assertEqual(self.host_prof_bare.format()['id'], 'HPid')
-        self.assertEqual(self.host_prof_bare.format()['name'], 'appservers-1')
-        self.assertEqual(self.host_prof_bare.format()['event_producers'], [])
+        hp_dict = self.host_prof_bare.format()
+        self.assertEqual(hp_dict['id'], 'HPid')
+        self.assertEqual(hp_dict['name'], 'appservers-1')
+        self.assertEqual(hp_dict['event_producers'], [])
 
     def test_host_profile_object_get_id(self):
         self.assertEqual(self.host_profile.get_id(), 'HPid')
 
     def test_host_profile_object_format(self):
-        self.assertEqual(self.host_profile.format()['id'], 'HPid')
-        self.assertEqual(self.host_profile.format()['name'], 'appservers-1')
-        self.assertEqual(self.host_profile.format()['event_producers'], [1, 2])
+        hp_dict = self.host_profile.format()
+        self.assertEqual(hp_dict['id'], 'HPid')
+        self.assertEqual(hp_dict['name'], 'appservers-1')
+        self.assertEqual(hp_dict['event_producers'], [1, 2])
 
 
 class WhenTestingHostObject(unittest.TestCase):
@@ -68,18 +71,20 @@ class WhenTestingHostObject(unittest.TestCase):
         self.assertEqual(self.host.get_id(), 'Hid')
 
     def test_host_object_format(self):
-        self.assertEqual(self.host.format()['id'], 'Hid')
-        self.assertEqual(self.host.format()['hostname'], 'WebNode1')
-        self.assertEqual(self.host.format()['ip_address_v4'], '192.168.1.1')
-        self.assertEqual(self.host.format()['ip_address_v6'], '::1')
-        self.assertEqual(self.host.format()['profile'], '3')
+        host_dict = self.host.format()
+        self.assertEqual(host_dict['id'], 'Hid')
+        self.assertEqual(host_dict['hostname'], 'WebNode1')
+        self.assertEqual(host_dict['ip_address_v4'], '192.168.1.1')
+        self.assertEqual(host_dict['ip_address_v6'], '::1')
+        self.assertEqual(host_dict['profile'], '3')
 
     def test_host_object_minimal_parameters(self):
-        self.assertEqual(self.empty_host.format()['id'], 'Hid')
-        self.assertEqual(self.empty_host.format()['hostname'], 'WebNode1')
-        self.assertEqual(self.empty_host.format()['ip_address_v4'], None)
-        self.assertEqual(self.empty_host.format()['ip_address_v6'], None)
-        self.assertEqual(self.empty_host.format()['profile'], None)
+        host_dict = self.empty_host.format()
+        self.assertEqual(host_dict['id'], 'Hid')
+        self.assertEqual(host_dict['hostname'], 'WebNode1')
+        self.assertEqual(host_dict['ip_address_v4'], None)
+        self.assertEqual(host_dict['ip_address_v6'], None)
+        self.assertEqual(host_dict['profile'], None)
 
 
 class WhenTestingTokenObject(unittest.TestCase):
@@ -89,42 +94,52 @@ class WhenTestingTokenObject(unittest.TestCase):
         self.test_token = Token('89c38542-0c78-41f1-bcd2-5226189ccab9',
                                 '89c38542-0c78-41f1-bcd2-5226189ddab1',
                                 '2013-04-01T21:58:16.995031Z')
+        self.true_token_string = '89c38542-0c78-41f1-bcd2-5226189ccab9'
+        self.previous_token_string = '89c38542-0c78-41f1-bcd2-5226189ddab1'
+        self.false_token_string = '89c38542-0c78-41f1-bcd2-5226189d453sh'
 
     def test_token_new(self):
-        self.assertIsNot(self.empty_token.format()['valid'],
+        token_dict = self.empty_token.format()
+        self.assertIsNot(token_dict['valid'],
                          '89c38542-0c78-41f1-bcd2-5226189ccab9')
-        self.assertEqual(self.empty_token.format()['previous'], None)
-        self.assertIsNot(self.empty_token.format()['last_changed'],
+        self.assertEqual(token_dict['previous'], None)
+        self.assertIsNot(token_dict['last_changed'],
                          '2013-04-01T21:58:16.995031Z')
 
     def test_token_reset(self):
         self.test_token.reset_token()
-        self.assertIsNot(self.test_token.format()['valid'],
+        token_dict = self.test_token.format()
+        self.assertIsNot(token_dict['valid'],
                          '89c38542-0c78-41f1-bcd2-5226189ccab9')
-        self.assertEqual(self.test_token.format()['previous'],
+        self.assertEqual(token_dict['previous'],
                          '89c38542-0c78-41f1-bcd2-5226189ccab9')
-        self.assertIsNot(self.test_token.format()['last_changed'],
+        self.assertIsNot(token_dict['last_changed'],
                          '2013-04-01T21:58:16.995031Z')
 
     def test_token_reset_token_now(self):
         self.test_token.reset_token_now()
-        self.assertIsNot(self.test_token.format()['valid'],
+        token_dict = self.test_token.format()
+        self.assertIsNot(token_dict['valid'],
                          '89c38542-0c78-41f1-bcd2-5226189ccab9')
-        self.assertEqual(self.test_token.format()['previous'], None)
-        self.assertIsNot(self.test_token.format()['last_changed'],
+        self.assertEqual(token_dict['previous'], None)
+        self.assertIsNot(token_dict['last_changed'],
                          '2013-04-01T21:58:16.995031Z')
 
     def test_token_format(self):
-        self.assertEqual(self.test_token.format()['valid'],
+        token_dict = self.test_token.format()
+        self.assertEqual(token_dict['valid'],
                          '89c38542-0c78-41f1-bcd2-5226189ccab9')
-        self.assertEqual(self.test_token.format()['previous'],
+        self.assertEqual(token_dict['previous'],
                          '89c38542-0c78-41f1-bcd2-5226189ddab1')
-        self.assertEqual(self.test_token.format()['last_changed'],
+        self.assertEqual(token_dict['last_changed'],
                          '2013-04-01T21:58:16.995031Z')
 
     def test_token_validate(self):
-    #todo review token validate code
-        pass
+        self.assertTrue(self.test_token.validate_token(self.true_token_string))
+        self.assertTrue(
+            self.test_token.validate_token(self.previous_token_string))
+        self.assertFalse(
+            self.test_token.validate_token(self.false_token_string))
 
 
 class WhenTestingTenantObject(unittest.TestCase):
@@ -139,23 +154,20 @@ class WhenTestingTenantObject(unittest.TestCase):
         self.assertEqual(self.test_tenant.get_id(), 'MDBid')
 
     def test_tenant_format(self):
-        self.assertEqual(self.test_tenant_bare.format()['tenant_id'], '1022')
-        self.assertEqual(self.test_tenant_bare.format()['hosts'], [])
-        self.assertEqual(self.test_tenant_bare.format()['profiles'], [])
-        self.assertEqual(
-            self.test_tenant_bare .format()['event_producers'], [])
-        self.assertTrue('token' in self.test_tenant.format())
+        tenant_dict = self.test_tenant_bare.format()
+        self.assertEqual(tenant_dict['tenant_id'], '1022')
+        self.assertEqual(tenant_dict['hosts'], [])
+        self.assertEqual(tenant_dict['profiles'], [])
+        self.assertEqual(tenant_dict['event_producers'], [])
+        self.assertTrue('token' in tenant_dict)
 
     def test_tenant_format_for_save(self):
-            self.assertEqual(
-                self.test_tenant.format_for_save()['tenant_id'], '1022')
-            self.assertEqual(self.test_tenant.format_for_save()['hosts'], [])
-            self.assertEqual(
-                self.test_tenant.format_for_save()['profiles'], [])
-            self.assertEqual(
-                self.test_tenant.format_for_save()['event_producers'], [])
-            self.assertEqual(
-                self.test_tenant.format_for_save()['_id'], 'MDBid')
+        tenant_dict = self.test_tenant.format_for_save()
+        self.assertEqual(tenant_dict['tenant_id'], '1022')
+        self.assertEqual(tenant_dict['hosts'], [])
+        self.assertEqual(tenant_dict['profiles'], [])
+        self.assertEqual(tenant_dict['event_producers'], [])
+        self.assertEqual(tenant_dict['_id'], 'MDBid')
 
 if __name__ == '__main__':
     unittest.main()

@@ -5,8 +5,9 @@ import requests
 from mock import MagicMock
 from mock import patch
 
+from meniscus.data.model.worker import WorkerConfiguration
+from meniscus.personas.worker.register_online import ConfigCache
 import meniscus.personas.worker.register_online as register_online
-from meniscus.api.utils.cache_params import CACHE_CONFIG
 from meniscus.personas.worker.register_online import RegisterWorkerOnline
 
 
@@ -20,10 +21,13 @@ class WhenTestingRegisterWorkerOnline(unittest.TestCase):
     def setUp(self):
         self.register_online = RegisterWorkerOnline()
         self.native_proxy = MagicMock()
-        self.cache_get = \
-            u'{"coordinator_uri": "http://localhost:8080/v1", ' \
-            u'"worker_token": "3F2504E0-4F89-11D3-9A0C-0305E82C3301", ' \
-            u'"worker_id": "3F2504E0-4F89-11D3-9A0C-0305E82C3301"}'
+        self.config = WorkerConfiguration(
+            personality='worker.correlation',
+            personality_module='meniscus.personas.worker.correlation.app',
+            worker_id='fgc7104e-8d93-47dc-a49a-8fb0d39e5192',
+            worker_token='bbd6307f-8d93-47dc-a49a-8fb0d39e5192',
+            coordinator_uri='http://192.168.1.2/v1')
+        self.get_config = MagicMock(return_value=self.config)
         self.resp = requests.Response()
         self.http_request = MagicMock(return_value=self.resp)
 
@@ -35,13 +39,10 @@ class WhenTestingRegisterWorkerOnline(unittest.TestCase):
     def test_register_worker_online_with_coordinator_return_true(self):
         self.resp.status_code = httplib.OK
         self.resp._content = '{"fake": "json"}'
-        with patch.object(register_online.NativeProxy, 'cache_get',
-                          return_value=self.cache_get) as cache_get:
+        with patch.object(ConfigCache, 'get_config', self.get_config):
             with patch('meniscus.personas.worker.register_online.'
                        'http_request', self.http_request):
                 self.assertTrue(self.register_online._register_worker_online())
-                cache_get.assert_called_once_with('worker_configuration',
-                                                  CACHE_CONFIG)
 
 
 if __name__ == '__main__':

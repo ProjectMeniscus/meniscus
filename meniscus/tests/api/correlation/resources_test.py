@@ -8,7 +8,6 @@ import meniscus.api.correlation.correlation_exceptions as errors
 import meniscus.api.correlation.correlation_process as process
 from meniscus.api.correlation.resources import PublishMessageResource
 from meniscus.data.model.tenant import Tenant
-from meniscus.openstack.common import jsonutils
 
 
 def suite():

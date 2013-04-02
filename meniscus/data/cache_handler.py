@@ -67,12 +67,12 @@ class ConfigCache(Cache):
             self.cache.cache_update(
                 'worker_configuration',
                 jsonutils.dumps(worker_config.format()),
-                DEFAULT_EXPIRES, CACHE_TENANT)
+                CONFIG_EXPIRES, CACHE_CONFIG)
         else:
             self.cache.cache_set(
                 'worker_configuration',
                 jsonutils.dumps(worker_config.format()),
-                DEFAULT_EXPIRES, CACHE_CONFIG)
+                CONFIG_EXPIRES, CACHE_CONFIG)
 
     def get_config(self):
         if self.cache.cache_exists('worker_configuration', CACHE_CONFIG):
@@ -91,12 +91,12 @@ class ConfigCache(Cache):
             self.cache.cache_update(
                 'pipeline_workers',
                 jsonutils.dumps(pipeline_workers),
-                DEFAULT_EXPIRES, CACHE_CONFIG)
+                CONFIG_EXPIRES, CACHE_CONFIG)
         else:
             self.cache.cache_set(
                 'pipeline_workers',
                 jsonutils.dumps(pipeline_workers),
-                DEFAULT_EXPIRES, CACHE_CONFIG)
+                CONFIG_EXPIRES, CACHE_CONFIG)
 
     def get_pipeline(self):
         if self.cache.cache_exists('pipeline_workers', CACHE_CONFIG):

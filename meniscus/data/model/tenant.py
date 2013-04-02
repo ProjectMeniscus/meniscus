@@ -96,11 +96,11 @@ class Token(object):
     def reset_token_now(self):
         self.__init__()
 
-    def validate_token(self, token):
-        if not token:
+    def validate_token(self, message_token):
+        if not message_token:
             return False
 
-        if token == self.valid or token == self.previous:
+        if message_token == self.valid or message_token == self.previous:
             return True
 
         return False

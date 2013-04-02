@@ -126,7 +126,7 @@ class TenantCache(Cache):
                 DEFAULT_EXPIRES, CACHE_TENANT)
 
     def get_tenant(self, tenant_id):
-        if  self.cache.cache_exists(tenant_id, CACHE_TENANT):
+        if self.cache.cache_exists(tenant_id, CACHE_TENANT):
             tenant_dict = jsonutils.loads(
                 self.cache.cache_get(tenant_id, CACHE_TENANT))
             tenant = load_tenant_from_dict(tenant_dict)
@@ -135,7 +135,7 @@ class TenantCache(Cache):
         return None
 
     def delete_tenant(self, tenant_id):
-        if  self.cache.cache_exists(tenant_id, CACHE_TENANT):
+        if self.cache.cache_exists(tenant_id, CACHE_TENANT):
             self.cache.cache_del(tenant_id, CACHE_TENANT)
 
 

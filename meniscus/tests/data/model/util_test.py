@@ -6,17 +6,13 @@ from meniscus.data.model.tenant import EventProducer
 from meniscus.data.model.tenant import Host
 from meniscus.data.model.tenant import HostProfile
 from meniscus.data.model.tenant import Tenant
-from meniscus.data.model.tenant import Token
 from meniscus.data.model.util import find_event_producer
 from meniscus.data.model.util import find_event_producer_for_host
 from meniscus.data.model.util import find_host
 from meniscus.data.model.util import find_host_profile
 from meniscus.data.model.util import find_tenant
 from meniscus.data.model.util import load_tenant_from_dict
-from meniscus.data.model.util import load_token_from_dict
-
 from meniscus.openstack.common import jsonutils
-
 
 
 def suite():

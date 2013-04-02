@@ -9,6 +9,7 @@ from meniscus.api.pairing.pairing_process import PairingProcess
 import meniscus.api.pairing.pairing_process as pairing_process
 from meniscus.data.model.worker import WorkerConfiguration
 
+
 def suite():
     suite = unittest.TestSuite()
     suite.addTest(WhenTestingPairingProcess())

@@ -5,9 +5,9 @@ from mock import MagicMock
 from mock import patch
 import requests
 
-from meniscus.api.utils.cache_params import CACHE_CONFIG
 from meniscus.api.pairing.pairing_process import PairingProcess
 import meniscus.api.pairing.pairing_process as pairing_process
+from meniscus.data.model.worker import WorkerConfiguration
 
 
 def suite():
@@ -24,10 +24,13 @@ class WhenTestingPairingProcess(unittest.TestCase):
         self.pairing_process = PairingProcess(
             self.api_secret, self.coordinator_uri, self.personality)
         self.native_proxy = MagicMock()
-        self.cache_get = \
-            u'{"coordinator_uri": "http://localhost:8080/v1", ' \
-            u'"worker_token": "3F2504E0-4F89-11D3-9A0C-0305E82C3301", ' \
-            u'"worker_id": "3F2504E0-4F89-11D3-9A0C-0305E82C3301"}'
+        self.get_config = WorkerConfiguration(
+            personality='worker.pairing',
+            personality_module='meniscus.personas.worker.pairing.app',
+            worker_token='token_id',
+            worker_id='worker_id',
+            coordinator_uri="192.168.1.1:8080/v1"
+        )
 
         self.resp = requests.Response()
         self.http_request = MagicMock(return_value=self.resp)
@@ -44,9 +47,7 @@ class WhenTestingPairingProcess(unittest.TestCase):
         sys_assist.get_cpu_core_count.return_value = "4"
         sys_assist.get_disk_size_GB.return_value = "20"
         sys_assist.get_sys_mem_total_MB.return_value = "4090"
-        with patch('meniscus.api.pairing.pairing_process.'
-                   'sys_assist', sys_assist), \
-                patch.object(pairing_process.NativeProxy, 'restart') \
+        with patch.object(pairing_process.NativeProxy, 'restart') \
                 as server_restart, \
                 patch.object(pairing_process.PairingProcess,
                              '_register_with_coordinator') as register, \
@@ -62,7 +63,10 @@ class WhenTestingPairingProcess(unittest.TestCase):
 
     def test_should_return_true_for_register_with_coordinator(self):
         self.resp.status_code = httplib.ACCEPTED
-        self.resp._content = '{"fake": "json"}'
+        self.resp._content = \
+            '{"personality_module": "meniscus.personas.worker.pairing.app", ' \
+            '"worker_token": "3F2504E0-4F89-11D3-9A0C-0305E82C3301", ' \
+            '"worker_id": "3F2504E0-4F89-11D3-9A0C-0305E82C3301"}'
         with patch('meniscus.api.pairing.pairing_process.'
                    'http_request', self.http_request):
             self.assertTrue(
@@ -73,13 +77,14 @@ class WhenTestingPairingProcess(unittest.TestCase):
     def test_should_return_true_for_get_worker_routes(self):
         self.resp.status_code = httplib.OK
         self.resp._content = '{"fake": "json"}'
-        with patch.object(pairing_process.NativeProxy, 'cache_get',
-                          return_value=self.cache_get) as cache_get:
-            with patch('meniscus.api.pairing.pairing_process.'
-                       'http_request', self.http_request):
+        with patch.object(pairing_process.ConfigCache, 'get_config',
+                          return_value=self.get_config), \
+            patch('meniscus.api.pairing.pairing_process.'
+                  'http_request', self.http_request), \
+            patch.object(pairing_process.ConfigCache,
+                         'set_config',) as set_config:
                 self.assertTrue(self.pairing_process._get_worker_routes())
-                cache_get.assert_called_once_with('worker_configuration',
-                                                  CACHE_CONFIG)
+                set_config.assert_called_once()
 
 if __name__ == '__main__':
     unittest.main()

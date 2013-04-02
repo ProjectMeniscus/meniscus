@@ -1,10 +1,7 @@
 import falcon
 
-from meniscus.api.coordinator.configuration_resources \
-    import WorkerConfigurationResource
-from meniscus.api.coordinator.registration_resources \
-    import WorkerRegistrationResource
-
+from meniscus.api.coordinator.resources import WorkerConfigurationResource
+from meniscus.api.coordinator.resources import WorkerRegistrationResource
 from meniscus.api.tenant.resources import EventProducerResource
 from meniscus.api.tenant.resources import EventProducersResource
 from meniscus.api.tenant.resources import HostProfileResource

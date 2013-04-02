@@ -3,10 +3,6 @@ from meniscus.data.model.tenant import Host
 from meniscus.data.model.tenant import HostProfile
 from meniscus.data.model.tenant import Tenant
 from meniscus.data.model.tenant import Token
-from meniscus.openstack.common import jsonutils
-from meniscus.api.utils.cache_params import CACHE_TENANT
-from meniscus.api.utils.cache_params import CACHE_TOKEN
-from meniscus.api.utils.cache_params import DEFAULT_EXPIRES
 
 
 def find_tenant(ds_handler, tenant_id):
@@ -19,31 +15,6 @@ def find_tenant(ds_handler, tenant_id):
     tenant_dict = ds_handler.find_one('tenant', {'tenant_id': tenant_id})
 
     if tenant_dict:
-        tenant = load_tenant_from_dict(tenant_dict)
-        return tenant
-
-    return None
-
-
-def persist_tenant_to_cache(cache, tenant):
-    if cache.cache_exists(tenant.tenant_id, CACHE_TENANT):
-        cache.cache_update(
-            tenant.tenant_id, jsonutils.dumps(tenant.format()),
-            DEFAULT_EXPIRES, CACHE_TENANT)
-    else:
-        cache.cache_set(
-            tenant.tenant_id, jsonutils.dumps(tenant.format()),
-            DEFAULT_EXPIRES, CACHE_TENANT)
-
-
-def find_tenant_in_cache(cache, tenant_id):
-    """
-    Retrieves a dictionary describing a tenant object and its Hosts, Profiles,
-    and eventProducers and maps them to a tenant object
-    """
-
-    if cache.cache_exists(tenant_id, CACHE_TENANT):
-        tenant_dict = jsonutils.loads(cache.cache_get(tenant_id, CACHE_TENANT))
         tenant = load_tenant_from_dict(tenant_dict)
         return tenant
 
@@ -77,26 +48,6 @@ def load_tenant_from_dict(tenant_dict):
 
     #return tenant object
     return tenant
-
-
-def persist_token_to_cache(cache, tenant_id, token):
-
-    if cache.cache_exists(tenant_id, CACHE_TOKEN):
-        cache.cache_update(
-            tenant_id, jsonutils.dumps(token.format()),
-            DEFAULT_EXPIRES, CACHE_TOKEN)
-    else:
-        cache.cache_set(
-            tenant_id, jsonutils.dumps(token.format()),
-            DEFAULT_EXPIRES, CACHE_TOKEN)
-
-
-def find_token_in_cache(cache, tenant_id):
-    if cache.cache_exists(tenant_id, CACHE_TOKEN):
-        token_dict = jsonutils.loads(cache.cache_get(tenant_id, CACHE_TOKEN))
-        token = load_token_from_dict(token_dict)
-        return token
-    return None
 
 
 def load_token_from_dict(token_dict):

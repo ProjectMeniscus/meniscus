@@ -4,11 +4,10 @@ from mock import MagicMock
 from mock import patch
 import falcon
 
-import meniscus.api.correlation.correlation_exceptions as exception
+import meniscus.api.correlation.correlation_exceptions as errors
 import meniscus.api.correlation.correlation_process as process
 from meniscus.api.correlation.resources import PublishMessageResource
 from meniscus.data.model.tenant import Tenant
-from meniscus.openstack.common import jsonutils
 
 
 def suite():
@@ -28,7 +27,7 @@ class WhenTestingPublishMessage(unittest.TestCase):
         }
 
         self.validate_body = MagicMock(
-            side_effect=exception.MessageValidationError)
+            side_effect=errors.MessageValidationError)
         self.req = MagicMock()
         self.req.get_header.return_value = \
             'ffe7104e-8d93-47dc-a49a-8fb0d39e5192'
@@ -54,7 +53,7 @@ class WhenTestingPublishMessage(unittest.TestCase):
             patch.object(process.CorrelationMessage,
                          'process_message',
                          MagicMock(side_effect=
-                         process.MessageAuthenticationError)):
+                         errors.MessageAuthenticationError)):
             with self.assertRaises(falcon.HTTPError):
                 self.resource.on_post(self.req, self.resp, self.tenant_id)
 
@@ -69,7 +68,7 @@ class WhenTestingPublishMessage(unittest.TestCase):
             patch.object(process.CorrelationMessage,
                          'process_message',
                          MagicMock(side_effect=
-                         process.ResourceNotFoundError)):
+                         errors.ResourceNotFoundError)):
             with self.assertRaises(falcon.HTTPError):
                 self.resource.on_post(self.req, self.resp, self.tenant_id)
 
@@ -84,7 +83,7 @@ class WhenTestingPublishMessage(unittest.TestCase):
             patch.object(process.CorrelationMessage,
                          'process_message',
                          MagicMock(side_effect=
-                         process.CoordinatorCommunicationError)):
+                         errors.CoordinatorCommunicationError)):
             with self.assertRaises(falcon.HTTPError):
                 self.resource.on_post(self.req, self.resp, self.tenant_id)
 

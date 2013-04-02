@@ -6,8 +6,7 @@ import requests
 from meniscus.openstack.common import jsonutils
 from meniscus.api.utils.request import http_request
 from meniscus.api.utils.retry import retry
-from meniscus.proxy import NativeProxy
-from meniscus.api.utils.cache_params import CACHE_CONFIG
+from meniscus.data.cache_handler import ConfigCache
 
 
 #constants for retry methods
@@ -30,15 +29,13 @@ class RegisterWorkerOnline(object):
         """
         register the worker with the coordinator with an online status
         """
-        cache = NativeProxy()
-        config = jsonutils.loads(cache.cache_get('worker_configuration',
-                                                 CACHE_CONFIG))
-        coordinator_uri = config['coordinator_uri']
+        cache = ConfigCache()
+        config = cache.get_config()
 
-        token_header = {"WORKER-TOKEN": config['worker_token']}
+        token_header = {"WORKER-TOKEN": config.worker_token}
 
         request_uri = "{0}/worker/{1}/status".format(
-            coordinator_uri, config['worker_id'])
+            config.coordinator_uri, config.worker_id)
 
         status = {"worker_status": "online"}
 

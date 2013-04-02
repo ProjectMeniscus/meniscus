@@ -8,3 +8,4 @@ meniscus.egg-info
 nosetests.xml
 meniscus/coverage.xml
 cache-store
+cache-config

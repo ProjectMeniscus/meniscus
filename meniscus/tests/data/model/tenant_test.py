@@ -40,17 +40,13 @@ class WhenTestingEventProducerObject(unittest.TestCase):
 class WhenTestingHostProfileObject(unittest.TestCase):
 
     def setUp(self):
-        self.host_profile = HostProfile('HPid',
-                                        'appservers-1',
-                                        [1, 2])
-        self.host_prof_bare = HostProfile('HPid',
-                                          'appservers-1')
+        self.host_profile = HostProfile('HPid', 'appservers-1', [1, 2])
+        self.host_prof_bare = HostProfile('HPid', 'appservers-1')
 
     def test_host_profile_object_no_event_producers(self):
-        hp_dict = self.host_prof_bare.format()
-        self.assertEqual(hp_dict['id'], 'HPid')
-        self.assertEqual(hp_dict['name'], 'appservers-1')
-        self.assertEqual(hp_dict['event_producers'], [])
+        self.assertEqual(self.host_prof_bare._id, 'HPid')
+        self.assertEqual(self.host_prof_bare.name, 'appservers-1')
+        self.assertEqual(self.host_prof_bare.event_producers, [])
 
     def test_host_profile_object_get_id(self):
         self.assertEqual(self.host_profile.get_id(), 'HPid')
@@ -79,12 +75,11 @@ class WhenTestingHostObject(unittest.TestCase):
         self.assertEqual(host_dict['profile'], '3')
 
     def test_host_object_minimal_parameters(self):
-        host_dict = self.empty_host.format()
-        self.assertEqual(host_dict['id'], 'Hid')
-        self.assertEqual(host_dict['hostname'], 'WebNode1')
-        self.assertEqual(host_dict['ip_address_v4'], None)
-        self.assertEqual(host_dict['ip_address_v6'], None)
-        self.assertEqual(host_dict['profile'], None)
+        self.assertEqual(self.empty_host._id, 'Hid')
+        self.assertEqual(self.empty_host.hostname, 'WebNode1')
+        self.assertEqual(self.empty_host.ip_address_v4, None)
+        self.assertEqual(self.empty_host.ip_address_v6, None)
+        self.assertEqual(self.empty_host.profile, None)
 
 
 class WhenTestingTokenObject(unittest.TestCase):
@@ -97,32 +92,31 @@ class WhenTestingTokenObject(unittest.TestCase):
         self.true_token_string = '89c38542-0c78-41f1-bcd2-5226189ccab9'
         self.previous_token_string = '89c38542-0c78-41f1-bcd2-5226189ddab1'
         self.false_token_string = '89c38542-0c78-41f1-bcd2-5226189d453sh'
+        self.empty_token_string = ''
 
     def test_token_new(self):
-        token_dict = self.empty_token.format()
-        self.assertIsNot(token_dict['valid'],
+        self.assertIsNot(self.empty_token.valid,
                          '89c38542-0c78-41f1-bcd2-5226189ccab9')
-        self.assertEqual(token_dict['previous'], None)
-        self.assertIsNot(token_dict['last_changed'],
+        self.assertEqual(self.empty_token.previous, None)
+        self.assertIsNot(self.empty_token.last_changed,
                          '2013-04-01T21:58:16.995031Z')
 
     def test_token_reset(self):
         self.test_token.reset_token()
-        token_dict = self.test_token.format()
-        self.assertIsNot(token_dict['valid'],
+
+        self.assertIsNot(self.test_token.valid,
                          '89c38542-0c78-41f1-bcd2-5226189ccab9')
-        self.assertEqual(token_dict['previous'],
+        self.assertEqual(self.test_token.previous,
                          '89c38542-0c78-41f1-bcd2-5226189ccab9')
-        self.assertIsNot(token_dict['last_changed'],
+        self.assertIsNot(self.test_token.last_changed,
                          '2013-04-01T21:58:16.995031Z')
 
     def test_token_reset_token_now(self):
         self.test_token.reset_token_now()
-        token_dict = self.test_token.format()
-        self.assertIsNot(token_dict['valid'],
+        self.assertIsNot(self.test_token.valid,
                          '89c38542-0c78-41f1-bcd2-5226189ccab9')
-        self.assertEqual(token_dict['previous'], None)
-        self.assertIsNot(token_dict['last_changed'],
+        self.assertEqual(self.test_token.previous, None)
+        self.assertIsNot(self.test_token.last_changed,
                          '2013-04-01T21:58:16.995031Z')
 
     def test_token_format(self):
@@ -135,6 +129,8 @@ class WhenTestingTokenObject(unittest.TestCase):
                          '2013-04-01T21:58:16.995031Z')
 
     def test_token_validate(self):
+        self.assertFalse(
+            self.test_token.validate_token(self.empty_token_string))
         self.assertTrue(self.test_token.validate_token(self.true_token_string))
         self.assertTrue(
             self.test_token.validate_token(self.previous_token_string))

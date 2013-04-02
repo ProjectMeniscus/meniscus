@@ -11,7 +11,6 @@ from meniscus.api.correlation.correlation_process import CorrelationMessage
 from meniscus.api.correlation.correlation_process import TenantIdentification
 from meniscus.api.correlation.correlation_process import TenantCache
 from meniscus.api.correlation.correlation_process import TokenCache
-
 from meniscus.api.correlation.correlation_process \
     import validate_event_message_body
 from meniscus.data.model.tenant import EventProducer
@@ -26,6 +25,7 @@ def suite():
     suite = unittest.TestSuite()
     suite.addTest(WhenTestingMessageBodyValidation())
     suite.addTest(WhenTestingCorrelationMessage())
+    suite.addTest(WhenTestingTenantIdentification())
     return suite
 
 

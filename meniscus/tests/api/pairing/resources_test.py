@@ -1,9 +1,8 @@
 import unittest
-import json
 
 from mock import MagicMock
 from mock import patch
-import falcon
+
 
 from meniscus.api.pairing.resources import PairingConfigurationResource
 

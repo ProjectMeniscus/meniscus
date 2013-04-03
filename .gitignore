@@ -2,6 +2,7 @@ build/
 .coverage
 *.pyc
 .idea
+*.iml
 meniscus.egg-info
 .tox
 *.DS_Store*

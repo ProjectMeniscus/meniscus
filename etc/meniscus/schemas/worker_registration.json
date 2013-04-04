@@ -5,12 +5,23 @@
         "ip_address_v4": "192.168.100.101",
         "ip_address_v6": "::1",
         "personality": "correlation|normalization|storage",
-        "status": "available|waiting",
+        "status": "new|online|offline|draining",
         "system_info": {
-                "disk_gb": "20",
-                "os_type": "Darwin-11.4.2-x86_64-i386-64bit",
-                "memory_mb": "1024",
-                "architecture": ""
+            "os_type": "Darwin-11.4.2-x86_64-i386-64bit",
+            "memory_mb": "1024",
+            "architecture": "",
+            "cpu_cores": "4",
+            "disk_usage": {
+                "/dev/sda1": {
+                    "total": 313764528,
+                    "used": 112512436
+                }
+            },
+            "load_average": {
+                "1": 0.24755859375,
+                "5": 1.0751953125,
+                "15": 0.9365234375
             }
+        }
     }
 }

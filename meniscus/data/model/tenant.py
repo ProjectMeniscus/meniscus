@@ -33,8 +33,8 @@ Host profiles are reusable collections of event producers with an
 associated, unique name for lookup.
 """
 
-    def __init__(self, _id, name, event_producer_ids=list()):
-        if not event_producer_ids:
+    def __init__(self, _id, name, event_producer_ids=None):
+        if event_producer_ids is None:
             event_producer_ids = []
 
         self._id = _id

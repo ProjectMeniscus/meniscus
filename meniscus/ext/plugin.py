@@ -26,7 +26,9 @@ class PluginError(ImportError):
 
 class PluginFinder():
 
-    def __init__(self, paths=list()):
+    def __init__(self, paths=None):
+        if paths is None:
+            paths = list()
         self.plugin_paths = paths
 
     def add_path(self, new_path):

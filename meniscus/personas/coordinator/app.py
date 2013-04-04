@@ -16,7 +16,7 @@ from meniscus.api.version.resources import VersionResource
 from meniscus.api.datastore_init import db_handler
 
 
-def start_up(cfg=dict()):
+def start_up():
     #Common Resource(s)
     versions = VersionResource()
 

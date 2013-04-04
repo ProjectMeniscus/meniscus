@@ -1,0 +1,2 @@
+etc/meniscus/meniscus.conf etc/meniscus
+uwsgi.ini etc/meniscus

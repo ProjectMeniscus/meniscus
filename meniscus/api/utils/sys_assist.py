@@ -72,3 +72,7 @@ def get_lan_ip():
 
 def get_cpu_core_count():
     return multiprocessing.cpu_count()
+
+
+def get_load_average():
+    return os.getloadavg()

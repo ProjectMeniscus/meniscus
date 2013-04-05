@@ -22,9 +22,6 @@ from meniscus.api.tenant.resources import MESSAGE_TOKEN
 
 class PublishMessageResource(ApiResource):
 
-    def __init__(self, cache):
-        self.cache = cache
-
     def _validate_req_body_on_post(self, body):
         """
         This method validates the on_post request body
@@ -50,7 +47,7 @@ class PublishMessageResource(ApiResource):
         self._validate_req_body_on_post(body)
 
         tenant_identification = TenantIdentification(
-            self.cache, tenant_id, message_token)
+            tenant_id, message_token)
 
         try:
             tenant = tenant_identification.get_validated_tenant()

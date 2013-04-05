@@ -3,6 +3,7 @@ import multiprocessing
 import os
 import socket
 import struct
+import subprocess
 import sys
 
 
@@ -31,13 +32,37 @@ def get_sys_mem_total_MB():
         return memory_total_mb
 
 
-def get_disk_size_GB():
+def get_disk_size_GB(file_sys='/'):
     disk_size = None
     if 'linux' in sys.platform:
-        file_system = os.statvfs('/')
+        file_system = os.statvfs(file_sys)
         disk_size = (file_system.f_blocks * file_system.f_frsize) / (1024 ** 3)
 
     return disk_size
+
+
+def get_disk_usage():
+    disk_usage = dict()
+
+    if 'linux' in sys.platform:
+        df_command = subprocess.Popen(["df"], stdout=subprocess.PIPE)
+        df_output = df_command.communicate()[0]
+        print df_output
+
+
+        partitions = [
+            '/dev/{0}'.format(line[line.index('sda'):].strip())
+            for line in open("/proc/partitions") if 'sda' in line
+        ]
+        print partitions
+
+
+        disk_usage = dict(
+            (partition, {'total': 0, 'used': 0})
+            for partition in partitions)
+        #/sys/block/sda/
+        print disk_usage
+    return disk_usage
 
 
 def get_interface_ip(ifname):
@@ -75,4 +100,12 @@ def get_cpu_core_count():
 
 
 def get_load_average():
-    return os.getloadavg()
+    load_average = os.getloadavg()
+    return {
+        '1': load_average[0],
+        '5': load_average[1],
+        '15': load_average[2]
+    }
+
+if __name__ == '__main__':
+    get_disk_usage()

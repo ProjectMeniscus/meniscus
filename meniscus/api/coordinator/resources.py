@@ -70,33 +70,6 @@ class WorkerRegistrationResource(ApiResource):
         resp.body = format_response_body(
             new_worker.get_registration_identity())
 
-    def _validate_req_body_on_put(self, body):
-        """
-        validate request body
-        """
-        if not 'worker_status' in body:
-            _registration_not_valid()
-
-    def on_put(self, req, resp, worker_id):
-        """
-        updates a worker's status
-        """
-        #load json payload in body
-        body = load_body(req)
-        self._validate_req_body_on_put(body)
-
-        #find the worker in db
-        worker_dict = self.db.find_one('worker', {'worker_id': worker_id})
-
-        if not worker_dict:
-            _worker_not_found()
-
-        worker = Worker(**worker_dict)
-        worker.status = body['worker_status']
-
-        self.db.update('worker', worker.format_for_save())
-        resp.status = falcon.HTTP_200
-
 
 class WorkerConfigurationResource(ApiResource):
     """

@@ -44,6 +44,17 @@ class Worker(object):
             'worker_token': self.worker_token
         }
 
+    def get_status(self):
+        return{
+            'hostname': self.hostname,
+            'worker_id': self.worker_id,
+            'ip_address_v4': self.ip_address_v4,
+            'ip_address_v6': self.ip_address_v6,
+            'personality': self.personality,
+            'status': self.status,
+            'system_info': self.system_info.format()
+        }
+
     def get_pipeline_info(self):
         return {
             'hostname': self.hostname,
@@ -66,7 +77,7 @@ class WorkerRegistration(object):
 
     def format(self):
         return{
-            'hostname': platform.node(),
+            'hostname': self.hostname,
             'callback': self.callback,
             'ip_address_v4': self.ip_address_v4,
             'ip_address_v6': self.ip_address_v6,
@@ -80,7 +91,6 @@ class SystemInfo(object):
     def __init__(self, **kwargs):
         if kwargs:
             self.cpu_cores = kwargs['cpu_cores']
-            self.disk_gb = kwargs['disk_gb']
             self.os_type = kwargs['os_type']
             self.memory_mb = kwargs['memory_mb']
             self.architecture = kwargs['architecture']
@@ -88,7 +98,6 @@ class SystemInfo(object):
             self.disk_usage = kwargs['disk_usage']
         else:
             self.cpu_cores = sys_assist.get_cpu_core_count()
-            self.disk_gb = sys_assist.get_disk_size_GB()
             self.os_type = platform.platform()
             self.memory_mb = sys_assist.get_sys_mem_total_MB()
             self.architecture = platform.machine()
@@ -98,7 +107,6 @@ class SystemInfo(object):
     def format(self):
         return {
             'cpu_cores': self.cpu_cores,
-            'disk_gb': self.disk_gb,
             'os_type': self.os_type,
             'memory_mb': self.memory_mb,
             'architecture': self.architecture,

@@ -49,13 +49,11 @@ def get_disk_usage():
         df_output = df_command.communicate()[0]
         print df_output
 
-
         partitions = [
             '/dev/{0}'.format(line[line.index('sda'):].strip())
             for line in open("/proc/partitions") if 'sda' in line
         ]
         print partitions
-
 
         disk_usage = dict(
             (partition, {'total': 0, 'used': 0})

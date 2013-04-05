@@ -6,7 +6,7 @@ from meniscus.api.correlation.resources import PublishMessageResource
 from meniscus.api.version.resources import VersionResource
 
 
-def start_up(cfg=dict()):
+def start_up():
     cache = NativeProxy()
     versions = VersionResource()
     publish_message = PublishMessageResource(cache)

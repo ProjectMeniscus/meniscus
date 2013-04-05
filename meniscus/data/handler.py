@@ -70,19 +70,29 @@ class DatasourceHandler():
     def next_sequence(self, sequence_name):
         raise NotImplementedError
 
-    def find(self, object_name, query_filter=dict()):
+    def find(self, object_name, query_filter=None):
+        if query_filter is None:
+            query_filter = dict()
         raise NotImplementedError
 
-    def find_one(self, object_name, query_filter=dict()):
+    def find_one(self, object_name, query_filter=None):
+        if query_filter is None:
+            query_filter = dict()
         raise NotImplementedError
 
-    def put(self, object_name, document=dict()):
+    def put(self, object_name, document=None):
+        if document is None:
+            document = dict()
         raise NotImplementedError
 
-    def update(self, object_name, document=dict()):
+    def update(self, object_name, document=None):
+        if document is None:
+            document = dict()
         raise NotImplementedError
 
-    def delete(self, object_name, query_filter=dict(), limit_one=False):
+    def delete(self, object_name, query_filter=None, limit_one=False):
+        if query_filter is None:
+            query_filter = dict()
         raise NotImplementedError
 
 

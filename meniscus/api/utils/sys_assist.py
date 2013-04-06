@@ -61,8 +61,8 @@ def get_disk_usage():
         for file_system in df_output.split("\n")[1:]:
             if 'none'not in file_system:
                 try:
-                    fs_name,  size, used, avail, use, mounted = file_system.split()
-                    disk_usage[fs_name] = {
+                    name,  size, used, avail, use, mount = file_system.split()
+                    disk_usage[name] = {
                         'total': get_size_in_GB(size),
                         'used': get_size_in_GB(used)}
                 except ValueError:
@@ -111,4 +111,3 @@ def get_load_average():
         '5': load_average[1],
         '15': load_average[2]
     }
-

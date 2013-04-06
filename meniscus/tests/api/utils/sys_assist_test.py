@@ -105,6 +105,8 @@ class WhenTestingSysAssist(unittest.TestCase):
         self.assertTrue('/dev/sda6' in usage)
         self.assertEqual(usage['/dev/sda6']['total'], 255.0)
         self.assertEqual(usage['/dev/sda6']['used'], 0.423828125)
+        self.assertTrue('tmpfs' in usage)
+        self.assertTrue('udev' in usage)
 
 
 if __name__ == '__main__':

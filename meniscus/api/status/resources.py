@@ -35,7 +35,10 @@ class WorkerUpdateResource(ApiResource):
         """
 
         # at least one status key must be present
-        check_body = 'worker_status', 'disk_usage', 'load_average' in body
+        check_body = (
+            'worker_status' in body,
+            'load_average' in body, 'disk_usage' in body)
+
         if not any(check_body):
             _status_not_valid()
 

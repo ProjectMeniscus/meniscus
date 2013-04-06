@@ -110,7 +110,8 @@ class SystemInfo(object):
             'os_type': self.os_type,
             'memory_mb': self.memory_mb,
             'architecture': self.architecture,
-            'load_average': self.load_average
+            'load_average': self.load_average,
+            'disk_usage': self.disk_usage
         }
 
 

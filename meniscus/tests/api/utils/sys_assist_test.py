@@ -75,5 +75,37 @@ class WhenTestingSysAssist(unittest.TestCase):
             ip = sys_assist.get_lan_ip()
             self.assertEqual(ip, '127.0.0.1')
 
+    def test_get_load_avergae(self):
+        ave = sys_assist.get_load_average()
+        self.assertTrue('1'in ave)
+        self.assertTrue('5'in ave)
+        self.assertTrue('15'in ave)
+
+    def test_get_disk_usage__(self):
+        output = ('Filesystem      Size  Used Avail Use% Mounted on\n'
+                  '/dev/sda5        24G  5.2G   18G  24% /\n'
+                  'udev            7.8G  4.0K  7.8G   1% /dev\n'
+                  'tmpfs           3.2G  892K  3.2G   1% /run\n'
+                  'none            5.0M     0  5.0M   0% /run/lock\n'
+                  '/dev/sda4       7.8G  164K  7.8G   1% /run/shm\n'
+                  '/dev/sda6       255G  434M  209G  14% /home')
+        df = MagicMock()
+        df.communicate.return_value = [output]
+        with patch.object(sys_assist.sys, 'platform', self.platform), \
+                patch.object(sys_assist.subprocess, 'Popen', return_value=df):
+            usage = sys_assist.get_disk_usage()
+
+        self.assertTrue('/dev/sda4' in usage)
+        self.assertTrue('total' in usage['/dev/sda4'])
+        self.assertEqual(usage['/dev/sda4']['total'], 7.8)
+        self.assertEqual(usage['/dev/sda4']['used'], 0.000156402587890625)
+        self.assertTrue('/dev/sda5' in usage)
+        self.assertEqual(usage['/dev/sda5']['total'], 24.0)
+        self.assertEqual(usage['/dev/sda5']['used'], 5.2)
+        self.assertTrue('/dev/sda6' in usage)
+        self.assertEqual(usage['/dev/sda6']['total'], 255.0)
+        self.assertEqual(usage['/dev/sda6']['used'], 0.423828125)
+
+
 if __name__ == '__main__':
     unittest.main()

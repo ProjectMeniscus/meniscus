@@ -277,7 +277,7 @@ class WhenTestingTenantIdentification(unittest.TestCase):
 
     def test_get_validated_tenant_throws_auth_exception_from_cache(self):
         tenant_identify = TenantIdentification(
-            self.cache, self.tenant_id, self.invalid_message_token)
+            self.tenant_id, self.invalid_message_token)
 
         with patch.object(TokenCache, 'get_token', self.get_token):
 
@@ -286,7 +286,7 @@ class WhenTestingTenantIdentification(unittest.TestCase):
 
     def test_get_validated_tenant_from_cache_returns_tenant(self):
         tenant_identify = TenantIdentification(
-            self.cache, self.tenant_id, self.valid_message_token)
+            self.tenant_id, self.valid_message_token)
 
         with patch.object(TokenCache, 'get_token', self.get_token), \
                 patch.object(TenantCache, 'get_tenant', self.get_tenant):
@@ -297,7 +297,7 @@ class WhenTestingTenantIdentification(unittest.TestCase):
 
     def test_get_validated_tenant_from_coordinator_returns_tenant(self):
         tenant_identify = TenantIdentification(
-            self.cache, self.tenant_id, self.valid_message_token)
+            self.tenant_id, self.valid_message_token)
 
         with patch.object(TokenCache, 'get_token', self.get_token), \
             patch.object(TenantCache, 'get_tenant', self.get_none),\
@@ -308,7 +308,7 @@ class WhenTestingTenantIdentification(unittest.TestCase):
 
     def test_get_coord_validated_tenant_from_coordinator_returns_tenant(self):
         tenant_identify = TenantIdentification(
-            self.cache, self.tenant_id, self.valid_message_token)
+            self.tenant_id, self.valid_message_token)
 
         with patch.object(TokenCache, 'get_token', self.get_none), \
             patch.object(TenantIdentification,
@@ -322,7 +322,7 @@ class WhenTestingTenantIdentification(unittest.TestCase):
 
     def test_validate_token_with_coordinator_throws_communication_error(self):
         tenant_identify = TenantIdentification(
-            self.cache, self.tenant_id, self.valid_message_token)
+            self.tenant_id, self.valid_message_token)
         http_request = MagicMock(
             side_effect=requests.RequestException)
 
@@ -335,7 +335,7 @@ class WhenTestingTenantIdentification(unittest.TestCase):
 
     def test_validate_token_with_coordinator_throws_auth_error(self):
         tenant_identify = TenantIdentification(
-            self.cache, self.tenant_id, self.invalid_message_token)
+            self.tenant_id, self.invalid_message_token)
         response = MagicMock()
         response.status_code = httplib.NOT_FOUND
         http_request = MagicMock(return_value=response)
@@ -349,7 +349,7 @@ class WhenTestingTenantIdentification(unittest.TestCase):
 
     def test_validate_token_with_coordinator_returns_true(self):
         tenant_identify = TenantIdentification(
-            self.cache, self.tenant_id, self.valid_message_token)
+            self.tenant_id, self.valid_message_token)
         response = MagicMock()
         response.status_code = httplib.OK
         http_request = MagicMock(return_value=response)
@@ -363,7 +363,7 @@ class WhenTestingTenantIdentification(unittest.TestCase):
 
     def test_get_tenant_from_coordinator_exception_on_http_request(self):
         tenant_identify = TenantIdentification(
-            self.cache, self.tenant_id, self.valid_message_token)
+            self.tenant_id, self.valid_message_token)
         http_request = MagicMock(
             side_effect=requests.RequestException)
 
@@ -376,7 +376,7 @@ class WhenTestingTenantIdentification(unittest.TestCase):
 
     def test_get_tenant_from_coordinator_exception_for_no_tenant_found(self):
         tenant_identify = TenantIdentification(
-            self.cache, self.tenant_id, self.valid_message_token)
+            self.tenant_id, self.valid_message_token)
         response = MagicMock()
         response.status_code = httplib.NOT_FOUND
         http_request = MagicMock(return_value=response)
@@ -390,7 +390,7 @@ class WhenTestingTenantIdentification(unittest.TestCase):
 
     def test_get_tenant_from_coordinator_exception_on_bad_response_code(self):
         tenant_identify = TenantIdentification(
-            self.cache, self.tenant_id, self.valid_message_token)
+            self.tenant_id, self.valid_message_token)
         response = MagicMock()
         response.status_code = httplib.UNAUTHORIZED
         http_request = MagicMock(return_value=response)
@@ -404,7 +404,7 @@ class WhenTestingTenantIdentification(unittest.TestCase):
 
     def test_get_tenant_from_coordinator_returns_tenant(self):
         tenant_identify = TenantIdentification(
-            self.cache, self.tenant_id, self.valid_message_token)
+            self.tenant_id, self.valid_message_token)
         response = MagicMock()
         response.status_code = httplib.OK
         http_request = MagicMock(return_value=response)

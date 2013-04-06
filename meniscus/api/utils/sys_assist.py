@@ -42,24 +42,28 @@ def get_disk_size_GB(file_sys='/'):
 
 
 def get_disk_usage():
+
+    def get_size_in_GB(disk_size):
+        if 'G' in disk_size:
+            return float(disk_size.replace('G', ''))
+        if 'M' in disk_size:
+            return float(disk_size.replace('M', '')) / 1024
+        if 'K' in disk_size:
+            return float(disk_size.replace('K', '')) / (1024 ** 2)
+        return None
+
     disk_usage = dict()
 
     if 'linux' in sys.platform:
-        df_command = subprocess.Popen(["df"], stdout=subprocess.PIPE)
+        df_command = subprocess.Popen(["df", "-h"], stdout=subprocess.PIPE)
         df_output = df_command.communicate()[0]
-        print df_output
 
-        partitions = [
-            '/dev/{0}'.format(line[line.index('sda'):].strip())
-            for line in open("/proc/partitions") if 'sda' in line
-        ]
-        print partitions
-
-        disk_usage = dict(
-            (partition, {'total': 0, 'used': 0})
-            for partition in partitions)
-        #/sys/block/sda/
-        print disk_usage
+        for file_system in df_output.split("\n")[1:]:
+            if '/dev/'in file_system:
+                fs_name,  size, used, avail, use, mounted = file_system.split()
+                disk_usage[fs_name] = {
+                    'total': get_size_in_GB(size),
+                    'used': get_size_in_GB(used)}
     return disk_usage
 
 
@@ -104,6 +108,3 @@ def get_load_average():
         '5': load_average[1],
         '15': load_average[2]
     }
-
-if __name__ == '__main__':
-    get_disk_usage()

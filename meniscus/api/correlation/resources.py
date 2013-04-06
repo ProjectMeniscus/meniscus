@@ -53,6 +53,13 @@ class PublishMessageResource(ApiResource):
             tenant = tenant_identification.get_validated_tenant()
             message = CorrelationMessage(tenant, body)
             message.process_message()
+            if message.is_durable():
+                resp.status = falcon.HTTP_202
+                resp.body = format_response_body(
+                    message.get_durable_job_info())
+
+            else:
+                resp.status = falcon.HTTP_204
 
         except MessageAuthenticationError as ex:
             abort(falcon.HTTP_401, ex.message)
@@ -60,10 +67,3 @@ class PublishMessageResource(ApiResource):
             abort(falcon.HTTP_404, ex.message)
         except CoordinatorCommunicationError:
             abort(falcon.HTTP_500)
-
-        if message.is_durable():
-            resp.status = falcon.HTTP_202
-            resp.body = format_response_body(message.get_durable_job_info())
-
-        else:
-            resp.status = falcon.HTTP_204

@@ -17,11 +17,7 @@ def suite():
 class WhenTestingWorkerObject(unittest.TestCase):
 
     def setUp(self):
-        self.system_info = SystemInfo(cpu_cores='4',
-                                      disk_gb='20',
-                                      os_type='Darwin-11.4.2-x86-64bit',
-                                      memory_mb='1024',
-                                      architecture='x86_64')
+        self.system_info = SystemInfo()
 
         self.test_worker = Worker(_id='010101',
                                   worker_id='0123456789',
@@ -79,27 +75,49 @@ class WhenTestingWorkerRegistrationObject(unittest.TestCase):
 
 class WhenTestingSystemInfoObject(unittest.TestCase):
     def setUp(self):
-        self.system_info = SystemInfo(cpu_cores='4',
-                                      disk_gb='20',
-                                      os_type='Darwin-11.4.2-x86-64bit',
-                                      memory_mb='1024',
-                                      architecture='x86_64')
+        self.system_info = SystemInfo(
+            cpu_cores='4',
+            os_type='Darwin-11.4.2-x86-64bit',
+            memory_mb='1024',
+            architecture='x86_64',
+            load_average={
+                "1": 0.24755859375,
+                "5": 1.0751953125,
+                "15": 0.9365234375
+            },
+            disk_usage={
+                "/dev/sda1": {
+                    "total": 313764528,
+                    "used": 112512436
+                }
+            }
+        )
 
     def test_new_system_info_obj(self):
         self.assertEqual(self.system_info.cpu_cores, '4')
-        self.assertEqual(self.system_info.disk_gb, '20')
         self.assertEqual(self.system_info.os_type, 'Darwin-11.4.2-x86-64bit')
         self.assertEqual(self.system_info.memory_mb, '1024')
         self.assertEqual(self.system_info.architecture, 'x86_64')
+        self.assertEqual(
+            self.system_info.disk_usage["/dev/sda1"],
+            {
+                "total": 313764528,
+                "used": 112512436
+            }
+        )
+        self.assertEqual(self.system_info.load_average["1"], 0.24755859375)
+        self.assertEqual(self.system_info.load_average["5"], 1.0751953125)
+        self.assertEqual(self.system_info.load_average["15"], 0.9365234375)
 
     def test_new_system_info_empty_obj(self):
         system_info = SystemInfo()
         system_dict = system_info.format()
         self.assertTrue('cpu_cores' in system_dict)
-        self.assertTrue('disk_gb' in system_dict)
         self.assertTrue('os_type' in system_dict)
         self.assertTrue('memory_mb' in system_dict)
         self.assertTrue('architecture' in system_dict)
+        self.assertTrue('load_average' in system_dict)
+        self.assertTrue('disk_usage' in system_dict)
 
 
 class WhenTestingWorkerConfigurationObject(unittest.TestCase):

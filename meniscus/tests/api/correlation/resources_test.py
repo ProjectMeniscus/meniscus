@@ -18,8 +18,7 @@ def suite():
 
 class WhenTestingPublishMessage(unittest.TestCase):
     def setUp(self):
-        self.cache = MagicMock()
-        self.resource = PublishMessageResource(self.cache)
+        self.resource = PublishMessageResource()
         self.body = {
             "host": "host",
             "pname": "pname",

@@ -2,7 +2,6 @@ import unittest
 
 import falcon
 from mock import MagicMock
-from mock import patch
 
 from meniscus.api.coordinator.resources import WorkerRegistrationResource
 from meniscus.api.coordinator.resources import WorkerConfigurationResource
@@ -14,7 +13,6 @@ from meniscus.openstack.common import jsonutils
 def suite():
     suite = unittest.TestSuite()
     suite.addTest(WhenTestingWorkerRegistrationOnPost())
-    suite.addTest(WhenTestingWorkerRegistrationOnPut())
     suite.addTest(WhenTestingWorkerConfigurationOnGet())
     return suite
 
@@ -57,40 +55,6 @@ class WhenTestingWorkerRegistrationOnPost(unittest.TestCase):
         self.assertTrue('personality_module' in resp_body)
         self.assertTrue('worker_id' in resp_body)
         self.assertTrue('worker_token' in resp_body)
-
-
-class WhenTestingWorkerRegistrationOnPut(unittest.TestCase):
-    def setUp(self):
-        self.body = {'worker_status': 'online'}
-        self.body_bad = {'not_status': 'bad_status'}
-        self.status = jsonutils.dumps(self.body)
-        self.req = MagicMock()
-        self.req.stream.read.return_value = self.status
-        self.resp = MagicMock()
-        self.registration = WorkerRegistration('worker.correlation').format()
-        self.worker_dict = Worker(**self.registration).format()
-        self.worker_not_found = None
-        self.db_handler = MagicMock()
-        self.resource = WorkerRegistrationResource(self.db_handler)
-        self.worker_id = '51375fc4eea50d53066292b6'
-
-    def test_req_body_validation(self):
-        #body fails for bad format
-        with self.assertRaises(falcon.HTTPError):
-            self.resource._validate_req_body_on_put(self.body_bad)
-
-        #body passes without error
-        self.resource._validate_req_body_on_put(self.body)
-
-    def test_raises_worker_not_found(self):
-        self.db_handler.find_one.return_value = self.worker_not_found
-        with self.assertRaises(falcon.HTTPError):
-            self.resource.on_put(self.req, self.resp, self.worker_id)
-
-    def test_returns_200_on_post(self):
-        self.db_handler.find_one.return_value = self.worker_dict
-        self.resource.on_put(self.req, self.resp, self.worker_id)
-        self.assertEquals(self.resp.status, falcon.HTTP_200)
 
 
 class WhenTestingWorkerConfigurationOnGet(unittest.TestCase):

@@ -1,15 +1,14 @@
 import falcon
 
 from meniscus.personas.worker.register_online import RegisterWorkerOnline
-from meniscus.proxy import NativeProxy
 from meniscus.api.correlation.resources import PublishMessageResource
 from meniscus.api.version.resources import VersionResource
 
 
 def start_up():
-    cache = NativeProxy()
+
     versions = VersionResource()
-    publish_message = PublishMessageResource(cache)
+    publish_message = PublishMessageResource()
 
     # Routing
     application = api = falcon.API()

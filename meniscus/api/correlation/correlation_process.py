@@ -91,8 +91,7 @@ class CorrelationMessage(object):
 
 
 class TenantIdentification(object):
-    def __init__(self, cache, tenant_id, message_token):
-        self.cache = cache
+    def __init__(self, tenant_id, message_token):
         self.tenant_id = tenant_id
         self.message_token = message_token
 

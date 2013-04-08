@@ -32,24 +32,25 @@ def _worker_not_found():
     abort(falcon.HTTP_404, 'unable to locate worker.')
 
 
-class WorkerAlert(object):
-    def __init__(self, worker_id, last_changed=None, alert_ct=None,
+class WatchlistItem(object):
+    def __init__(self, worker_id, last_changed=None, watch_count=None,
                  _id=None, ):
+
+        self.worker_id = worker_id
+        self._id = _id
+
         if _id is None:
-            self.worker_id = worker_id
             self.last_changed = datetime.now()
-            self.alert_ct = 1
+            self.watch_count = 1
         else:
-            self._id = _id
-            self.worker_id = worker_id
             self.last_changed = last_changed
-            self.alert_ct = alert_ct
+            self.watch_count = watch_count
 
     def format(self):
         return {
             'worker_id': self.worker_id,
             'last_changed': self.last_changed,
-            'alert_ct': self.alert_ct
+            'watch_count': self.watch_count,
         }
 
     def format_for_save(self):
@@ -63,52 +64,47 @@ class WorkerRoutingResource(ApiResource):
     def __init__(self, db_handler):
         self.db = db_handler
 
-    def _get_upstream(self, alert_personality):
-        """ get upstream workers """
-        upstream_list = [{'personality': personality['personality']}
-                         for personality in PERSONALITIES
-                         if personality['downstream'] == alert_personality
-                         or personality['alternate'] == alert_personality]
-        print upstream_list
-
     def broadcast_config_change(self, worker_id):
         """
         Broadcast configuration change to all workers upstream from
         failed offline worker
         """
-        print "in broadcast"
         worker_dict = self.db.find_one('worker', {'worker_id': worker_id})
+        worker = Worker(**worker_dict)
+        upstream_list = [p['personality'] for p in PERSONALITIES
+                         if p['downstream'] == worker.personality
+                         or p['alternate'] == worker.personality]
+        upstream_workers = self.db.find(
+            'worker', {'personality': {'$in': upstream_list}})
 
-        # worker = Worker(**worker_dict)
-        # upstream_list = self._get_upstream(worker.personality)
-        # upstream_workers = self.db.find('worker', {'$or': upstream_list})
-        # print upstream_list
+        return [Worker(**worker).get_pipeline_info()
+                for worker in upstream_workers]
 
     def on_put(self, req, resp, worker_id):
         # threshold for expiration
         THRESHOLD_SECONDS = 60
-        ALERT_COUNT_THRESHOLD = 5
+        WATCH_COUNT_THRESHOLD = 5
 
         threshold = datetime.now() - timedelta(seconds=THRESHOLD_SECONDS)
 
-        #flush out all expired workers
-        self.db.delete('alert', {'last_changed': {'$lt': threshold}})
+        # flush out all expired workers
+        self.db.delete('watchlist', {'last_changed': {'$lt': threshold}})
 
         # check for current worker
-        worker_dict = self.db.find_one('alert', {'worker_id': worker_id})
+        worker_dict = self.db.find_one('watchlist', {'worker_id': worker_id})
         if not worker_dict:
-            #add new alert entry
-            worker_alert = WorkerAlert(worker_id)
-            self.db.put('alert', worker_alert.format())
+            # add new watchlist entry
+            watch_item = WatchlistItem(worker_id)
+            self.db.put('watchlist', watch_item.format())
         else:
-            if worker_dict['alert_ct'] > ALERT_COUNT_THRESHOLD:
+            if worker_dict['watch_count'] == WATCH_COUNT_THRESHOLD:
                 self.broadcast_config_change(worker_id)
 
-            updated_worker = WorkerAlert(worker_id,
-                                         datetime.now(),
-                                         worker_dict['alert_ct'] + 1,
-                                         worker_dict['_id'])
-            self.db.update('alert', updated_worker.format_for_save())
+            updated_worker = WatchlistItem(worker_id,
+                                           datetime.now(),
+                                           worker_dict['watch_count'] + 1,
+                                           worker_dict['_id'])
+            self.db.update('watchlist', updated_worker.format_for_save())
 
         resp.status = falcon.HTTP_202
 
@@ -128,7 +124,8 @@ class WorkerRegistrationResource(ApiResource):
         try:
             worker = Worker(**body['worker_registration'])
 
-            if worker.personality not in PERSONALITIES:
+            if worker.personality not in [p['personality']
+                                          for p in PERSONALITIES]:
                 _personality_not_valid()
         except (KeyError, ValueError, TypeError):
             _registration_not_valid()
@@ -167,6 +164,8 @@ class WorkerConfigurationResource(ApiResource):
         """
         Gets configuration e.g. list of downstream personalities in the grid
         """
+        #todo: rename list of valid worker statuses for routing
+        VALID_ROUTE_LIST = ['online', 'draining']
         worker_dict = self.db.find_one(
             'worker', {'worker_id': worker_id})
         if not worker_dict:
@@ -181,7 +180,8 @@ class WorkerConfigurationResource(ApiResource):
 
         downstream = default + alternate
         downstream_workers = self.db.find(
-            'worker', {'personality': {'$in': downstream}})
+            'worker', {'personality': {'$in': downstream},
+                       'status': {'$in': VALID_ROUTE_LIST}})
 
         pipeline = [
             Worker(**worker).get_pipeline_info()

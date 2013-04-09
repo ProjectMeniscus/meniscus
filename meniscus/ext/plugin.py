@@ -1,15 +1,13 @@
-import imp
-import sys
-import os.path
-import importlib
-
-
 """
 This is a simple plugin layer that uses the sys.meta_path list along
 with custom finder and loader definitions to hook into the Python
 import process. For more information, please see:
 http://www.python.org/dev/peps/pep-0302/
 """
+import imp
+import sys
+import os.path
+import importlib
 
 
 # Constants; because they make the code look nice.
@@ -98,36 +96,30 @@ class SecureLoader():
 _PLUGIN_FINDER = PluginFinder()
 
 
-"""
-Injects a custom finder object into the sys.meta_path list in order to
-allow for the loading of additional modules that may not be in the path
-given to the interpreter at boot.
-"""
-
-
 def _inject():
+    """
+    Injects a custom finder object into the sys.meta_path list in order to
+    allow for the loading of additional modules that may not be in the path
+    given to the interpreter at boot.
+    """
     if _PLUGIN_FINDER not in sys.meta_path:
         sys.meta_path.append(_PLUGIN_FINDER)
 
 
-"""
-This function ensures that the directory hooks have been placed in the
-sys.meta_path list before passing the module name being required to
-the importlib call of the same name.
-"""
-
-
 def import_module(module_name):
+    """
+    This function ensures that the directory hooks have been placed in the
+    sys.meta_path list before passing the module name being required to
+    the importlib call of the same name.
+    """
     _inject()
     return importlib.import_module(module_name)
 
 
-"""
-Adds all arguments passed as plugin directories to search when loading
-modules.
-"""
-
-
 def plug_into(*args):
+    """
+    Adds all arguments passed as plugin directories to search when loading
+    modules.
+    """
     for path in args:
         _PLUGIN_FINDER.add_path(path)

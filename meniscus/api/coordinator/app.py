@@ -1,8 +1,8 @@
 import falcon
 
-from meniscus.api.coordinator.resources import WorkerConfigurationResource
+from meniscus.api.coordinator.resources import WorkerRoutesResource
 from meniscus.api.coordinator.resources import WorkerRegistrationResource
-from meniscus.api.coordinator.resources import WorkerRoutingResource
+from meniscus.api.coordinator.resources import WorkerWatchlistResource
 from meniscus.api.status.resources import WorkerUpdateResource
 from meniscus.api.status.resources import WorkerStatusResource
 from meniscus.api.status.resources import WorkersStatusResource
@@ -24,12 +24,12 @@ from meniscus.api.datastore_init import db_handler
 versions = VersionResource()
 
 #Coordinator Resources
-worker_configuration = WorkerConfigurationResource(db_handler())
+worker_routes = WorkerRoutesResource(db_handler())
 worker_registration = WorkerRegistrationResource(db_handler())
 worker_update = WorkerUpdateResource(db_handler())
 workers_status = WorkersStatusResource(db_handler())
 worker_status = WorkerStatusResource(db_handler())
-worker_routing = WorkerRoutingResource(db_handler())
+worker_routing = WorkerWatchlistResource(db_handler())
 
 #Tenant Resources
 tenant = TenantResource(db_handler())
@@ -50,10 +50,10 @@ api.add_route('/', versions)
 
 # Coordinator Routing
 api.add_route('/v1/pairing', worker_registration)
-api.add_route('/v1/worker/{worker_id}/configuration', worker_configuration)
+api.add_route('/v1/worker/{worker_id}/routes', worker_routes)
 api.add_route('/v1/worker/{worker_id}/status', worker_registration)
 
-api.add_route('/v1/worker/{worker_id}/configuration', worker_configuration)
+api.add_route('/v1/worker/{worker_id}/configuration', worker_routes)
 api.add_route('/v1/worker/{worker_id}/status', worker_update)
 
 api.add_route('/v1/status', workers_status)

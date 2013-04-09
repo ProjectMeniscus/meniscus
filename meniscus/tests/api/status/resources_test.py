@@ -44,7 +44,7 @@ class WhenTestingWorkerUpdateOnPut(unittest.TestCase):
         self.status = jsonutils.dumps(self.body)
         self.req = MagicMock()
         self.resp = MagicMock()
-        self.registration = WorkerRegistration('worker.correlation').format()
+        self.registration = WorkerRegistration('correlation').format()
         self.worker_dict = Worker(**self.registration).format()
         self.worker_not_found = None
         self.db_handler = MagicMock()
@@ -90,7 +90,7 @@ class WhenTestingWorkersStatus(unittest.TestCase):
         self.resp = MagicMock()
         self.db_handler = MagicMock()
         self.resource = WorkersStatusResource(self.db_handler)
-        self.registration = WorkerRegistration('worker.correlation').format()
+        self.registration = WorkerRegistration('correlation').format()
         self.worker = Worker(**self.registration)
         self.worker_dict = Worker(**self.registration).format()
 
@@ -111,7 +111,7 @@ class WhenTestingWorkerStatus(unittest.TestCase):
         self.resp = MagicMock()
         self.db_handler = MagicMock()
         self.resource = WorkerStatusResource(self.db_handler)
-        self.registration = WorkerRegistration('worker.correlation').format()
+        self.registration = WorkerRegistration('correlation').format()
         self.worker = Worker(**self.registration)
         self.worker_dict = Worker(**self.registration).format()
         self.worker_id = '51375fc4eea50d53066292b6'

@@ -1,16 +1,16 @@
 PERSONALITIES = [
     {
-        'personality': 'worker.correlation',
-        'downstream': 'worker.storage',
-        'alternate': 'worker.normalization'
+        'personality': 'correlation',
+        'downstream': 'storage',
+        'alternate': 'normalization'
     },
     {
-        'personality': 'worker.normalization',
-        'downstream': 'worker.storage',
+        'personality': 'normalization',
+        'downstream': 'storage',
         'alternate': ''
     },
     {
-        'personality': 'worker.storage',
+        'personality': 'storage',
         'downstream': '',
         'alternate': ''
     }]

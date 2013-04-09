@@ -41,24 +41,33 @@ DISK_USAGE_INTERVAL = conf.status_update.disk_usage_interval
 
 
 class WorkerStatsPublisher(object):
-    def __init__(self,):
+    def __init__(self, run_once=False):
 
         self.process = Process(
-            target=self._send_stats)
-        self.exit = False
+            target=self._send_stats,
+            kwargs={
+                'load_ave_interval':  LOAD_AVERAGE_INTERVAL,
+                'disk_usage_interval': DISK_USAGE_INTERVAL
+            })
+        self.run_once = run_once
 
     def run(self):
+        """
+        launch the subprocess
+        """
         self.process.start()
 
     def kill(self):
+        """
+        kill the subprocess
+        """
         self.process.terminate()
 
-    def _send_stats(self):
+    def _send_stats(self, load_ave_interval, disk_usage_interval):
         """
-        register the worker with the coordinator with an online status
+        send system usage data to the coordinator on specified intervals
         """
-        load_ave_interval = LOAD_AVERAGE_INTERVAL
-        disk_usage_interval = DISK_USAGE_INTERVAL
+
         time_lapsed = 0
         event = threading.Event()
 
@@ -93,6 +102,8 @@ class WorkerStatsPublisher(object):
                 except requests.RequestException:
                     pass
 
+            if self.run_once:
+                break
 
 #constants for retry methods
 TRIES = 6

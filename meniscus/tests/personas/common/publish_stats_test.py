@@ -7,10 +7,10 @@ from mock import MagicMock
 from mock import patch
 
 from meniscus.data.model.worker import WorkerConfiguration
-from meniscus.personas.worker.publish_stats import ConfigCache
-import meniscus.personas.worker.publish_stats as publish_stats
-from meniscus.personas.worker.publish_stats import WorkerStatsPublisher
-from meniscus.personas.worker.publish_stats import WorkerStatusPublisher
+from meniscus.personas.common.publish_stats import ConfigCache
+import meniscus.personas.common.publish_stats as publish_stats
+from meniscus.personas.common.publish_stats import WorkerStatsPublisher
+from meniscus.personas.common.publish_stats import WorkerStatusPublisher
 
 
 def suite():
@@ -40,9 +40,9 @@ class WhenTestingWorkerStatsPublisher(unittest.TestCase):
     def test_kill_terminates_sub_process(self):
         with patch.object(
                 ConfigCache, 'get_config', self.get_config), patch(
-                'meniscus.personas.worker.publish_stats.http_request',
+                'meniscus.personas.common.publish_stats.http_request',
                 self.http_request), patch(
-                'meniscus.personas.worker.publish_stats.get_config',
+                'meniscus.personas.common.publish_stats.get_config',
                 self.get_config):
             self.resource.run()
             event = threading.Event()
@@ -55,9 +55,9 @@ class WhenTestingWorkerStatsPublisher(unittest.TestCase):
     def test_http_request_called(self):
         with patch.object(
                 ConfigCache, 'get_config', self.get_config), patch(
-                'meniscus.personas.worker.publish_stats.http_request',
+                'meniscus.personas.common.publish_stats.http_request',
                 self.http_request), patch(
-                'meniscus.personas.worker.publish_stats.get_config',
+                'meniscus.personas.common.publish_stats.get_config',
                 self.get_config):
             self.resource.run_once = True
             self.resource._send_stats(1, 1)
@@ -87,7 +87,7 @@ class WhenTestingWorkerStatusPublisher(unittest.TestCase):
         self.resp.status_code = httplib.OK
         self.resp._content = '{"fake": "json"}'
         with patch.object(ConfigCache, 'get_config', self.get_config):
-            with patch('meniscus.personas.worker.publish_stats.'
+            with patch('meniscus.personas.common.publish_stats.'
                        'http_request', self.http_request):
                 self.assertTrue(
                     self.register_online._register_worker_online('online'))

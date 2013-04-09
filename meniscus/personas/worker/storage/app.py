@@ -1,8 +1,8 @@
 import falcon
 
 from meniscus.api.version.resources import VersionResource
-from meniscus.personas.worker.publish_stats import WorkerStatusPublisher
-from meniscus.personas.worker.publish_stats import WorkerStatsPublisher
+from meniscus.personas.common.publish_stats import WorkerStatusPublisher
+from meniscus.personas.common.publish_stats import WorkerStatsPublisher
 
 
 def start_up():

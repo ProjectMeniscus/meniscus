@@ -75,16 +75,11 @@ class WhenTestingPairingProcess(unittest.TestCase):
                     self.registration, self.api_secret))
 
     def test_should_return_true_for_get_worker_routes(self):
-        self.resp.status_code = httplib.OK
-        self.resp._content = '{"fake": "json"}'
-        with patch.object(pairing_process.ConfigCache, 'get_config',
-                          return_value=self.get_config), \
-            patch('meniscus.api.pairing.pairing_process.'
-                  'http_request', self.http_request), \
-            patch.object(pairing_process.ConfigCache,
-                         'set_config',) as set_config:
+        with patch('meniscus.api.pairing.pairing_process.'
+                   'get_routes_from_coordinator',
+                   MagicMock(return_value=True)) as get_routes:
                 self.assertTrue(self.pairing_process._get_worker_routes())
-                set_config.assert_called_once()
+                get_routes.assert_called_once()
 
 if __name__ == '__main__':
     unittest.main()

@@ -10,6 +10,7 @@ from meniscus.data.model.worker import WorkerConfiguration
 from meniscus.data.model.worker import WorkerRegistration
 from meniscus.data.cache_handler import ConfigCache
 from meniscus.openstack.common import jsonutils
+from meniscus.personas.common.routing import get_routes_from_coordinator
 from meniscus.proxy import NativeProxy
 
 
@@ -78,25 +79,4 @@ class PairingProcess(object):
         """
         get the associated routes for the worker and store them in cache
         """
-        config_cache = ConfigCache()
-
-        config = config_cache.get_config()
-
-        token_header = {"WORKER-TOKEN": config.worker_token}
-        request_uri = "{0}/worker/{1}/configuration".format(
-            config.coordinator_uri, config.worker_id)
-
-        try:
-            resp = http_request(request_uri, token_header, http_verb='GET')
-
-        except requests.RequestException:
-            return False
-
-        #if the coordinator issues a response, cache the worker routes
-        #and return true
-        if resp.status_code == httplib.OK:
-            pipeline_workers = resp.json()
-
-            config_cache.set_pipeline(pipeline_workers)
-
-            return True
+        return get_routes_from_coordinator()

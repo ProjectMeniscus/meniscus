@@ -2,11 +2,13 @@
 from datetime import datetime, timedelta
 
 from oslo.config import cfg
+from meniscus.api.coordinator import coordinator_flow
 from meniscus.api.personalities import PERSONALITIES
 from meniscus.config import get_config
 from meniscus.config import init_config
 from meniscus.data.model.worker import WatchlistItem
-from meniscus.api.coordinator import coordinator_flow
+from meniscus.data.model.worker import Worker
+
 
 # cache configuration options
 _WATCHLIST_GROUP = cfg.OptGroup(name='watchlist_settings',
@@ -65,20 +67,34 @@ def _delete_expired_watchlist_items(db):
     db.delete('watchlist', {'last_changed': {'$lt': threshold}})
 
 
-def broadcast_config_change(db, worker):
+def _build_broadcast_config_change(db, worker):
     """
-    Broadcast configuration change to all workers upstream from
-    failed offline worker
+    builds list of worker callback addresses for config change broadcast
     """
 
-    upstream_list = [p['personality'] for p in PERSONALITIES
-                     if p['downstream'] == worker.personality
-                     or p['alternate'] == worker.personality]
-    upstream_workers = db.find(
-        'worker', {'personality': {'$in': upstream_list},
+    upstream_personality_list = [p['personality'] for p in PERSONALITIES
+                                 if p['downstream'] == worker.personality
+                                 or p['alternate'] == worker.personality]
+    upstream_list = db.find(
+        'worker', {'personality': {'$in': upstream_personality_list},
                    'status': {'$in': coordinator_flow.VALID_ROUTE_LIST}})
 
-    #todo: send to broadcast worker
+    upstream_workers = [Worker(**worker) for worker in upstream_list]
+
+    broadcast = {
+        'type': 'ROUTES',
+        'targets': [target.callback for target in upstream_workers]
+    }
+
+    return {'broadcast': broadcast}
+
+
+def _send_callback_list_to_broadcast(db, worker):
+    """
+    send broadcast list to broadcaster
+    """
+    broadcast = _build_broadcast_config_change(db, worker)
+    pass
 
 
 def process_watchlist_item(db, worker_id):
@@ -101,6 +117,6 @@ def process_watchlist_item(db, worker_id):
 
             if worker.status != 'offline':
                 coordinator_flow.update_worker_status(db, worker, 'offline')
-                broadcast_config_change(db, worker)
+                _send_callback_list_to_broadcast(db, worker)
 
         _update_watchlist_item(db, watch_dict)

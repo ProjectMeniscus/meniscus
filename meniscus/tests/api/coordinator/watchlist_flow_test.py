@@ -2,6 +2,7 @@
 import unittest
 
 from mock import MagicMock
+from mock import patch
 
 from meniscus.api.coordinator import coordinator_flow
 from meniscus.api.coordinator import watchlist_flow
@@ -83,15 +84,24 @@ class WhenTestingWatchlistFlow(unittest.TestCase):
             self.db_handler, self.worker_id), None)
 
     def test_process_watchlist_item_count_at_threshold(self):
-        coordinator_flow.find_worker = MagicMock(return_value=self.worker)
-        self.db_handler.find_one.return_value = self.watchlist_dict
-        watchlist_flow.process_watchlist_item(self.db_handler, self.worker_id)
+        find_worker = MagicMock(return_value=self.worker)
+        with patch('meniscus.api.coordinator.coordinator_flow.find_worker',
+                   find_worker):
+            self.db_handler.find_one.return_value = self.watchlist_dict
+            watchlist_flow.process_watchlist_item(self.db_handler,
+                                                  self.worker_id)
+            find_worker.assert_called_once_with(self.db_handler,
+                                                self.worker_id)
 
     def test_process_watchlist_item_count_at_threshold(self):
-        coordinator_flow.find_worker = MagicMock(
-            return_value=self.worker_online)
-        self.db_handler.find_one.return_value = self.watchlist_dict
-        watchlist_flow.process_watchlist_item(self.db_handler, self.worker_id)
+        find_worker = MagicMock(return_value=self.worker_online)
+        with patch('meniscus.api.coordinator.coordinator_flow.find_worker',
+                   find_worker):
+            self.db_handler.find_one.return_value = self.watchlist_dict
+            watchlist_flow.process_watchlist_item(self.db_handler,
+                                                  self.worker_id)
+            find_worker.assert_called_once_with(self.db_handler,
+                                                self.worker_id)
 
 if __name__ == '__main__':
     unittest.main()

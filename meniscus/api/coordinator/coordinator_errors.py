@@ -30,5 +30,3 @@ def _worker_not_found():
     sends an http 404 invalid worker not found
     """
     abort(falcon.HTTP_404, 'unable to locate worker.')
-
-

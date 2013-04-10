@@ -5,6 +5,7 @@ from meniscus.api.coordinator import coordinator_exceptions as exception
 
 
 VALID_ROUTE_LIST = ['online', 'draining']
+VALID_STATUS_LIST = ['new', 'offline', 'online', 'draining']
 
 
 # worker registration resource
@@ -15,8 +16,7 @@ def validate_worker_registration_req_body(body):
     try:
         worker = Worker(**body['worker_registration'])
 
-        if worker.personality not in [p['personality']
-                                      for p in PERSONALITIES]:
+        if worker.personality not in [p['personality']for p in PERSONALITIES]:
             exception._personality_not_valid()
     except (KeyError, ValueError, TypeError):
         exception._registration_not_valid()
@@ -43,6 +43,8 @@ def update_worker_status(db, worker, new_status):
     """
     Updates worker status using parameters: db, worker object and new status
     """
+    if new_status not in VALID_STATUS_LIST:
+        exception._personality_not_valid()
     worker.status = new_status
     db.update('worker', worker.format_for_save())
 
@@ -71,7 +73,7 @@ def get_routes(db, worker_id):
         {
             'service_domain': personality,
             'targets': [
-                target.get_pipeline_info()
+                target.get_route_info()
                 for target in downstream_workers
                 if target.personality == personality
             ]

@@ -57,7 +57,7 @@ class Worker(object):
             'system_info': self.system_info.format()
         }
 
-    def get_pipeline_info(self):
+    def get_route_info(self):
         return {
             'hostname': self.hostname,
             'ip_address_v4': self.ip_address_v4,

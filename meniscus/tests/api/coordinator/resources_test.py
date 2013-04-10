@@ -5,6 +5,7 @@ from mock import MagicMock
 
 from meniscus.api.coordinator.resources import WorkerRegistrationResource
 from meniscus.api.coordinator.resources import WorkerRoutesResource
+from meniscus.api.coordinator.resources import WorkerWatchlistResource
 from meniscus.data.model.worker import Worker
 from meniscus.data.model.worker import WorkerRegistration
 from meniscus.openstack.common import jsonutils
@@ -14,7 +15,21 @@ def suite():
     suite = unittest.TestSuite()
     suite.addTest(WhenTestingWorkerRegistrationOnPost())
     suite.addTest(WhenTestingWorkerRoutesOnGet())
+    suite.addTest(WhenTestingWatchlistResource)
     return suite
+
+
+class WhenTestingWatchlistResource(unittest.TestCase):
+    def setUp(self):
+        self.db_handler = MagicMock()
+        self.resource = WorkerWatchlistResource(self.db_handler)
+        self.worker_id = "12345uniqueworkerid"
+        self.req = MagicMock()
+        self.resp = MagicMock()
+
+    def test_returns_202_on_put(self):
+        self.resource.on_put(self.req, self.resp, self.worker_id)
+        self.assertEquals(self.resp.status, falcon.HTTP_202)
 
 
 class WhenTestingWorkerRegistrationOnPost(unittest.TestCase):
@@ -60,11 +75,6 @@ class WhenTestingWorkerRoutesOnGet(unittest.TestCase):
         self.downstream = [Worker(**downstream_setup).format(),
                            Worker(**downstream_setup).format(),
                            Worker(**downstream_setup).format()]
-
-    def test_raises_worker_not_found(self):
-        self.db_handler.find_one.return_value = self.worker_not_found
-        with self.assertRaises(falcon.HTTPError):
-            self.resource.on_get(self.req, self.resp, self.worker_id)
 
     def test_should_return_200(self):
         self.db_handler.find_one.return_value = self.worker_dict

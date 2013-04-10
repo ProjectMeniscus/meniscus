@@ -1,6 +1,7 @@
 import falcon
 
-from meniscus.api.coordinator.resources import WorkerConfigurationResource
+from meniscus.api.callback.resources import CallbackResource
+from meniscus.api.coordinator.resources import WorkerRoutesResource
 from meniscus.api.coordinator.resources import WorkerRegistrationResource
 from meniscus.api.status.resources import WorkerUpdateResource
 from meniscus.api.status.resources import WorkerStatusResource
@@ -22,9 +23,10 @@ from meniscus.api.datastore_init import db_handler
 def start_up():
     #Common Resource(s)
     versions = VersionResource()
+    callback = CallbackResource()
 
     #Coordinator Resources
-    worker_configuration = WorkerConfigurationResource(db_handler())
+    worker_routes = WorkerRoutesResource(db_handler())
     worker_registration = WorkerRegistrationResource(db_handler())
     worker_update = WorkerUpdateResource(db_handler())
     workers_status = WorkersStatusResource(db_handler())
@@ -46,15 +48,14 @@ def start_up():
 
     # Common Routing
     api.add_route('/', versions)
+    api.add_route('/v1/callback', callback)
 
     # Coordinator Routing
     api.add_route('/v1/pairing', worker_registration)
-    api.add_route('/v1/worker/{worker_id}/configuration', worker_configuration)
-    api.add_route('/v1/worker/{worker_id}/status', worker_registration)
+    api.add_route('/v1/worker/{worker_id}/routes', worker_routes)
+    api.add_route('/v1/worker/{worker_id}/registration', worker_registration)
 
-    api.add_route('/v1/worker/{worker_id}/configuration', worker_configuration)
     api.add_route('/v1/worker/{worker_id}/status', worker_update)
-
     api.add_route('/v1/status', workers_status)
     api.add_route('/v1/status/{worker_id}', worker_status)
 

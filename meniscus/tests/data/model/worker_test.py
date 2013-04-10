@@ -56,7 +56,7 @@ class WhenTestingWorkerObject(unittest.TestCase):
                         in self.test_worker.get_registration_identity())
 
     def test_new_worker_routes(self):
-        self.assertEqual(self.worker_route['hostname'], 'worker01')
+        self.assertEqual(self.worker_route['worker_id'], '0123456789')
         self.assertEqual(self.worker_route['ip_address_v4'], '172.23.1.100')
         self.assertEqual(self.worker_route['ip_address_v6'], '::1')
 

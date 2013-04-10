@@ -75,12 +75,10 @@ def broadcast_config_change(db, worker):
                      if p['downstream'] == worker.personality
                      or p['alternate'] == worker.personality]
     upstream_workers = db.find(
-        'worker', {'personality': {'$in': upstream_list}})
+        'worker', {'personality': {'$in': upstream_list},
+                   'status': {'$in': coordinator_flow.VALID_ROUTE_LIST}})
 
-    #todo: remove return and send to broadcast worker
-    # return [Worker(**worker).get_pipeline_info()
-    #         for worker in upstream_workers]
-    print "pipeline sent to broadcaster"
+    #todo: send to broadcast worker
 
 
 def process_watchlist_item(db, worker_id):

@@ -31,3 +31,4 @@ def _worker_not_found():
     """
     abort(falcon.HTTP_404, 'unable to locate worker.')
 
+

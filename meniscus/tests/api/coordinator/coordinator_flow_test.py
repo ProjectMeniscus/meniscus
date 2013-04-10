@@ -1,11 +1,11 @@
 
 import unittest
-from mock import MagicMock
 
 import falcon
+from mock import MagicMock
+from mock import patch
 
 from meniscus.api.coordinator import coordinator_flow
-from meniscus.api.coordinator import coordinator_exceptions as exception
 from meniscus.data.model.worker import SystemInfo
 from meniscus.data.model.worker import WorkerRegistration
 from meniscus.data.model.worker import Worker
@@ -20,8 +20,6 @@ def suite():
 class WhenTestingCoordinatorFlow(unittest.TestCase):
     def setUp(self):
         self.db_handler = MagicMock()
-        self.db_handler.return_value = MagicMock
-        self.resource = coordinator_flow
         self.worker_id = "0123456789"
         self.req = MagicMock()
         self.resp = MagicMock()
@@ -33,7 +31,8 @@ class WhenTestingCoordinatorFlow(unittest.TestCase):
         self.new_status = 'offline'
         self.new_bad_status = 'bad_status'
         self.system_info = SystemInfo()
-        self.worker_dict = {'hostname': "worker-01",
+        self.worker_dict = {"worker_id": self.worker_id,
+                            "hostname": "worker-01",
                             "callback": "192.168.100.101:8080/v1/callback/",
                             "ip_address_v4": "192.168.100.101",
                             "ip_address_v6": "::1",
@@ -61,7 +60,7 @@ class WhenTestingCoordinatorFlow(unittest.TestCase):
                              ip_address_v4='172.23.1.100',
                              ip_address_v6='::1',
                              personality='correlation',
-                             status='new',
+                             status='online',
                              system_info=self.system_info.format())
         self.worker_list = [
             {"hostname": "worker-01",
@@ -116,58 +115,65 @@ class WhenTestingCoordinatorFlow(unittest.TestCase):
                          "used": 112512436
                      }}}}]
 
-        self.resource.find_worker = MagicMock(return_value=self.worker)
-
     def test_req_body_validation(self):
         #body fails for bad format
         with self.assertRaises(falcon.HTTPError):
-            self.resource.validate_worker_registration_req_body(
+            coordinator_flow.validate_worker_registration_req_body(
                 self.body_bad_personality)
 
         #body success
         with self.assertRaises(falcon.HTTPError):
-            self.resource.validate_worker_registration_req_body(
+            coordinator_flow.validate_worker_registration_req_body(
                 self.body_bad_header)
 
     def test_add_worker(self):
-        pass
+        db_handler = MagicMock()
+        db_handler.put.return_value = self.worker.format()
+        coordinator_flow.add_worker(db_handler, self.worker_id)
 
     def test_find_worker(self):
-        self.db_handler.find_one = MagicMock(return_value=self.worker.format())
-        self.assertEqual(self.resource.find_worker(self.db_handler,
-                                                   self.worker_id),
-                         self.worker)
+        db_handler = MagicMock()
+        db_handler.find_one.return_value = self.worker.format_for_save()
+        self.db_handler.find_one.return_value = self.worker.format()
+        self.assertIsInstance(coordinator_flow.find_worker(self.db_handler,
+                                                           self.worker_id),
+                              Worker)
 
-    # def test_find_worker_empty(self):
-    #     self.db_handler.find_one = MagicMock(return_value=[])
-    #     with self.assertRaises(falcon.HTTPError):
-    #             self.resource.find_worker(self.db_handler, self.worker_id)
+    def test_find_worker_empty(self):
+        db_handler = MagicMock()
+        db_handler.find_one.return_value = None
+        with self.assertRaises(falcon.HTTPError):
+            coordinator_flow.find_worker(db_handler, self.worker_id)
 
     def test_update_worker_status_fail(self):
         with self.assertRaises(falcon.HTTPError):
-            self.resource.update_worker_status(self.db_handler,
-                                               self.worker,
-                                               self.new_bad_status)
+            coordinator_flow.update_worker_status(self.db_handler,
+                                                  self.worker,
+                                                  self.new_bad_status)
 
     def test_update_worker_status_success(self):
-        self.resource.update_worker_status(self.db_handler,
-                                           self.worker,
-                                           self.new_status)
+        coordinator_flow.update_worker_status(self.db_handler,
+                                              self.worker,
+                                              self.new_status)
         self.assertEquals(self.worker.status, self.new_status)
 
     def test_get_routes(self):
+        self.find_worker = MagicMock(return_value=self.worker)
         self.db_handler.find = MagicMock(return_value=self.worker_list)
-        routes = self.resource.get_routes(self.db_handler, self.worker_id)
-        for route in routes['routes']:
-            self.assertTrue('targets' in route)
-            self.assertTrue('service_domain' in route)
-            for worker in route['targets']:
-                self.assertTrue('hostname' in worker)
-                self.assertTrue('status' in worker)
-                self.assertTrue('ip_address_v4' in worker)
-                self.assertTrue('ip_address_v6' in worker)
+        with patch('meniscus.api.coordinator.coordinator_flow.find_worker',
+                   self.find_worker):
+            routes = coordinator_flow.get_routes(self.db_handler,
+                                                 self.worker_id)
+            self.assertTrue(routes['routes'])
 
+            for route in routes['routes']:
+                self.assertTrue('targets' in route)
+                self.assertTrue('service_domain' in route)
+                for worker in route['targets']:
+                    self.assertTrue('hostname' in worker)
+                    self.assertTrue('status' in worker)
+                    self.assertTrue('ip_address_v4' in worker)
+                    self.assertTrue('ip_address_v6' in worker)
 
-
-
-
+if __name__ == '__main__':
+    unittest.main()

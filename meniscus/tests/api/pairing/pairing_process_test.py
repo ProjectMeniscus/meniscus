@@ -26,7 +26,7 @@ class WhenTestingPairingProcess(unittest.TestCase):
         self.native_proxy = MagicMock()
         self.get_config = WorkerConfiguration(
             personality='pairing',
-            personality_module='meniscus.personas.worker.pairing.app',
+            personality_module='meniscus.personas.pairing.app',
             worker_token='token_id',
             worker_id='worker_id',
             coordinator_uri="192.168.1.1:8080/v1"
@@ -64,7 +64,7 @@ class WhenTestingPairingProcess(unittest.TestCase):
     def test_should_return_true_for_register_with_coordinator(self):
         self.resp.status_code = httplib.ACCEPTED
         self.resp._content = \
-            '{"personality_module": "meniscus.personas.worker.pairing.app", ' \
+            '{"personality_module": "meniscus.personas.pairing.app", ' \
             '"worker_token": "3F2504E0-4F89-11D3-9A0C-0305E82C3301", ' \
             '"worker_id": "3F2504E0-4F89-11D3-9A0C-0305E82C3301"}'
         with patch('meniscus.api.pairing.pairing_process.'

@@ -15,7 +15,7 @@ class TestingApIBootstrap(unittest.TestCase):
         self.cache = MagicMock()
         self.cache.get_config.return_value = WorkerConfiguration(
             personality='pairing',
-            personality_module='meniscus.personas.worker.pairing.app',
+            personality_module='meniscus.personas.pairing.app',
             worker_token='token_id',
             worker_id='worker_id',
             coordinator_uri="192.168.1.1:8080/v1"

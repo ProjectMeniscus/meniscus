@@ -23,7 +23,7 @@ class WhenTestingGetRoutesFromCoordinator(unittest.TestCase):
         self.native_proxy = MagicMock()
         self.get_config = WorkerConfiguration(
             personality='worker.pairing',
-            personality_module='meniscus.personas.worker.pairing.app',
+            personality_module='meniscus.personas.pairing.app',
             worker_token='token_id',
             worker_id='worker_id',
             coordinator_uri="192.168.1.1:8080/v1"

@@ -12,9 +12,10 @@ def suite():
     return suite
 
 
-class WhenTestingUpdateRoutes():
+class WhenTestingUpdateRoutes(unittest.TestCase):
+
     def test_get_routes_from_coord_called_once(self):
-        coord_call = MagicMock(return_value=2)
+        coord_call = MagicMock(return_value=True)
         with patch('meniscus.api.callback.callback_methods.'
                    'get_routes_from_coordinator', coord_call):
             callback_methods.get_updated_routes()

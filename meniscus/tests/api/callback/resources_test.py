@@ -20,7 +20,7 @@ class WhenTestingCallbackResource(unittest.TestCase):
         self.req = MagicMock()
         self.resp = MagicMock()
 
-        self.req.get_header.return_value = ROUTES
+        self.req.get_header.return_value = [ROUTES]
 
     def test_type_routes_returns_200(self):
         get_routes = MagicMock()

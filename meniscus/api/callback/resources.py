@@ -12,7 +12,7 @@ class CallbackResource(ApiResource):
         #get message token, or abort if token is not in header
         type_header = req.get_header(TYPE_HEADER, required=True)
 
-        if ROUTES in type_header :
+        if ROUTES in type_header:
             callback_methods.get_routes_from_coordinator()
 
         resp.status = falcon.HTTP_200

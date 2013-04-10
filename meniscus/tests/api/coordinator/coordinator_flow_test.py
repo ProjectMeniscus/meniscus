@@ -170,7 +170,7 @@ class WhenTestingCoordinatorFlow(unittest.TestCase):
                 self.assertTrue('targets' in route)
                 self.assertTrue('service_domain' in route)
                 for worker in route['targets']:
-                    self.assertTrue('hostname' in worker)
+                    self.assertTrue('worker_id' in worker)
                     self.assertTrue('status' in worker)
                     self.assertTrue('ip_address_v4' in worker)
                     self.assertTrue('ip_address_v6' in worker)

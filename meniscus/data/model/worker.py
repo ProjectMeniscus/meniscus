@@ -59,7 +59,7 @@ class Worker(object):
 
     def get_route_info(self):
         return {
-            'hostname': self.hostname,
+            'worker_id': self.worker_id,
             'ip_address_v4': self.ip_address_v4,
             'ip_address_v6': self.ip_address_v6,
             'status': self.status

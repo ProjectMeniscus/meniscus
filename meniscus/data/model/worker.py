@@ -1,6 +1,8 @@
 import platform
 import uuid
 
+from datetime import datetime
+
 import meniscus.api.utils.sys_assist as sys_assist
 
 
@@ -55,12 +57,11 @@ class Worker(object):
             'system_info': self.system_info.format()
         }
 
-    def get_pipeline_info(self):
+    def get_route_info(self):
         return {
             'hostname': self.hostname,
             'ip_address_v4': self.ip_address_v4,
             'ip_address_v6': self.ip_address_v6,
-            'personality': self.personality,
             'status': self.status
         }
 
@@ -134,3 +135,33 @@ class WorkerConfiguration(object):
             'worker_id': self.worker_id,
             'coordinator_uri': self.coordinator_uri
         }
+
+
+class WatchlistItem(object):
+    """
+    Watchlist table item for keeping track of workers that are unresponsive
+    """
+    def __init__(self, worker_id, last_changed=None, watch_count=None,
+                 _id=None, ):
+
+        self.worker_id = worker_id
+        self._id = _id
+
+        if _id is None:
+            self.last_changed = datetime.now()
+            self.watch_count = 1
+        else:
+            self.last_changed = last_changed
+            self.watch_count = watch_count
+
+    def format(self):
+        return {
+            'worker_id': self.worker_id,
+            'last_changed': self.last_changed,
+            'watch_count': self.watch_count,
+        }
+
+    def format_for_save(self):
+        worker_dict = self.format()
+        worker_dict['_id'] = self._id
+        return worker_dict

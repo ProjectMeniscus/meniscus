@@ -268,7 +268,7 @@ class WhenTestingTenantIdentification(unittest.TestCase):
         self.get_tenant = MagicMock(return_value=self.tenant)
         self.get_none = MagicMock(return_value=None)
         self.config = WorkerConfiguration(
-            personality='worker.correlation',
+            personality='correlation',
             personality_module='meniscus.personas.worker.correlation.app',
             worker_id='fgc7104e-8d93-47dc-a49a-8fb0d39e5192',
             worker_token='bbd6307f-8d93-47dc-a49a-8fb0d39e5192',

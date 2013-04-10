@@ -20,12 +20,12 @@ class WhenTestingPairingProcess(unittest.TestCase):
     def setUp(self):
         self.api_secret = "3F2504E0-4F89-11D3-9A0C-0305E82C3301"
         self.coordinator_uri = "http://localhost:8080/v1"
-        self.personality = 'worker.normalization'
+        self.personality = 'normalization'
         self.pairing_process = PairingProcess(
             self.api_secret, self.coordinator_uri, self.personality)
         self.native_proxy = MagicMock()
         self.get_config = WorkerConfiguration(
-            personality='worker.pairing',
+            personality='pairing',
             personality_module='meniscus.personas.worker.pairing.app',
             worker_token='token_id',
             worker_id='worker_id',

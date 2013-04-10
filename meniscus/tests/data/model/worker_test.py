@@ -1,9 +1,12 @@
 import unittest
 
+from datetime import datetime
+
 from meniscus.data.model.worker import SystemInfo
 from meniscus.data.model.worker import Worker
 from meniscus.data.model.worker import WorkerConfiguration
 from meniscus.data.model.worker import WorkerRegistration
+from meniscus.data.model.worker import WatchlistItem
 
 
 def suite():
@@ -12,6 +15,7 @@ def suite():
     suite.addTest(WhenTestingWorkerRegistrationObject())
     suite.addTest(WhenTestingSystemInfoObject())
     suite.addTest(WhenTestingWorkerConfigurationObject())
+    suite.addTest(WhenTestingWatchlistItem())
 
 
 class WhenTestingWorkerObject(unittest.TestCase):
@@ -26,17 +30,18 @@ class WhenTestingWorkerObject(unittest.TestCase):
                                   callback='172.22.15.25:8080/v1/config/',
                                   ip_address_v4='172.23.1.100',
                                   ip_address_v6='::1',
-                                  personality='worker.correlation',
+                                  personality='correlation',
                                   status='new',
                                   system_info=self.system_info.format())
         self.test_worker_lite = Worker(hostname='worker01',
                                        callback='172.22.15.25:8080/v1/config/',
                                        ip_address_v4='172.23.1.100',
                                        ip_address_v6='::1',
-                                       personality='worker.correlation',
+                                       personality='correlation',
                                        status='new',
                                        system_info=self.system_info.format())
-        self.worker_pipeline = self.test_worker.get_pipeline_info()
+        self.worker_route = self.test_worker.get_route_info()
+        self.worker_status = self.test_worker.get_status()
 
     def test_new_worker_no_ids(self):
         worker_dict = self.test_worker_lite.format()
@@ -50,12 +55,20 @@ class WhenTestingWorkerObject(unittest.TestCase):
         self.assertTrue('personality_module'
                         in self.test_worker.get_registration_identity())
 
-    def test_new_worker_pipeline(self):
-        self.assertEqual(self.worker_pipeline['hostname'], 'worker01')
-        self.assertEqual(self.worker_pipeline['ip_address_v4'], '172.23.1.100')
-        self.assertEqual(self.worker_pipeline['ip_address_v6'], '::1')
-        self.assertEqual(
-            self.worker_pipeline['personality'], 'worker.correlation')
+    def test_new_worker_routes(self):
+        self.assertEqual(self.worker_route['hostname'], 'worker01')
+        self.assertEqual(self.worker_route['ip_address_v4'], '172.23.1.100')
+        self.assertEqual(self.worker_route['ip_address_v6'], '::1')
+
+    def test_get_status(self):
+        self.assertEqual(self.worker_status['hostname'], 'worker01')
+        self.assertEqual(self.worker_status['worker_id'], '0123456789')
+        self.assertEqual(self.worker_status['personality'], 'correlation')
+        self.assertEqual(self.worker_status['status'], 'new')
+        self.assertEqual(self.worker_status['system_info'],
+                         self.system_info.format())
+        self.assertEqual(self.worker_route['ip_address_v4'], '172.23.1.100')
+        self.assertEqual(self.worker_route['ip_address_v6'], '::1')
 
 
 class WhenTestingWorkerRegistrationObject(unittest.TestCase):
@@ -153,6 +166,32 @@ class WhenTestingWorkerConfigurationObject(unittest.TestCase):
         self.assertEqual(worker_dict['coordinator_uri'],
                          'http://172.22.15.25:8080/v1')
 
+
+class WhenTestingWatchlistItem(unittest.TestCase):
+
+    def setUp(self):
+        self.worker_id = '598c36b6-4939-4857-8f9b-322663714a11'
+        self.time = datetime.now()
+        self.watch_count = 4
+        self._id = "uniqueid12345"
+        self.item = WatchlistItem(self.worker_id)
+        self.tracked_item = WatchlistItem(self.worker_id,
+                                          self.time,
+                                          self.watch_count,
+                                          self._id)
+
+    def test_new_watchlist_item_bare(self):
+        self.assertEqual(self.item.worker_id, self.worker_id)
+        self.assertEqual(self.item.watch_count, 1)
+        self.assertIsNotNone(self.item.last_changed)
+        self.assertIsNone(self.item._id)
+
+    def test_tracked_watchlist_item(self):
+        item_dic = self.tracked_item.format_for_save()
+        self.assertEqual(item_dic['worker_id'], self.worker_id)
+        self.assertEqual(item_dic['watch_count'], self.watch_count)
+        self.assertEqual(item_dic['last_changed'], self.time)
+        self.assertEqual(item_dic['_id'], self._id)
 
 if __name__ == '__main__':
     unittest.main()

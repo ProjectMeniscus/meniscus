@@ -6,6 +6,8 @@ import falcon
 
 from meniscus.api.callback.resources import CallbackResource
 from meniscus.api.callback.resources import ROUTES
+
+
 def suite():
     suite = unittest.TestSuite()
     suite.addTest(WhenTestingCallbackResource())
@@ -30,4 +32,3 @@ class WhenTestingCallbackResource(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-

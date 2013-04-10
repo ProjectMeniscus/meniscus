@@ -86,28 +86,28 @@ class ConfigCache(Cache):
         if self.cache.cache_exists('worker_configuration', CACHE_CONFIG):
             self.cache.cache_del('worker_configuration', CACHE_CONFIG)
 
-    def set_pipeline(self, pipeline_workers):
-        if self.cache.cache_exists('pipeline_workers', CACHE_CONFIG):
+    def set_routes(self, pipeline_workers):
+        if self.cache.cache_exists('routes', CACHE_CONFIG):
             self.cache.cache_update(
-                'pipeline_workers',
+                'routes',
                 jsonutils.dumps(pipeline_workers),
                 CONFIG_EXPIRES, CACHE_CONFIG)
         else:
             self.cache.cache_set(
-                'pipeline_workers',
+                'routes',
                 jsonutils.dumps(pipeline_workers),
                 CONFIG_EXPIRES, CACHE_CONFIG)
 
-    def get_pipeline(self):
-        if self.cache.cache_exists('pipeline_workers', CACHE_CONFIG):
+    def get_routes(self):
+        if self.cache.cache_exists('routes', CACHE_CONFIG):
             pipeline_workers = jsonutils.loads(
-                self.cache.cache_get('pipeline_workers', CACHE_CONFIG))
+                self.cache.cache_get('routes', CACHE_CONFIG))
             return pipeline_workers
         return None
 
-    def delete_pipeline(self):
-        if self.cache.cache_exists('pipeline_workers', CACHE_CONFIG):
-            self.cache.cache_del('pipeline_workers', CACHE_CONFIG)
+    def delete_routes(self):
+        if self.cache.cache_exists('routes', CACHE_CONFIG):
+            self.cache.cache_del('routes', CACHE_CONFIG)
 
 
 class TenantCache(Cache):

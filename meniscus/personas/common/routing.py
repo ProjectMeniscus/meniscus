@@ -28,8 +28,8 @@ def get_routes_from_coordinator():
     #if the coordinator issues a response, cache the worker routes
     #and return true
     if resp.status_code == httplib.OK:
-        pipeline_workers = resp.json()
+        routes = resp.json()
 
-        config_cache.set_pipeline(pipeline_workers)
+        config_cache.set_routes(routes)
 
         return True

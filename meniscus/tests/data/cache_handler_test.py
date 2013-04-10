@@ -50,9 +50,33 @@ class WhenTestingConfigCache(unittest.TestCase):
             coordinator_uri='http://192.168.1.2/v1')
         self.config_json = jsonutils.dumps(self.config.format())
         self.cache_get_config = MagicMock(return_value=self.config_json)
-        self.pipeline = [{"hostname": "worker1"}, {"hostname": "worker2"}]
-        self.pipeline_json = jsonutils.dumps(self.pipeline)
-        self.cache_get_pipeline = MagicMock(return_value=self.pipeline_json)
+        self.routes = [
+            {
+                "service_domain": "correlation|normalization|storage",
+                "targets": [
+                    {
+                        "worker_id": "488eb3fc-34dd-48ad-a1bb-99ee2a43bf1d",
+                        "ip_address_v4": "192.168.100.101",
+                        "ip_address_v6": "::1",
+                        "status": "online|draining"
+                    },
+                    {
+                        "worker_id": "e0ac0dc3-694e-4522-94f0-fb25a4dbb8a1",
+                        "ip_address_v4": "192.168.100.102",
+                        "ip_address_v6": "::1",
+                        "status": "online|draining"
+                    },
+                    {
+                        "worker_id": "64d7a5ab-55b6-4ff7-b362-0d67544bb6f8",
+                        "ip_address_v4": "192.168.100.103",
+                        "ip_address_v6": "::1",
+                        "status": "online|draining"
+                    }
+                ]
+            }
+        ]
+        self.routes_json = jsonutils.dumps(self.routes)
+        self.cache_get_routes = MagicMock(return_value=self.routes_json)
 
     def test_clear_calls_cache_clear(self):
         with patch.object(NativeProxy, 'cache_clear', self.cache_clear):
@@ -122,67 +146,67 @@ class WhenTestingConfigCache(unittest.TestCase):
             self.cache_del.assert_called_once_with(
                 'worker_configuration', CACHE_CONFIG)
 
-    def test_set_pipeline_calls_cache_update(self):
+    def test_set_routes_calls_cache_update(self):
         with patch.object(
                 NativeProxy, 'cache_exists', self.cache_true
         ), patch.object(NativeProxy, 'cache_update', self.cache_update):
             config_cache = ConfigCache()
-            config_cache.set_pipeline(self.pipeline)
+            config_cache.set_routes(self.routes)
 
         self.cache_update.assert_called_once_with(
-            'pipeline_workers', jsonutils.dumps(self.pipeline),
+            'routes', jsonutils.dumps(self.routes),
             CONFIG_EXPIRES, CACHE_CONFIG)
 
-    def test_set_pipeline_calls_cache_set(self):
+    def test_set_routes_calls_cache_set(self):
         with patch.object(
                 NativeProxy, 'cache_exists', self.cache_false
         ), patch.object(NativeProxy, 'cache_set', self.cache_set):
             config_cache = ConfigCache()
-            config_cache.set_pipeline(self.pipeline)
+            config_cache.set_routes(self.routes)
 
         self.cache_set.assert_called_once_with(
-            'pipeline_workers', jsonutils.dumps(self.pipeline),
+            'routes', jsonutils.dumps(self.routes),
             CONFIG_EXPIRES, CACHE_CONFIG)
 
-    def test_get_pipeline_calls_returns_config(self):
+    def test_get_routes_calls_returns_config(self):
         with patch.object(
                 NativeProxy, 'cache_exists', self.cache_true
-        ), patch.object(NativeProxy, 'cache_get',  self.cache_get_pipeline):
+        ), patch.object(NativeProxy, 'cache_get',  self.cache_get_routes):
             config_cache = ConfigCache()
-            pipeline = config_cache.get_pipeline()
+            routes = config_cache.get_routes()
 
-        self.cache_get_pipeline.assert_called_once_with(
-            'pipeline_workers', CACHE_CONFIG)
-        self.assertEqual(pipeline, self.pipeline)
+        self.cache_get_routes.assert_called_once_with(
+            'routes', CACHE_CONFIG)
+        self.assertEqual(routes, self.routes)
 
-    def test_get_pipeline_calls_returns_none(self):
+    def test_get_routes_calls_returns_none(self):
         with patch.object(
                 NativeProxy, 'cache_exists', self.cache_false):
             config_cache = ConfigCache()
-            pipeline = config_cache.get_pipeline()
+            routes = config_cache.get_routes()
 
-        self.assertIs(pipeline, None)
+        self.assertIs(routes, None)
 
-    def test_delete_pipeline_calls_cache_del(self):
+    def test_delete_routes_calls_cache_del(self):
         with patch.object(
                 NativeProxy, 'cache_exists', self.cache_true
         ), patch.object(NativeProxy, 'cache_del', self.cache_del):
             config_cache = ConfigCache()
-            config_cache.delete_pipeline()
+            config_cache.delete_routes()
 
         self.cache_del.assert_called_once_with(
-            'pipeline_workers', CACHE_CONFIG)
+            'routes', CACHE_CONFIG)
 
-    def test_delete_pipeline_does_not_call_cache_del(self):
+    def test_delete_routes_does_not_call_cache_del(self):
         with patch.object(
                 NativeProxy, 'cache_exists', self.cache_false
         ), patch.object(NativeProxy, 'cache_del', self.cache_del):
             config_cache = ConfigCache()
-            config_cache.delete_pipeline()
+            config_cache.delete_routes()
 
         with self.assertRaises(AssertionError):
             self.cache_del.assert_called_once_with(
-                'pipeline_workers', CACHE_CONFIG)
+                'routes', CACHE_CONFIG)
 
 
 class WhenTestingTenantCache(unittest.TestCase):

@@ -54,7 +54,6 @@ api.add_route('/v1/callback', callback)
 # Coordinator Routing
 api.add_route('/v1/pairing', worker_registration)
 api.add_route('/v1/worker/{worker_id}/routes', worker_routes)
-api.add_route('/v1/worker/{worker_id}/registration', worker_registration)
 
 api.add_route('/v1/worker/{worker_id}/status', worker_update)
 api.add_route('/v1/status', workers_status)

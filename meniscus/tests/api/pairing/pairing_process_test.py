@@ -78,7 +78,7 @@ class WhenTestingPairingProcess(unittest.TestCase):
                     self.coordinator_uri, self.personality,
                     self.registration, auth_header))
             self.http_request.assert_called_once_with(
-                self.coordinator_uri + '/registration',
+                self.coordinator_uri + '/pairing',
                 auth_header,
                 jsonutils.dumps(self.registration),
                 http_verb='POST')

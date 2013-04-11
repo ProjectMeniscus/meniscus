@@ -56,7 +56,7 @@ class PairingProcess(object):
         register with the coordinator and persist the configuration to cache
         """
         try:
-            resp = http_request(coordinator_uri + '/registration', auth_header,
+            resp = http_request(coordinator_uri + '/pairing', auth_header,
                                 jsonutils.dumps(
                                     registration), http_verb='POST')
 

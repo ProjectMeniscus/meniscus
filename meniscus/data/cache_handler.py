@@ -33,7 +33,12 @@ _CACHE_OPTIONS = [
     cfg.StrOpt('cache_token',
                default='cache-token',
                help="""The name of the cache to store worker config values"""
-               )
+               ),
+    cfg.StrOpt('cache_broadcast',
+               default='cache-broadcast',
+               help="""The name of the cache to store broadcast
+                    config values"""
+    )
 ]
 
 get_config().register_opts(_CACHE_OPTIONS, group=_cache_group)
@@ -48,6 +53,7 @@ CONFIG_EXPIRES = conf.cache.config_expires
 CACHE_CONFIG = conf.cache.cache_config
 CACHE_TENANT = conf.cache.cache_tenant
 CACHE_TOKEN = conf.cache.cache_token
+CACHE_BROADCAST = conf.cache.cache_broadcast
 
 
 class Cache(object):
@@ -166,3 +172,29 @@ class TokenCache(Cache):
     def delete_token(self, tenant_id):
         if self.cache.cache_exists(tenant_id, CACHE_TOKEN):
             self.cache.cache_del(tenant_id, CACHE_TOKEN)
+
+
+class BroadcastCache(Cache):
+
+    def clear(self):
+        self.cache.cache_clear(CACHE_BROADCAST)
+
+    def set_message_and_targets(self, message_type, target_list):
+        if self.cache.cache_exists(message_type, CACHE_BROADCAST):
+            self.cache.cache_update(
+                message_type, str(target_list),
+                DEFAULT_EXPIRES, CACHE_BROADCAST)
+        else:
+            self.cache.cache_set(
+                message_type, str(target_list),
+                DEFAULT_EXPIRES, CACHE_BROADCAST)
+
+    def get_targets(self, message_type):
+        if self.cache.cache_exists(message_type, CACHE_BROADCAST):
+            targets = self.cache.cache_get(message_type, CACHE_BROADCAST)
+            return targets
+        return None
+
+    def delete_message(self, message_type):
+        if self.cache.cache_exists(message_type, CACHE_BROADCAST):
+            self.cache.cache_del(message_type, CACHE_BROADCAST)

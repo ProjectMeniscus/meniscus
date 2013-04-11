@@ -172,6 +172,9 @@ class WhenTestingCorrelationMessage(unittest.TestCase):
         self.assertTrue('pattern' in meniscus_dict.keys())
         self.assertEquals(meniscus_dict['pattern'], 'syslog')
         self.assertTrue('job_id' in meniscus_dict.keys())
+        self.assertTrue('durable' in meniscus_dict.keys())
+        self.assertTrue('encrypted' in meniscus_dict.keys())
+        self.assertTrue(meniscus_dict['durable'])
 
         durable_job = test_message.get_durable_job_info()
         self.assertTrue('job_id' in durable_job.keys())

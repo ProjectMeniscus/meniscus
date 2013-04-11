@@ -2,6 +2,7 @@ import meniscus.config as config
 from meniscus.data import adapters
 from meniscus.data.handler import datasource_handler
 
+
 def db_handler():
     try:
         config.init_config()

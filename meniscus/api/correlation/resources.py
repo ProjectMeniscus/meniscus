@@ -13,7 +13,7 @@ from meniscus.api.correlation.correlation_exceptions \
     import MessageValidationError
 from meniscus.api.correlation.correlation_exceptions \
     import ResourceNotFoundError
-from meniscus.api.correlation.correlation_process import CorrelationMessage
+from meniscus.api.correlation.correlation_process import Correlator
 from meniscus.api.correlation.correlation_process import TenantIdentification
 from meniscus.api.correlation.correlation_process \
     import validate_event_message_body
@@ -51,12 +51,12 @@ class PublishMessageResource(ApiResource):
 
         try:
             tenant = tenant_identification.get_validated_tenant()
-            message = CorrelationMessage(tenant, body)
-            message.process_message()
-            if message.is_durable():
+            correlator = Correlator(tenant, body)
+            correlator.process_message()
+            if correlator.is_durable():
                 resp.status = falcon.HTTP_202
                 resp.body = format_response_body(
-                    message.get_durable_job_info())
+                    correlator.get_durable_job_info())
 
             else:
                 resp.status = falcon.HTTP_204

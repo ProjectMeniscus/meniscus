@@ -31,7 +31,7 @@ def validate_event_message_body(body):
     return True
 
 
-class CorrelationMessage(object):
+class Correlator(object):
     def __init__(self, tenant, message):
         self.tenant = tenant
         self.message = message

@@ -60,7 +60,9 @@ class Correlator(object):
         correlation_dict = {
             'host_id': host.get_id(),
             'ep_id': None,
-            'pattern': None
+            'pattern': None,
+            'durable': False,
+            'encrypted': False,
         }
 
         producer = find_event_producer_for_host(
@@ -70,7 +72,9 @@ class Correlator(object):
             self._durable = producer.durable
             correlation_dict.update({
                 'ep_id': producer.get_id(),
-                'pattern': producer.pattern
+                'pattern': producer.pattern,
+                'durable': producer.durable,
+                'encrypted': producer.encrypted
             })
 
             #todo(sgonzales) persist message and create job

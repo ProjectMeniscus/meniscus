@@ -36,7 +36,48 @@ class WhenTestingGetRoutesFromCoordinator(unittest.TestCase):
 
     def test_should_return_true_for_get_worker_routes(self):
         self.resp.status_code = httplib.OK
-        self.resp._content = '{"fake": "json"}'
+        self.resp._content = """{
+            "routes": [
+                {
+                    "service_domain": "correlation",
+                    "targets": [
+                        {
+                            "worker_id":
+                            "e773b64c-b28f-452a-bc3e-ba5a5d32f450",
+                            "status": "ONLINE",
+                            "ipv4_address": "127.0.0.1",
+                            "ipv6_address": "::1"
+                        },
+                        {
+                            "worker_id":
+                            "2fcd200a-bb7f-4315-ae3e-6a6647d5e063",
+                            "status": "ONLINE",
+                            "ipv4_address": "127.0.0.1",
+                            "ipv6_address": "::1"
+                        },
+                        {
+                            "worker_id":
+                            "9a21a842-3642-4ba5-8b3c-721b44d7931b",
+                            "status": "ONLINE",
+                            "ipv4_address": "127.0.0.1",
+                            "ipv6_address": "::1"
+                        },
+                        {
+                            "worker_id":
+                            "27f96f4e-f6f1-4e98-8fc1-2c59fd6387bf",
+                            "status": "OFFLINE",
+                            "ipv4_address": "127.0.0.1",
+                            "ipv6_address": "::1"
+                        }
+                    ]
+                },
+                {
+                    "service_domain": "other",
+                    "targets": []
+                }
+            ]
+        }"""
+
         with patch.object(routing.ConfigCache, 'get_config',
                           return_value=self.get_config), patch(
                 'meniscus.personas.common.routing.http_request',

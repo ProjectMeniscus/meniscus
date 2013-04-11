@@ -71,7 +71,7 @@ class WorkerRegistration(object):
         self.hostname = platform.node()
         self.ip_address_v4 = sys_assist.get_lan_ip()
         self.ip_address_v6 = ""
-        self.callback = self.ip_address_v4 + ':8080/v1/configuration'
+        self.callback = self.ip_address_v4 + ':8080/v1/callback'
         self.personality = personality
         self.status = status
         self.system_info = SystemInfo()

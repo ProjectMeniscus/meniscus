@@ -10,7 +10,7 @@ from meniscus.data.model.worker import WorkerConfiguration
 from meniscus.data.model.worker import WorkerRegistration
 from meniscus.data.cache_handler import ConfigCache
 from meniscus.openstack.common import jsonutils
-from meniscus.personas.common.routing import get_routes_from_coordinator
+from meniscus.personas.common import routing
 from meniscus.proxy import NativeProxy
 
 
@@ -79,4 +79,4 @@ class PairingProcess(object):
         """
         get the associated routes for the worker and store them in cache
         """
-        return get_routes_from_coordinator()
+        return routing.get_routes_from_coordinator()

@@ -18,4 +18,4 @@ class BroadcastResource(ApiResource):
         cache.set_message_and_targets(broadcast_msg_dict['type'],
                                       broadcast_msg_dict['targets'])
 
-        resp.status = falcon.HTTP_204
+        resp.status = falcon.HTTP_202

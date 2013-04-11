@@ -183,7 +183,7 @@ class BroadcastCache(Cache):
     def set_message_and_targets(self, message_type, target_list):
         if self.cache.cache_exists(message_type, CACHE_BROADCAST):
             self.cache.cache_update(
-                message_type, jsonutils.dumps(target_list),
+                message_type, str(target_list),
                 DEFAULT_EXPIRES, CACHE_BROADCAST)
         else:
             self.cache.cache_set(
@@ -196,6 +196,6 @@ class BroadcastCache(Cache):
             return targets.split(',')
         return None
 
-    def delete_message(self, message):
-        if self.cache.cache_exists(message.type, CACHE_BROADCAST):
-            self.cache.cache_del(message.type, CACHE_BROADCAST)
+    def delete_message(self, message_type):
+        if self.cache.cache_exists(message_type, CACHE_BROADCAST):
+            self.cache.cache_del(message_type, CACHE_BROADCAST)

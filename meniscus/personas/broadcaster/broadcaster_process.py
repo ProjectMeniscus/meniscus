@@ -19,7 +19,7 @@ _BROADCAST_OPTIONS = [
     cfg.IntOpt('broadcast_message_interval',
                default=60,
                help="""default time to broadcast messages"""
-    )
+               )
 ]
 
 get_config().register_opts(_BROADCAST_OPTIONS, group=_BROADCAST_GROUP)

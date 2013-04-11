@@ -25,7 +25,7 @@ get_config().register_opts(HANDLER_OPTIONS, group=datasource_group)
 
 # Connection status values
 STATUS_NEW = 'NEW'
-STATUS_CONNECTED = 'CONNTECTED'
+STATUS_CONNECTED = 'CONNECTED'
 STATUS_CLOSED = 'CLOSED'
 
 

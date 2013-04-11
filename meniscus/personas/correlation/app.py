@@ -6,6 +6,7 @@ from meniscus.api.version.resources import VersionResource
 from meniscus.personas.common.publish_stats import WorkerStatusPublisher
 from meniscus.personas.common.publish_stats import WorkerStatsPublisher
 
+from portal.server import
 
 def start_up():
 

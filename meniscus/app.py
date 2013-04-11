@@ -2,7 +2,7 @@ from meniscus.ext.plugin import import_module
 from meniscus.data.cache_handler import ConfigCache
 
 
-DEFAULT_PERSONALITY_MODULE = 'meniscus.personas.pairing.app'
+DEFAULT_PERSONALITY_MODULE = 'meniscus.personas.syslog.app'
 config_cache = ConfigCache()
 
 

@@ -4,7 +4,6 @@ import unittest
 from mock import MagicMock
 from mock import patch
 
-from meniscus.api.coordinator import coordinator_flow
 from meniscus.api.coordinator import watchlist_flow
 from meniscus.data.model.worker import SystemInfo
 from meniscus.data.model.worker import WorkerRegistration
@@ -73,7 +72,8 @@ class WhenTestingWatchlistFlow(unittest.TestCase):
         watchlist_flow._delete_expired_watchlist_items(self.db_handler)
 
     def test_broadcast_config_change(self):
-        watchlist_flow.broadcast_config_change(self.db_handler, self.worker)
+        watchlist_flow._send_callback_list_to_broadcast(self.db_handler,
+                                                        self.worker)
 
     def test_process_watchlist_item(self):
         watchlist_flow.process_watchlist_item(self.db_handler, self.worker_id)

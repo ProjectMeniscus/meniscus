@@ -11,7 +11,7 @@ from meniscus.data.cache_handler import BroadcastCache
 
 
 # cache configuration options
-_BROADCAST_GROUP = cfg.OptGroup(name='broadcast',
+_BROADCAST_GROUP = cfg.OptGroup(name='broadcast_settings',
                                 title='Broadcast Settings')
 get_config().register_group(_BROADCAST_GROUP)
 
@@ -29,12 +29,12 @@ try:
 except cfg.ConfigFilesNotFoundError:
     conf = get_config()
 
-BROADCAST_MESSAGE_INTERVAL = conf.status_update.broadcast_message_interval
+BROADCAST_MESSAGE_INTERVAL = conf.broadcast_settings.broadcast_message_interval
 
 ROUTES = 'ROUTES'
 
 
-class Broadcaster(object):
+class BroadcasterProcess(object):
     def __init__(self, run_once=False):
         self.process = Process(
             target=self._broadcast_route_messages,

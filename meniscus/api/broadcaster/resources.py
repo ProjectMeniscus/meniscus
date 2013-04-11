@@ -6,6 +6,7 @@ from meniscus.data.cache_handler import BroadcastCache
 
 
 class BroadcastResource(ApiResource):
+
     def on_put(self, req, resp):
         """
         Take a broadcast message from a Coordinator and stuff it

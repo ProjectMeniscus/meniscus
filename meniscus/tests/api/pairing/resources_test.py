@@ -1,5 +1,7 @@
 import unittest
 
+import falcon
+
 from mock import MagicMock
 from mock import patch
 
@@ -27,6 +29,7 @@ class WhenTestingPairingConfigurationResource(unittest.TestCase):
         with patch('meniscus.api.pairing.resources.PairingProcess',
                    MagicMock()):
             self.resource.on_post(self.req, self.resp)
+        self.assertEquals(self.resp.status, falcon.HTTP_200)
 
 if __name__ == '__main__':
     unittest.main()

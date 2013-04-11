@@ -2,7 +2,6 @@
 from oslo.config import cfg
 from meniscus.config import get_config
 from meniscus.config import init_config
-from meniscus.data.model.util import load_broadcast_message_from_dict
 from meniscus.data.model.util import load_tenant_from_dict
 from meniscus.data.model.util import load_token_from_dict
 from meniscus.data.model.worker import WorkerConfiguration
@@ -193,7 +192,7 @@ class BroadcastCache(Cache):
     def get_targets(self, message_type):
         if self.cache.cache_exists(message_type, CACHE_BROADCAST):
             targets = self.cache.cache_get(message_type, CACHE_BROADCAST)
-            return targets.split(',')
+            return targets
         return None
 
     def delete_message(self, message_type):

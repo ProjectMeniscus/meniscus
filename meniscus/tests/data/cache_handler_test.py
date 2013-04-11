@@ -3,7 +3,9 @@ import unittest
 from mock import MagicMock
 from mock import patch
 
+from meniscus.data.cache_handler import BroadcastCache
 from meniscus.data.cache_handler import Cache
+from meniscus.data.cache_handler import CACHE_BROADCAST
 from meniscus.data.cache_handler import CACHE_CONFIG
 from meniscus.data.cache_handler import CACHE_TENANT
 from meniscus.data.cache_handler import CACHE_TOKEN
@@ -374,6 +376,96 @@ class WhenTestingTokenCache(unittest.TestCase):
         with self.assertRaises(AssertionError):
             self.cache_del.assert_called_once_with(
                 self.tenant_id, CACHE_TOKEN)
+
+
+class WhenTestingBroadcastCache(unittest.TestCase):
+    def setUp(self):
+        self.cache_clear = MagicMock()
+        self.cache_true = MagicMock(return_value=True)
+        self.cache_false = MagicMock(return_value=False)
+        self.cache_update = MagicMock()
+        self.cache_set = MagicMock()
+        self.cache_del = MagicMock()
+        self.message_type = 'ROUTES'
+        self.target_list = [
+            'http://hostname1.domain:8080/callback',
+            'http://hostname2.domain:8080/callback',
+            'http://hostname3.domain:8080/callback',
+            'http://hostname4.domain:8080/callback'
+        ]
+        #self.token = Token()
+        #self.token_json = jsonutils.dumps(self.token.format())
+        self.cache_get_targets = MagicMock(return_value=self.target_list)
+
+    def test_clear_calls_cache_clear(self):
+        with patch.object(NativeProxy, 'cache_clear', self.cache_clear):
+            broadcast_cache = BroadcastCache()
+            broadcast_cache.clear()
+        self.cache_clear.assert_called_once_with(CACHE_BROADCAST)
+
+    def test_set_message_and_targets_calls_cache_update(self):
+        with patch.object(
+                NativeProxy, 'cache_exists', self.cache_true
+        ), patch.object(NativeProxy, 'cache_update', self.cache_update):
+            broadcast_cache = BroadcastCache()
+            broadcast_cache.set_message_and_targets(self.message_type,
+                                                    self.target_list)
+
+        self.cache_update.assert_called_once_with(
+            self.message_type, str(self.target_list),
+            DEFAULT_EXPIRES, CACHE_BROADCAST)
+
+    def test_set_message_and_targets_calls_cache_set(self):
+        with patch.object(
+                NativeProxy, 'cache_exists', self.cache_false
+        ), patch.object(NativeProxy, 'cache_set', self.cache_set):
+            broadcast_cache = BroadcastCache()
+            broadcast_cache.set_message_and_targets(self.message_type,
+                                                    self.target_list)
+
+        self.cache_set.assert_called_once_with(
+            self.message_type, str(self.target_list),
+            DEFAULT_EXPIRES, CACHE_BROADCAST)
+
+    def test_get_targets_calls_returns_target_list(self):
+        with patch.object(
+                NativeProxy, 'cache_exists', self.cache_true
+        ), patch.object(NativeProxy, 'cache_get',  self.cache_get_targets):
+            broadcast_cache = BroadcastCache()
+            targets = broadcast_cache.get_targets(self.message_type)
+
+        self.cache_get_targets.assert_called_once_with(
+            self.message_type, CACHE_BROADCAST)
+        self.assertEquals(targets, self.target_list)
+
+    def test_get_targets_calls_returns_none(self):
+        with patch.object(
+                NativeProxy, 'cache_exists', self.cache_false):
+            broadcast_cache = BroadcastCache()
+            targets = broadcast_cache.get_targets(self.target_list)
+
+        self.assertIs(targets, None)
+
+    def test_delete_message_calls_cache_del(self):
+        with patch.object(
+                NativeProxy, 'cache_exists', self.cache_true
+        ), patch.object(NativeProxy, 'cache_del', self.cache_del):
+            broadcast_cache = BroadcastCache()
+            broadcast_cache.delete_message(self.message_type)
+
+        self.cache_del.assert_called_once_with(
+            self.message_type, CACHE_BROADCAST)
+
+    def test_delete_message_does_not_call_cache_del(self):
+        with patch.object(
+                NativeProxy, 'cache_exists', self.cache_false
+        ), patch.object(NativeProxy, 'cache_del', self.cache_del):
+            broadcast_cache = BroadcastCache()
+            broadcast_cache.delete_message(self.message_type)
+
+        with self.assertRaises(AssertionError):
+            self.cache_del.assert_called_once_with(
+                self.message_type, CACHE_BROADCAST)
 
 
 if __name__ == '__main__':

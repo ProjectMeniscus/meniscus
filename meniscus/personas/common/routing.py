@@ -16,7 +16,7 @@ def get_routes_from_coordinator():
 
     token_header = {"WORKER-ID": config.worker_id,
                     "WORKER-TOKEN": config.worker_token}
-    request_uri = "{0}/worker/{1}/configuration".format(
+    request_uri = "{0}/worker/{1}/routes".format(
         config.coordinator_uri, config.worker_id)
 
     try:
@@ -28,7 +28,7 @@ def get_routes_from_coordinator():
     #if the coordinator issues a response, cache the worker routes
     #and return true
     if resp.status_code == httplib.OK:
-        routes = resp.json()
+        routes = resp.json()['routes']
 
         config_cache.set_routes(routes)
 

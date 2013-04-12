@@ -30,3 +30,13 @@ def _worker_not_found():
     sends an http 404 invalid worker not found
     """
     abort(falcon.HTTP_404, 'unable to locate worker.')
+
+
+class PublishMessageError(Exception):
+    def __init__(self, msg=str()):
+        self.msg = msg
+        super(PublishMessageError, self).__init__(self.msg)
+
+
+class BroadcasterCommunicationError(PublishMessageError):
+    pass

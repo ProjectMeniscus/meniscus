@@ -33,9 +33,6 @@ except cfg.ConfigFilesNotFoundError:
 VALID_ROUTE_LIST = conf.coordinator_settings.valid_route_list
 VALID_STATUS_LIST = conf.coordinator_settings.valid_status_list
 
-VALID_ROUTE_LIST = ['online', 'draining']
-VALID_STATUS_LIST = ['new', 'offline', 'online', 'draining']
-
 
 # worker registration resource
 def validate_worker_registration_req_body(body):

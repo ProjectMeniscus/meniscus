@@ -5,4 +5,4 @@ requests>=1.1.0
 iso8601>=0.1.4
 eventlet>=0.12.1
 oslo.config>=1.1.0
-uWSGI>=1.9.0
+uWSGI>=1.9.6

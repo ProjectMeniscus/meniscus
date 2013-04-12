@@ -31,7 +31,7 @@ def validate_event_message_body(body):
     return True
 
 
-class CorrelationMessage(object):
+class Correlator(object):
     def __init__(self, tenant, message):
         self.tenant = tenant
         self.message = message
@@ -60,7 +60,9 @@ class CorrelationMessage(object):
         correlation_dict = {
             'host_id': host.get_id(),
             'ep_id': None,
-            'pattern': None
+            'pattern': None,
+            'durable': False,
+            'encrypted': False,
         }
 
         producer = find_event_producer_for_host(
@@ -70,7 +72,9 @@ class CorrelationMessage(object):
             self._durable = producer.durable
             correlation_dict.update({
                 'ep_id': producer.get_id(),
-                'pattern': producer.pattern
+                'pattern': producer.pattern,
+                'durable': producer.durable,
+                'encrypted': producer.encrypted
             })
 
             #todo(sgonzales) persist message and create job

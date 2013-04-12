@@ -79,6 +79,7 @@ class WhenTestingWorkerRegistrationObject(unittest.TestCase):
         worker_dict = self.worker_reg.format()
         self.assertTrue('hostname' in worker_dict)
         self.assertTrue('callback' in worker_dict)
+        self.assertTrue('/callback' in worker_dict['callback'])
         self.assertTrue('ip_address_v4' in worker_dict)
         self.assertTrue('ip_address_v6' in worker_dict)
         self.assertTrue('personality' in worker_dict)

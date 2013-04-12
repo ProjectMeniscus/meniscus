@@ -8,6 +8,8 @@ import requests
 from meniscus.api.pairing.pairing_process import PairingProcess
 import meniscus.api.pairing.pairing_process as pairing_process
 from meniscus.data.model.worker import WorkerConfiguration
+from meniscus.data.model.worker import WorkerRegistration
+from meniscus.openstack.common import jsonutils
 
 
 def suite():
@@ -34,7 +36,8 @@ class WhenTestingPairingProcess(unittest.TestCase):
 
         self.resp = requests.Response()
         self.http_request = MagicMock(return_value=self.resp)
-        self.registration = dict()
+        self.registration = WorkerRegistration(personality='correlation')\
+            .format()
 
     def test_process_start_on_run(self):
         with patch.object(pairing_process.Process, 'start') as start:
@@ -67,15 +70,21 @@ class WhenTestingPairingProcess(unittest.TestCase):
             '{"personality_module": "meniscus.personas.pairing.app", ' \
             '"worker_token": "3F2504E0-4F89-11D3-9A0C-0305E82C3301", ' \
             '"worker_id": "3F2504E0-4F89-11D3-9A0C-0305E82C3301"}'
+        auth_header = {'X-AUTH-TOKEN': self.api_secret}
         with patch('meniscus.api.pairing.pairing_process.'
                    'http_request', self.http_request):
             self.assertTrue(
                 self.pairing_process._register_with_coordinator(
                     self.coordinator_uri, self.personality,
-                    self.registration, self.api_secret))
+                    self.registration, auth_header))
+            self.http_request.assert_called_once_with(
+                self.coordinator_uri + '/pairing',
+                auth_header,
+                jsonutils.dumps(self.registration),
+                http_verb='POST')
 
     def test_should_return_true_for_get_worker_routes(self):
-        with patch('meniscus.api.pairing.pairing_process.'
+        with patch('meniscus.api.pairing.pairing_process.routing.'
                    'get_routes_from_coordinator',
                    MagicMock(return_value=True)) as get_routes:
                 self.assertTrue(self.pairing_process._get_worker_routes())

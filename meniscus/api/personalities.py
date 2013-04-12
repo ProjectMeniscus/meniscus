@@ -14,3 +14,7 @@ PERSONALITIES = [
         'downstream': '',
         'alternate': ''
     }]
+
+CORRELATION = 'correlation'
+NORMALIZATION = 'normalization'
+STORAGE = 'storage'

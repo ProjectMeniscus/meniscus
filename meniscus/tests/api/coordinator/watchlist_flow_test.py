@@ -1,9 +1,12 @@
 
+import httplib
 import unittest
 
 from mock import MagicMock
 from mock import patch
+import requests
 
+from meniscus.api.coordinator import coordinator_errors
 from meniscus.api.coordinator import watchlist_flow
 from meniscus.data.model.worker import SystemInfo
 from meniscus.data.model.worker import WorkerRegistration
@@ -18,6 +21,30 @@ def suite():
 
 class WhenTestingWatchlistFlow(unittest.TestCase):
     def setUp(self):
+        self.broadcaster_list = [
+            Worker(**WorkerRegistration(personality='broadcaster',
+                                        status='online').format()).format(),
+            Worker(**WorkerRegistration(personality='broadcaster',
+                                        status='online').format()).format(),
+            Worker(**WorkerRegistration(personality='broadcaster',
+                                        status='online').format()).format(),
+        ]
+        self.broadcaster_uri_list = [worker['ip_address_v4']
+                                     for worker in self.broadcaster_list]
+        self.target_list = [
+            Worker(**WorkerRegistration(personality='coordinator',
+                                        status='online').format()).format(),
+            Worker(**WorkerRegistration(personality='normalizer',
+                                        status='online').format()).format(),
+            Worker(**WorkerRegistration(personality='coordinator',
+                                        status='online').format()).format(),
+        ]
+        self.target_uri_list = {"broadcast": {"type": "ROUTES", "targets":
+                                [worker['ip_address_v4']
+                                for worker in self.target_list]}}
+
+        self.damaged_worker = Worker(**WorkerRegistration(
+            personality='broadcaster',).format())
         self.db_handler = MagicMock()
         self.worker_id = "0123456789"
         self.req = MagicMock()
@@ -71,8 +98,90 @@ class WhenTestingWatchlistFlow(unittest.TestCase):
     def test_delete_expired_watchlist_item(self):
         watchlist_flow._delete_expired_watchlist_items(self.db_handler)
 
+    def test_get_broadcaster_list_true(self):
+        db_handler = MagicMock()
+        db_handler.find.return_value = self.broadcaster_list
+        self.assertEqual(watchlist_flow._get_broadcaster_list(db_handler),
+                         self.broadcaster_uri_list)
+
+    def test_get_broadcaster_list_empty(self):
+        db_handler = MagicMock()
+        db_handler.find = MagicMock(return_value=[])
+        self.assertFalse(
+            watchlist_flow._get_broadcaster_list(db_handler))
+
+    def test_get_broadcast_targets_list_empty(self):
+        db_handler = MagicMock()
+        db_handler.find - MagicMock(return_value=[])
+        self.assertFalse(
+            watchlist_flow._get_broadcast_targets(db_handler,
+                                                  self.damaged_worker))
+
+    def test_get_broadcast_targets_list_true(self):
+        db_handler = MagicMock()
+        db_handler.find.return_value = self.target_list
+        self.assertEqual(
+            watchlist_flow._get_broadcast_targets(db_handler,
+                                                  self.damaged_worker),
+            self.target_uri_list)
+
+    def test_send_target_list_to_broadcaster_false_empty_target_list(self):
+        db_handler = MagicMock()
+        watchlist_flow._get_broadcast_targets = MagicMock(
+            return_value=[])
+        watchlist_flow._get_broadcaster_list = MagicMock(
+            return_value=self.broadcaster_uri_list)
+        result = watchlist_flow._send_target_list_to_broadcaster(
+            db_handler, self.damaged_worker)
+        self.assertFalse(result)
+
+    def test_send_target_list_to_broadcaster_no_connection_made(self):
+        db_handler = MagicMock()
+        resp = MagicMock()
+        resp.status_code = httplib.BAD_REQUEST
+        http_request = MagicMock(return_value=resp)
+        watchlist_flow._get_broadcast_targets = MagicMock(
+            return_value=self.target_uri_list)
+        watchlist_flow._get_broadcaster_list = MagicMock(
+            return_value=self.broadcaster_uri_list)
+        with patch('meniscus.api.coordinator.'
+                   'watchlist_flow.http_request', http_request):
+            result = watchlist_flow._send_target_list_to_broadcaster(
+                db_handler, self.damaged_worker)
+            self.assertFalse(result)
+
+    def test_send_target_list_to_broadcaster_exception_raised(self):
+        db_handler = MagicMock()
+        http_request = MagicMock(
+            side_effect=requests.RequestException)
+        watchlist_flow._get_broadcast_targets = MagicMock(
+            return_value=self.target_uri_list)
+        watchlist_flow._get_broadcaster_list = MagicMock(
+            return_value=self.broadcaster_uri_list)
+        with patch('meniscus.api.coordinator.'
+                   'watchlist_flow.http_request', http_request):
+            with self.assertRaises(
+                    coordinator_errors.BroadcasterCommunicationError):
+                    watchlist_flow._send_target_list_to_broadcaster(
+                        db_handler, self.damaged_worker)
+
+    def test_send_target_list_to_broadcaster_connection_made(self):
+        db_handler = MagicMock()
+        resp = MagicMock()
+        resp.status_code = httplib.OK
+        http_request = MagicMock(return_value=resp)
+        watchlist_flow._get_broadcast_targets = MagicMock(
+            return_value=self.target_uri_list)
+        watchlist_flow._get_broadcaster_list = MagicMock(
+            return_value=self.broadcaster_uri_list)
+        with patch('meniscus.api.coordinator.'
+                   'watchlist_flow.http_request', http_request):
+            result = watchlist_flow._send_target_list_to_broadcaster(
+                db_handler, self.damaged_worker)
+            self.assertTrue(result)
+
     def test_broadcast_config_change(self):
-        watchlist_flow._send_callback_list_to_broadcast(self.db_handler,
+        watchlist_flow._send_target_list_to_broadcaster(self.db_handler,
                                                         self.worker)
 
     def test_process_watchlist_item(self):

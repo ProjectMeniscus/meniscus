@@ -1,4 +1,3 @@
-
 from oslo.config import cfg
 from meniscus.config import get_config
 from meniscus.config import init_config
@@ -38,7 +37,7 @@ _CACHE_OPTIONS = [
                default='cache-broadcast',
                help="""The name of the cache to store broadcast
                     config values"""
-    )
+               )
 ]
 
 get_config().register_opts(_CACHE_OPTIONS, group=_cache_group)
@@ -117,9 +116,8 @@ class ConfigCache(Cache):
 
 
 class TenantCache(Cache):
-
     def clear(self):
-            self.cache.cache_clear(CACHE_TENANT)
+        self.cache.cache_clear(CACHE_TENANT)
 
     def set_tenant(self, tenant):
         if self.cache.cache_exists(tenant.tenant_id, CACHE_TENANT):
@@ -146,7 +144,6 @@ class TenantCache(Cache):
 
 
 class TokenCache(Cache):
-
     def clear(self):
         self.cache.cache_clear(CACHE_TOKEN)
 
@@ -175,7 +172,6 @@ class TokenCache(Cache):
 
 
 class BroadcastCache(Cache):
-
     def clear(self):
         self.cache.cache_clear(CACHE_BROADCAST)
 

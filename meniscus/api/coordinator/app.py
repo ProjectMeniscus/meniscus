@@ -59,7 +59,7 @@ api.add_route('/v1/worker/{worker_id}/status', worker_update)
 api.add_route('/v1/status', workers_status)
 api.add_route('/v1/status/{worker_id}', worker_status)
 
-api.add_route('/v1/worker/{worker_id}', worker_watchlist)
+api.add_route('/v1/workers/{worker_id}', worker_watchlist)
 
 # Tenant Routing
 api.add_route('/v1/tenant', tenant)

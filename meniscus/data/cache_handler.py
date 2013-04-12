@@ -1,4 +1,7 @@
+from datetime import datetime
+
 from oslo.config import cfg
+
 from meniscus.config import get_config
 from meniscus.config import init_config
 from meniscus.data.model.util import load_tenant_from_dict
@@ -21,6 +24,10 @@ _CACHE_OPTIONS = [
                default=0,
                help="""Default time to keep worker config items in cache."""
                ),
+    cfg.IntOpt('blacklist_expires',
+               default=60,  # seconds
+               help="""Default time to blacklist worker after a failure."""
+               ),
     cfg.StrOpt('cache_config',
                default='cache-config',
                help="""The name of the cache to store worker config values"""
@@ -37,6 +44,10 @@ _CACHE_OPTIONS = [
                default='cache-broadcast',
                help="""The name of the cache to store broadcast
                     config values"""
+               ),
+    cfg.StrOpt('cache_blacklist',
+               default='cache-blacklist',
+               help="""The name of the cache to store worker blacklist"""
                )
 ]
 
@@ -49,10 +60,12 @@ except cfg.ConfigFilesNotFoundError:
 
 DEFAULT_EXPIRES = conf.cache.default_expires
 CONFIG_EXPIRES = conf.cache.config_expires
+BLACKLIST_EXPIRES = conf.cache.blacklist_expires
 CACHE_CONFIG = conf.cache.cache_config
 CACHE_TENANT = conf.cache.cache_tenant
 CACHE_TOKEN = conf.cache.cache_token
 CACHE_BROADCAST = conf.cache.cache_broadcast
+CACHE_BLACKLIST = conf.cache.cache_blacklist
 
 
 class Cache(object):
@@ -194,3 +207,25 @@ class BroadcastCache(Cache):
     def delete_message(self, message_type):
         if self.cache.cache_exists(message_type, CACHE_BROADCAST):
             self.cache.cache_del(message_type, CACHE_BROADCAST)
+
+
+class BlacklistCache(Cache):
+
+    def clear(self):
+        self.cache.cache_clear(CACHE_BLACKLIST)
+
+    def add_blacklist_worker(self, worker_id):
+        if worker_id:
+            if self.cache.cache_exists(worker_id, CACHE_BLACKLIST):
+                self.cache.cache_update(worker_id, datetime.now(),
+                                        BLACKLIST_EXPIRES, CACHE_BLACKLIST)
+            else:
+                self.cache.cache_set(worker_id, datetime.now(),
+                                     BLACKLIST_EXPIRES, CACHE_BLACKLIST)
+        else:
+            #TODO(dmend): Log trying to blacklist
+            pass
+
+    def is_worker_blacklisted(self, worker_id):
+        return worker_id and self.cache.cache_exists(worker_id,
+                                                     CACHE_BLACKLIST)

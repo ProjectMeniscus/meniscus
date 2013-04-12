@@ -5,13 +5,16 @@ from meniscus.api.callback.resources import CallbackResource
 from meniscus.api.version.resources import VersionResource
 from meniscus.personas.common.publish_stats import WorkerStatusPublisher
 from meniscus.personas.common.publish_stats import WorkerStatsPublisher
+from meniscus.personas.common.routing import Router
 
 
 def start_up():
 
+    router = Router()
+
     versions = VersionResource()
     callback = CallbackResource()
-    publish_message = PublishMessageResource()
+    publish_message = PublishMessageResource(router)
 
     # Routing
     application = api = falcon.API()

@@ -18,9 +18,13 @@ from meniscus.api.correlation.correlation_process import TenantIdentification
 from meniscus.api.correlation.correlation_process \
     import validate_event_message_body
 from meniscus.api.tenant.resources import MESSAGE_TOKEN
+from meniscus.personas.common.routing import RoutingException
 
 
 class PublishMessageResource(ApiResource):
+
+    def __init__(self, router):
+        self.router = router
 
     def _validate_req_body_on_post(self, body):
         """
@@ -53,6 +57,10 @@ class PublishMessageResource(ApiResource):
             tenant = tenant_identification.get_validated_tenant()
             correlator = Correlator(tenant, body)
             correlator.process_message()
+            try:
+                self.router.route_message(correlator.message)
+            except RoutingException as ex:
+                abort(falcon.HTTP_500, 'error routing message')
             if correlator.is_durable():
                 resp.status = falcon.HTTP_202
                 resp.body = format_response_body(

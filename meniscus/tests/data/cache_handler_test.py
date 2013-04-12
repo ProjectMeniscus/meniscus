@@ -468,5 +468,9 @@ class WhenTestingBroadcastCache(unittest.TestCase):
                 self.message_type, CACHE_BROADCAST)
 
 
+class WhenTestingBlacklistCache(unittest.TestCase):
+    pass
+
+
 if __name__ == '__main__':
     unittest.main()

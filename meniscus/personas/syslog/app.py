@@ -5,6 +5,7 @@ from meniscus.api.callback.resources import CallbackResource
 from meniscus.api.version.resources import VersionResource
 from meniscus.personas.common.publish_stats import WorkerStatusPublisher
 from meniscus.personas.common.publish_stats import WorkerStatsPublisher
+from meniscus.personas.common.routing import Router
 
 from multiprocessing import Process
 
@@ -13,15 +14,16 @@ from portal.server import SyslogServer
 from portal.input.rfc5424 import SyslogMessageHandler
 
 
-_LOG = get_logger('portal.tests.server_test')
+_LOG = get_logger('meniscus.personas.syslog.app')
 
 
 class MessageHandler(SyslogMessageHandler):
 
-    def __init__(self):
+    def __init__(self, router):
         self.msg = b''
         self.msg_head = None
         self.msg_count = 0
+        self.router = router
 
     def message_head(self, message_head):
         self.msg_count += 1
@@ -31,10 +33,10 @@ class MessageHandler(SyslogMessageHandler):
         self.msg += message_part
 
     def message_complete(self, last_message_part):
-        message_dict = self.msg_head.as_dict()
-        message_dict['message'] = (
-            self.msg + last_message_part).decode('utf-8')
-        _LOG.debug('Message: {}'.format(json.dumps(message_dict)))
+        full_message = self.msg + last_message_part
+        outbound = self.msg_head.as_dict()
+        outbound['message'] = full_message.decode('utf-8')
+        self.router.route_message(outbound)
         self.msg_head = None
         self.msg = b''
 
@@ -47,12 +49,13 @@ def start_up():
 
     # Getting the status out - this may require a little more finesse...
     register_worker_online = WorkerStatusPublisher('online')
-    #register_worker_online.run()
+    register_worker_online.run()
 
     publish_stats_service = WorkerStatsPublisher()
-    #publish_stats_service.run()
+    publish_stats_service.run()
 
-    server = SyslogServer(("0.0.0.0", 5140), MessageHandler())
+    server = SyslogServer(
+        ("0.0.0.0", 5140), MessageHandler(Router()))
     Process(target=server.start).start()
 
     return application

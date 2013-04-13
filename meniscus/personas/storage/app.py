@@ -14,7 +14,7 @@ from portal.input.jsonstream import JsonMessageHandler
 from meniscus.api.datastore_init import db_handler
 
 
-_LOG = get_logger('portal.tests.server_test')
+_LOG = get_logger('meniscus.personas.storage.app')
 
 
 class JsonHandler(JsonMessageHandler):
@@ -50,7 +50,7 @@ def start_up():
     publish_stats_service.run()
 
     server = JsonStreamServer(
-        ("127.0.0.1", 9001), JsonHandler(db_handler()))
+        ('0.0.0.01', 9001), JsonHandler(db_handler()))
     Process(target=server.start).start()
 
     return application

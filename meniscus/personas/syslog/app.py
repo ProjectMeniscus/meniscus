@@ -33,10 +33,10 @@ class MessageHandler(SyslogMessageHandler):
         self.msg += message_part
 
     def message_complete(self, last_message_part):
-        message_dict = self.msg_head.as_dict()
-        message_dict['message'] = (
-            self.msg + last_message_part).decode('utf-8')
-        _LOG.debug('Message: {}'.format(json.dumps(message_dict)))
+        full_message = self.msg + last_message_part
+        outbound = self.msg_head.as_dict()
+        outbound['message'] = full_message.decode('utf-8')
+        self.router.route_message(outbound)
         self.msg_head = None
         self.msg = b''
 

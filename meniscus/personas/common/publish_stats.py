@@ -1,6 +1,6 @@
 import httplib
 from multiprocessing import Process
-import threading
+from time import sleep
 
 import requests
 
@@ -69,11 +69,9 @@ class WorkerStatsPublisher(object):
         """
 
         time_lapsed = 0
-        event = threading.Event()
 
         while True:
-
-            event.wait(load_ave_interval)
+            sleep(load_ave_interval)
             time_lapsed += load_ave_interval
 
             cache = ConfigCache()

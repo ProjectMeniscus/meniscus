@@ -104,7 +104,7 @@ class Router(object):
                     address = (worker['ipv4_address'], 9001)
 
                 sock = socket.socket(protocol, socket.SOCK_STREAM)
-                print sock
+
                 try:
                     sock.connect(address)
                     worker_socket = (worker, sock)

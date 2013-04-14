@@ -63,7 +63,7 @@ class BroadcasterProcess(object):
             uri_targets = cache.get_targets(ROUTES)
 
             # Get route messages from cache and notify the workers
-            if len(uri_targets):
+            if uri_targets:
                 type_header = {
                     "TYPE": ROUTES
                 }

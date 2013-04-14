@@ -3,7 +3,8 @@ import falcon
 from meniscus.api.broadcaster.resources import BroadcastResource
 from meniscus.api.callback.resources import CallbackResource
 from meniscus.api.version.resources import VersionResource
-from meniscus.personas.broadcaster.broadcaster import Broadcaster
+from meniscus.personas.broadcaster.broadcaster_process \
+    import BroadcasterProcess
 from meniscus.personas.common.publish_stats import WorkerStatusPublisher
 from meniscus.personas.common.publish_stats import WorkerStatsPublisher
 
@@ -27,7 +28,7 @@ def start_up():
     publish_stats_service.run()
 
     # Broadcaster process
-    broadcaster = Broadcaster()
+    broadcaster = BroadcasterProcess()
     broadcaster.run()
 
     return application

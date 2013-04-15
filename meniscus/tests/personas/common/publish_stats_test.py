@@ -1,5 +1,5 @@
 import httplib
-import threading
+from time import sleep
 import unittest
 
 import requests
@@ -45,11 +45,10 @@ class WhenTestingWorkerStatsPublisher(unittest.TestCase):
                 'meniscus.personas.common.publish_stats.get_config',
                 self.get_config):
             self.resource.run()
-            event = threading.Event()
-            event.wait(1)
+            sleep(1)
             self.assertTrue(self.resource.process.is_alive())
             self.resource.kill()
-            event.wait(1)
+            sleep(1)
             self.assertFalse(self.resource.process.is_alive())
 
     def test_http_request_called(self):

@@ -135,26 +135,26 @@ class WhenTestingRouter(unittest.TestCase):
             {
                 "worker_id": "e773b64c-b28f-452a-bc3e-ba5a5d32f450",
                 "status": "ONLINE",
-                "ipv4_address": "127.0.0.1",
-                "ipv6_address": ""
+                "ip_address_v4": "127.0.0.1",
+                "ip_address_v6": ""
             },
             {
                 "worker_id": "2fcd200a-bb7f-4315-ae3e-6a6647d5e063",
                 "status": "ONLINE",
-                "ipv4_address": "127.0.0.1",
-                "ipv6_address": ""
+                "ip_address_v4": "127.0.0.1",
+                "ip_address_v6": ""
             },
             {
                 "worker_id": "9a21a842-3642-4ba5-8b3c-721b44d7931b",
                 "status": "ONLINE",
-                "ipv4_address": "127.0.0.1",
-                "ipv6_address": ""
+                "ip_address_v4": "127.0.0.1",
+                "ip_address_v6": ""
             },
             {
                 "worker_id": "27f96f4e-f6f1-4e98-8fc1-2c59fd6387bf",
                 "status": "OFFLINE",
-                "ipv4_address": "127.0.0.1",
-                "ipv6_address": ""
+                "ip_address_v4": "127.0.0.1",
+                "ip_address_v6": ""
             }]
         self.routes = [{"service_domain": "correlation",
                         "targets": self.targets}]
@@ -171,6 +171,10 @@ class WhenTestingRouter(unittest.TestCase):
         self.assertEqual(next_service_domain, personalities.STORAGE)
 
         router._personality = personalities.NORMALIZATION
+        next_service_domain = router._get_next_service_domain()
+        self.assertEqual(next_service_domain, personalities.STORAGE)
+
+        router._personality = personalities.SYSLOG
         next_service_domain = router._get_next_service_domain()
         self.assertEqual(next_service_domain, personalities.STORAGE)
 
@@ -268,7 +272,7 @@ class WhenTestingRouter(unittest.TestCase):
     def test_get_worker_socket_returns_ipv6_socket(self):
         sock = MagicMock()
         sock.connect = MagicMock()
-        self.targets[0]['ipv6_address'] = 'ff06::c3'
+        self.targets[0]['ip_address_v6'] = 'ff06::c3'
         with patch.object(routing.ConfigCache, 'get_config',
                           self.get_config), \
             patch.object(routing.Router, '_get_route_targets',

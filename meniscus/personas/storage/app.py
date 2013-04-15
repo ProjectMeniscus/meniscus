@@ -50,7 +50,7 @@ def start_up():
     publish_stats_service.run()
 
     server = JsonStreamServer(
-        ('0.0.0.01', 9001), JsonHandler(db_handler()))
+        ('0.0.0.0', 9001), JsonHandler(db_handler()))
     Process(target=server.start).start()
 
     return application

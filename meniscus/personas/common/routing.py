@@ -55,6 +55,8 @@ class Router(object):
     def _get_next_service_domain(self):
         if self._personality == personalities.CORRELATION:
             return personalities.STORAGE
+        if self._personality == personalities.SYSLOG:
+            return personalities.STORAGE
         if self._personality == personalities.NORMALIZATION:
             return personalities.STORAGE
         return None
@@ -96,12 +98,12 @@ class Router(object):
             if not self._blacklist_cache.is_worker_blacklisted(
                     worker['worker_id']):
 
-                if worker['ipv6_address']:
+                if worker['ip_address_v6']:
                     protocol = socket.AF_INET6
-                    address = (worker['ipv6_address'], 9001, 0, 0)
+                    address = (worker['ip_address_v6'], 9001, 0, 0)
                 else:
                     protocol = socket.AF_INET
-                    address = (worker['ipv4_address'], 9001)
+                    address = (worker['ip_address_v4'], 9001)
 
                 sock = socket.socket(protocol, socket.SOCK_STREAM)
 

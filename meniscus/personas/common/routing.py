@@ -55,6 +55,8 @@ class Router(object):
     def _get_next_service_domain(self):
         if self._personality == personalities.CORRELATION:
             return personalities.STORAGE
+        if self._personality == personalities.SYSLOG:
+            return personalities.STORAGE
         if self._personality == personalities.NORMALIZATION:
             return personalities.STORAGE
         return None

@@ -174,6 +174,10 @@ class WhenTestingRouter(unittest.TestCase):
         next_service_domain = router._get_next_service_domain()
         self.assertEqual(next_service_domain, personalities.STORAGE)
 
+        router._personality = personalities.SYSLOG
+        next_service_domain = router._get_next_service_domain()
+        self.assertEqual(next_service_domain, personalities.STORAGE)
+
         router._personality = personalities.STORAGE
         next_service_domain = router._get_next_service_domain()
         self.assertIsNone(next_service_domain)

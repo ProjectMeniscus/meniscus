@@ -26,6 +26,7 @@ PERSONALITIES = [
     }]
 
 CORRELATION = 'correlation'
+SYSLOG = 'syslog'
 NORMALIZATION = 'normalization'
 STORAGE = 'storage'
 BROADCASTER = 'broadcaster'

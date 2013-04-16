@@ -217,10 +217,10 @@ class BlacklistCache(Cache):
     def add_blacklist_worker(self, worker_id):
         if worker_id:
             if self.cache.cache_exists(worker_id, CACHE_BLACKLIST):
-                self.cache.cache_update(worker_id, datetime.now(),
+                self.cache.cache_update(worker_id, str(datetime.now()),
                                         BLACKLIST_EXPIRES, CACHE_BLACKLIST)
             else:
-                self.cache.cache_set(worker_id, datetime.now(),
+                self.cache.cache_set(worker_id, str(datetime.now()),
                                      BLACKLIST_EXPIRES, CACHE_BLACKLIST)
         else:
             #TODO(dmend): Log trying to blacklist

@@ -77,6 +77,9 @@ def _get_broadcaster_list(db):
         'worker', {'personality': 'broadcaster',
                    'status': {'$in': coordinator_flow.VALID_ROUTE_LIST}})
 
+    if not broadcaster_list:
+        return []
+
     broadcaster_workers = [Worker(**worker).ip_address_v4
                            for worker in broadcaster_list]
 
@@ -91,9 +94,16 @@ def _get_broadcast_targets(db, worker):
     upstream_personality_list = [p['personality'] for p in PERSONALITIES
                                  if p['downstream'] == worker.personality
                                  or p['alternate'] == worker.personality]
+
+    if not upstream_personality_list:
+        return False
+
     upstream_list = db.find(
         'worker', {'personality': {'$in': upstream_personality_list},
                    'status': {'$in': coordinator_flow.VALID_ROUTE_LIST}})
+
+    if not upstream_list:
+        return False
 
     upstream_workers = [Worker(**worker) for worker in upstream_list]
 
@@ -102,10 +112,10 @@ def _get_broadcast_targets(db, worker):
         "targets": [target.ip_address_v4 for target in upstream_workers]
     }
 
-    if len(broadcast['targets']):
-        return {"broadcast": broadcast}
+    if not broadcast['targets']:
+        return False
 
-    return []
+    return {"broadcast": broadcast}
 
 
 def _send_target_list_to_broadcaster(db, worker):
@@ -131,7 +141,8 @@ def _send_target_list_to_broadcaster(db, worker):
             ## todo refactor callback address to not include /v1/callback/"
             resp = http_request(
                 '{0}:8080/v1/broadcast'.format(broadcaster_uri),
-                jsonutils.dumps(broadcast_targets), http_verb='PUT')
+                json_payload=jsonutils.dumps(broadcast_targets),
+                http_verb='PUT')
         except requests.RequestException:
             raise coordinator_errors.BroadcasterCommunicationError
         if resp.status_code == httplib.OK:

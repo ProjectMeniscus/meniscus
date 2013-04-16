@@ -82,12 +82,17 @@ def get_routes(db, worker_id):
     worker = find_worker(db, worker_id)
 
     default = [p['downstream'] for p in PERSONALITIES
-               if p['personality'] == worker.personality]
+               if p['downstream']
+               and p['personality'] == worker.personality]
 
     alternate = [p['alternate'] for p in PERSONALITIES
-                 if p['personality'] == worker.personality]
+                 if p['alternate']
+                 and p['personality'] == worker.personality]
 
     downstream_personalities = default + alternate
+
+    if not downstream_personalities:
+        return {'routes': []}
 
     worker_list = db.find(
         'worker', {'personality': {'$in': downstream_personalities},

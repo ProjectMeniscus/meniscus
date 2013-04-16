@@ -34,7 +34,7 @@ class WhenTestingWatchlistFlow(unittest.TestCase):
         self.target_list = [
             Worker(**WorkerRegistration(personality='coordinator',
                                         status='online').format()).format(),
-            Worker(**WorkerRegistration(personality='normalizer',
+            Worker(**WorkerRegistration(personality='normalization',
                                         status='online').format()).format(),
             Worker(**WorkerRegistration(personality='coordinator',
                                         status='online').format()).format(),
@@ -44,7 +44,7 @@ class WhenTestingWatchlistFlow(unittest.TestCase):
                                 for worker in self.target_list]}}
 
         self.damaged_worker = Worker(**WorkerRegistration(
-            personality='broadcaster',).format())
+            personality='storage').format())
         self.db_handler = MagicMock()
         self.worker_id = "0123456789"
         self.req = MagicMock()
@@ -109,6 +109,20 @@ class WhenTestingWatchlistFlow(unittest.TestCase):
         db_handler.find = MagicMock(return_value=[])
         self.assertFalse(
             watchlist_flow._get_broadcaster_list(db_handler))
+
+    def test_get_broadcaster_list_empty_find(self):
+        db_handler = MagicMock()
+        db_handler.find = MagicMock(return_value=[])
+        self.assertFalse(
+            watchlist_flow._get_broadcast_targets(db_handler,
+                                                  self.damaged_worker))
+
+    def test_get_broadcaster_list_no_upstream_personality(self):
+        damaged_worker = Worker(**WorkerRegistration(
+            personality='correlation').format())
+        db_handler = MagicMock()
+        self.assertFalse(
+            watchlist_flow._get_broadcast_targets(db_handler, damaged_worker))
 
     def test_get_broadcast_targets_list_empty(self):
         db_handler = MagicMock()

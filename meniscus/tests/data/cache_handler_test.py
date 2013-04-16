@@ -3,9 +3,12 @@ import unittest
 from mock import MagicMock
 from mock import patch
 
+from meniscus.data.cache_handler import BLACKLIST_EXPIRES
+from meniscus.data.cache_handler import BlacklistCache
 from meniscus.data.cache_handler import BroadcastCache
 from meniscus.data.cache_handler import Cache
 from meniscus.data.cache_handler import CACHE_BROADCAST
+from meniscus.data.cache_handler import CACHE_BLACKLIST
 from meniscus.data.cache_handler import CACHE_CONFIG
 from meniscus.data.cache_handler import CACHE_TENANT
 from meniscus.data.cache_handler import CACHE_TOKEN
@@ -469,7 +472,50 @@ class WhenTestingBroadcastCache(unittest.TestCase):
 
 
 class WhenTestingBlacklistCache(unittest.TestCase):
-    pass
+    def setUp(self):
+        self.cache_clear = MagicMock()
+        self.cache_true = MagicMock(return_value=True)
+        self.cache_false = MagicMock(return_value=False)
+        self.cache_update = MagicMock()
+        self.cache_set = MagicMock()
+        self.cache_del = MagicMock()
+        self.worker_id = 'd45aecac-a959-42f0-95da-36e3d8eeb3ec'
+
+    def test_clear_calls_cache_clear(self):
+        with patch.object(NativeProxy, 'cache_clear', self.cache_clear):
+            blacklist_cache = BlacklistCache()
+            blacklist_cache.clear()
+        self.cache_clear.assert_called_once_with(CACHE_BLACKLIST)
+
+    def test_add_blacklist_worker_calls_cache_update(self):
+        with patch.object(
+                NativeProxy, 'cache_exists', self.cache_true
+        ), patch.object(NativeProxy, 'cache_update', self.cache_update):
+            blacklist_cache = BlacklistCache()
+            blacklist_cache.add_blacklist_worker(self.worker_id)
+        self.cache_update.assert_called_once()
+
+    def test_is_worker_blacklisted_returns_false(self):
+        with patch.object(
+                NativeProxy, 'cache_exists', self.cache_false):
+            blacklist_cache = BlacklistCache()
+            return_val = blacklist_cache.is_worker_blacklisted(self.worker_id)
+
+        self.assertFalse(return_val)
+        with patch.object(
+                NativeProxy, 'cache_exists', self.cache_true):
+            blacklist_cache = BlacklistCache()
+            return_val = blacklist_cache.is_worker_blacklisted(None)
+
+        self.assertFalse(return_val)
+
+    def test_is_worker_blacklisted_returns_true(self):
+        with patch.object(
+                NativeProxy, 'cache_exists', self.cache_true):
+            blacklist_cache = BlacklistCache()
+            return_val = blacklist_cache.is_worker_blacklisted(self.worker_id)
+
+        self.assertTrue(return_val)
 
 
 if __name__ == '__main__':

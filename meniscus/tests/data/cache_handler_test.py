@@ -390,15 +390,20 @@ class WhenTestingBroadcastCache(unittest.TestCase):
         self.cache_set = MagicMock()
         self.cache_del = MagicMock()
         self.message_type = 'ROUTES'
+        self.existing_targets = [
+            'http://hostname0.domain:8080/callback',
+            'http://hostname5.domain:8080/callback'
+        ]
+        self.existing_targets_json = jsonutils.dumps(self.existing_targets)
         self.target_list = [
             'http://hostname1.domain:8080/callback',
             'http://hostname2.domain:8080/callback',
             'http://hostname3.domain:8080/callback',
             'http://hostname4.domain:8080/callback'
         ]
-        #self.token = Token()
-        #self.token_json = jsonutils.dumps(self.token.format())
         self.cache_get_targets = MagicMock(return_value=self.target_list)
+        self.cache_get_existing = MagicMock(
+            return_value=self.existing_targets_json)
 
     def test_clear_calls_cache_clear(self):
         with patch.object(NativeProxy, 'cache_clear', self.cache_clear):
@@ -409,13 +414,16 @@ class WhenTestingBroadcastCache(unittest.TestCase):
     def test_set_message_and_targets_calls_cache_update(self):
         with patch.object(
                 NativeProxy, 'cache_exists', self.cache_true
-        ), patch.object(NativeProxy, 'cache_update', self.cache_update):
+        ), patch.object(
+                NativeProxy, 'cache_update', self.cache_update), \
+            patch.object(
+                NativeProxy, 'cache_get',  self.cache_get_existing):
             broadcast_cache = BroadcastCache()
             broadcast_cache.set_message_and_targets(self.message_type,
                                                     self.target_list)
-
+        list_called = list(set(self.target_list + self.existing_targets))
         self.cache_update.assert_called_once_with(
-            self.message_type, str(self.target_list),
+            self.message_type, jsonutils.dumps(list_called),
             DEFAULT_EXPIRES, CACHE_BROADCAST)
 
     def test_set_message_and_targets_calls_cache_set(self):
@@ -427,19 +435,19 @@ class WhenTestingBroadcastCache(unittest.TestCase):
                                                     self.target_list)
 
         self.cache_set.assert_called_once_with(
-            self.message_type, str(self.target_list),
+            self.message_type, jsonutils.dumps(self.target_list),
             DEFAULT_EXPIRES, CACHE_BROADCAST)
 
     def test_get_targets_calls_returns_target_list(self):
         with patch.object(
                 NativeProxy, 'cache_exists', self.cache_true
-        ), patch.object(NativeProxy, 'cache_get',  self.cache_get_targets):
+        ), patch.object(NativeProxy, 'cache_get',  self.cache_get_existing):
             broadcast_cache = BroadcastCache()
             targets = broadcast_cache.get_targets(self.message_type)
 
-        self.cache_get_targets.assert_called_once_with(
+        self.cache_get_existing.assert_called_once_with(
             self.message_type, CACHE_BROADCAST)
-        self.assertEquals(targets, self.target_list)
+        self.assertEquals(targets, self.existing_targets)
 
     def test_get_targets_calls_returns_none(self):
         with patch.object(

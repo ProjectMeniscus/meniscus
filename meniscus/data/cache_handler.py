@@ -190,17 +190,20 @@ class BroadcastCache(Cache):
 
     def set_message_and_targets(self, message_type, target_list):
         if self.cache.cache_exists(message_type, CACHE_BROADCAST):
+            existing_targets = self.get_targets(message_type)
+            target_list = list(set(target_list + existing_targets))
             self.cache.cache_update(
-                message_type, str(target_list),
+                message_type, jsonutils.dumps(target_list),
                 DEFAULT_EXPIRES, CACHE_BROADCAST)
         else:
             self.cache.cache_set(
-                message_type, str(target_list),
+                message_type, jsonutils.dumps(target_list),
                 DEFAULT_EXPIRES, CACHE_BROADCAST)
 
     def get_targets(self, message_type):
         if self.cache.cache_exists(message_type, CACHE_BROADCAST):
-            targets = self.cache.cache_get(message_type, CACHE_BROADCAST)
+            targets = jsonutils.loads(
+                self.cache.cache_get(message_type, CACHE_BROADCAST))
             return targets
         return None
 

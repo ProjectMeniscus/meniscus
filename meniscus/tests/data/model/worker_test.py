@@ -187,6 +187,11 @@ class WhenTestingWatchlistItem(unittest.TestCase):
         self.assertIsNotNone(self.item.last_changed)
         self.assertIsNone(self.item._id)
 
+    def _test_increment(self):
+        watch_item = WatchlistItem(self.worker_id)
+        watch_item.increment()
+        self.assertEqual(watch_item.watch_count, 2)
+
     def test_tracked_watchlist_item(self):
         item_dic = self.tracked_item.format_for_save()
         self.assertEqual(item_dic['worker_id'], self.worker_id)

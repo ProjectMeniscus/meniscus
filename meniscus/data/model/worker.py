@@ -71,7 +71,8 @@ class WorkerRegistration(object):
         self.hostname = platform.node()
         self.ip_address_v4 = sys_assist.get_lan_ip()
         self.ip_address_v6 = ""
-        self.callback = self.ip_address_v4 + ':8080/v1/callback'
+        self.callback = 'http://{0}:8080/v1/callback'.format(
+            self.ip_address_v4)
         self.personality = personality
         self.status = status
         self.system_info = SystemInfo()
@@ -142,7 +143,7 @@ class WatchlistItem(object):
     Watchlist table item for keeping track of workers that are unresponsive
     """
     def __init__(self, worker_id, last_changed=None, watch_count=None,
-                 _id=None, ):
+                 _id=None):
 
         self.worker_id = worker_id
         self._id = _id
@@ -153,6 +154,10 @@ class WatchlistItem(object):
         else:
             self.last_changed = last_changed
             self.watch_count = watch_count
+
+    def increment(self):
+        self.last_changed = datetime.now()
+        self.watch_count += 1
 
     def format(self):
         return {

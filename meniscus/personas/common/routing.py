@@ -79,7 +79,7 @@ class Router(object):
                 "WORKER-TOKEN": config.worker_token
             }
 
-            request_uri = "{0}/worker/{1}".format(
+            request_uri = "{0}/workers/{1}".format(
                 config.coordinator_uri, worker_id)
 
             try:

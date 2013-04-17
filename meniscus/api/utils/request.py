@@ -10,7 +10,7 @@ HTTP_VERBS = (
 )
 
 
-def http_request(url, add_headers={}, json_payload='{}', http_verb='GET',
+def http_request(url, add_headers=None, json_payload='{}', http_verb='GET',
                  request_timeout=1.0):
     headers = {'content-type': 'application/json'}
 

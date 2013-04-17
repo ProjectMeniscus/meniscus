@@ -42,23 +42,18 @@ FAILURE_TOLERANCE_SECONDS = conf.watchlist_settings.failure_tolerance_seconds
 WATCHLIST_COUNT_THRESHOLD = conf.watchlist_settings.watchlist_count_threshold
 
 
-def _add_watchlist_item(db, worker_id):
+def _add_watchlist_item(db, watch_item):
     """
     adds item to watchlist
     """
-    watch_item = WatchlistItem(worker_id)
     db.put('watchlist', watch_item.format())
 
 
-def _update_watchlist_item(db, watch_dict):
+def _update_watchlist_item(db, watch_item):
     """
     updates watch count and last changed for watchlist item
     """
-    updated_worker = WatchlistItem(watch_dict['worker_id'],
-                                   datetime.now(),
-                                   watch_dict['watch_count'] + 1,
-                                   watch_dict['_id'])
-    db.update('watchlist', updated_worker.format_for_save())
+    db.update('watchlist', watch_item.format_for_save())
 
 
 def _delete_expired_watchlist_items(db):
@@ -109,7 +104,7 @@ def _get_broadcast_targets(db, worker):
 
     broadcast = {
         "type": "ROUTES",
-        "targets": [target.ip_address_v4 for target in upstream_workers]
+        "targets": [target.callback for target in upstream_workers]
     }
 
     if not broadcast['targets']:
@@ -136,20 +131,21 @@ def _send_target_list_to_broadcaster(db, worker):
         return False
 
     for broadcaster_uri in broadcasters:
-        resp = None
+
         try:
             ## todo refactor callback address to not include /v1/callback/"
             resp = http_request(
-                '{0}:8080/v1/broadcast'.format(broadcaster_uri),
+                'http://{0}:8080/v1/broadcast'.format(broadcaster_uri),
                 json_payload=jsonutils.dumps(broadcast_targets),
                 http_verb='PUT')
+            if resp.status_code == httplib.OK:
+                return True
         except requests.RequestException:
-            raise coordinator_errors.BroadcasterCommunicationError
-        if resp.status_code == httplib.OK:
-            return True
-    else:
-        ## todo Log broadcaster connection failure
-        return False
+            ## todo Log broadcaster connection failure
+            pass
+
+    ## todo Log no broadcasters available
+    return False
 
 
 def process_watchlist_item(db, worker_id):
@@ -164,14 +160,20 @@ def process_watchlist_item(db, worker_id):
 
     watch_dict = db.find_one('watchlist', {'worker_id': worker_id})
     if not watch_dict:
-        _add_watchlist_item(db, worker_id)
+        watch_item = WatchlistItem(worker_id)
+        _add_watchlist_item(db, watch_item)
     else:
-        # update watchlist entry
-        if watch_dict['watch_count'] == WATCHLIST_COUNT_THRESHOLD:
-            worker = coordinator_flow.find_worker(db, worker_id)
+        watch_item = WatchlistItem(watch_dict['worker_id'],
+                                   watch_dict['last_changed'],
+                                   watch_dict['watch_count'],
+                                   watch_dict['_id'])
+        watch_item.increment()
+        _update_watchlist_item(db, watch_item)
 
-            if worker.status != 'offline':
-                coordinator_flow.update_worker_status(db, worker, 'offline')
-                _send_target_list_to_broadcaster(db, worker)
+    # update watchlist entry
+    if watch_item.watch_count == WATCHLIST_COUNT_THRESHOLD:
+        worker = coordinator_flow.find_worker(db, worker_id)
 
-        _update_watchlist_item(db, watch_dict)
+        if worker.status != 'offline':
+            coordinator_flow.update_worker_status(db, worker, 'offline')
+            _send_target_list_to_broadcaster(db, worker)

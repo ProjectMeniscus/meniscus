@@ -110,7 +110,7 @@ class WhenTestingRouter(unittest.TestCase):
             personality_module='meniscus.personas.pairing.app',
             worker_token='token_id',
             worker_id='worker_id',
-            coordinator_uri="192.168.1.1:8080/v1"
+            coordinator_uri="http://192.168.1.1:8080/v1"
         )
         self.get_config = MagicMock(return_value=self.config)
         self.message = {
@@ -205,7 +205,7 @@ class WhenTestingRouter(unittest.TestCase):
             service_domain = 'correlation'
             router._blacklist_worker(service_domain, worker_id)
         http_request.assert_called_once_with(
-            "{0}/worker/{1}".format(self.config.coordinator_uri, worker_id),
+            "{0}/workers/{1}".format(self.config.coordinator_uri, worker_id),
             {
                 "WORKER-ID": self.config.worker_id,
                 "WORKER-TOKEN": self.config.worker_token
@@ -225,7 +225,7 @@ class WhenTestingRouter(unittest.TestCase):
             service_domain = 'correlation'
             router._blacklist_worker(service_domain, worker_id)
         http_request.assert_called_once_with(
-            "{0}/worker/{1}".format(self.config.coordinator_uri, worker_id),
+            "{0}/workers/{1}".format(self.config.coordinator_uri, worker_id),
             {
                 "WORKER-ID": self.config.worker_id,
                 "WORKER-TOKEN": self.config.worker_token

@@ -61,6 +61,7 @@ class BroadcasterProcess(object):
         while True:
             sleep(message_interval)
             uri_targets = cache.get_targets(ROUTES)
+            cache.delete_message(ROUTES)
 
             # Get route messages from cache and notify the workers
             if uri_targets:
@@ -76,8 +77,6 @@ class BroadcasterProcess(object):
                     except requests.RequestException:
                         # Swallow exception for non-responsive worker
                         pass
-
-                cache.delete_message(ROUTES)
 
             if self.run_once:
                 break

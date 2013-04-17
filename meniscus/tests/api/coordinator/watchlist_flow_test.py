@@ -6,11 +6,11 @@ from mock import MagicMock
 from mock import patch
 import requests
 
-from meniscus.api.coordinator import coordinator_errors
+
 from meniscus.api.coordinator import watchlist_flow
 from meniscus.data.model.worker import SystemInfo
 from meniscus.data.model.worker import WorkerRegistration
-from meniscus.data.model.worker import Worker
+from meniscus.data.model.worker import Worker, WatchlistItem
 
 
 def suite():
@@ -40,7 +40,7 @@ class WhenTestingWatchlistFlow(unittest.TestCase):
                                         status='online').format()).format(),
         ]
         self.target_uri_list = {"broadcast": {"type": "ROUTES", "targets":
-                                [worker['ip_address_v4']
+                                [worker['callback']
                                 for worker in self.target_list]}}
 
         self.damaged_worker = Worker(**WorkerRegistration(
@@ -58,12 +58,15 @@ class WhenTestingWatchlistFlow(unittest.TestCase):
         self.new_bad_status = 'bad_status'
         self.system_info = SystemInfo()
         self.watchlist_dict = {"_id": "010101",
-                               "watch_count": 5,
+                               "watch_count":
+                               watchlist_flow.WATCHLIST_COUNT_THRESHOLD - 1,
                                "worker_id": "0123456789",
                                "last_changed": "2013-04-09T15:11:19.818Z"
                                }
         self.watchlist_dict_over = {"_id": "010101",
-                                    "watch_count": 7,
+                                    "watch_count":
+                                    watchlist_flow.WATCHLIST_COUNT_THRESHOLD
+                                    + 1,
                                     "worker_id": "123456789",
                                     "last_changed": "2013-04-09T15:11:19.818Z"
                                     }
@@ -89,14 +92,27 @@ class WhenTestingWatchlistFlow(unittest.TestCase):
                                     system_info=self.system_info.format())
 
     def test_add_watchlist_item(self):
-        watchlist_flow._add_watchlist_item(self.db_handler, self.worker_id)
+        self.db_handler.put = MagicMock()
+        watch_item = WatchlistItem(self.watchlist_dict['worker_id'])
+        watchlist_flow._add_watchlist_item(self.db_handler, watch_item)
+        self.db_handler.put.assert_called_once_with(
+            'watchlist', watch_item.format())
 
     def test_update_watchlist_item(self):
+        self.db_handler.update = MagicMock()
+        watch_item = WatchlistItem(self.watchlist_dict['worker_id'],
+                                   self.watchlist_dict['last_changed'],
+                                   self.watchlist_dict['watch_count'],
+                                   self.watchlist_dict['_id'])
         watchlist_flow._update_watchlist_item(self.db_handler,
-                                              self.watchlist_dict)
+                                              watch_item)
+        self.db_handler.update.assert_called_once_with(
+            'watchlist', watch_item.format_for_save())
 
     def test_delete_expired_watchlist_item(self):
+        self.db_handler.delete = MagicMock()
         watchlist_flow._delete_expired_watchlist_items(self.db_handler)
+        self.db_handler.delete.assert_called_once()
 
     def test_get_broadcaster_list_true(self):
         db_handler = MagicMock()
@@ -149,7 +165,7 @@ class WhenTestingWatchlistFlow(unittest.TestCase):
             db_handler, self.damaged_worker)
         self.assertFalse(result)
 
-    def test_send_target_list_to_broadcaster_no_connection_made(self):
+    def test_send_target_list_to_broadcaster_bad_response_code(self):
         db_handler = MagicMock()
         resp = MagicMock()
         resp.status_code = httplib.BAD_REQUEST
@@ -164,7 +180,7 @@ class WhenTestingWatchlistFlow(unittest.TestCase):
                 db_handler, self.damaged_worker)
             self.assertFalse(result)
 
-    def test_send_target_list_to_broadcaster_exception_raised(self):
+    def test_send_target_list_to_broadcaster_no_connection_made(self):
         db_handler = MagicMock()
         http_request = MagicMock(
             side_effect=requests.RequestException)
@@ -174,10 +190,8 @@ class WhenTestingWatchlistFlow(unittest.TestCase):
             return_value=self.broadcaster_uri_list)
         with patch('meniscus.api.coordinator.'
                    'watchlist_flow.http_request', http_request):
-            with self.assertRaises(
-                    coordinator_errors.BroadcasterCommunicationError):
-                    watchlist_flow._send_target_list_to_broadcaster(
-                        db_handler, self.damaged_worker)
+            self.assertFalse(watchlist_flow._send_target_list_to_broadcaster(
+                             db_handler, self.damaged_worker))
 
     def test_send_target_list_to_broadcaster_connection_made(self):
         db_handler = MagicMock()

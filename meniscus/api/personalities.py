@@ -23,6 +23,11 @@ PERSONALITIES = [
         'personality': 'syslog',
         'downstream': 'storage',
         'alternate': 'normalization'
+    },
+    {
+        'personality': 'coordinator',
+        'downstream': '',
+        'alternate': ''
     }]
 
 CORRELATION = 'correlation'
@@ -30,3 +35,4 @@ SYSLOG = 'syslog'
 NORMALIZATION = 'normalization'
 STORAGE = 'storage'
 BROADCASTER = 'broadcaster'
+COORDINATOR = 'coordinator'

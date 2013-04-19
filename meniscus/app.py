@@ -1,10 +1,10 @@
 from meniscus.ext.plugin import import_module
 from meniscus.data.cache_handler import ConfigCache
+from portal import env
 
-
-DEFAULT_PERSONALITY_MODULE = 'meniscus.personas.pairing.app'
+# Adding a hook into environment variables let's us override this
+DEFAULT_PERSONALITY_MODULE = env.get('WORKER_PERSONA', 'meniscus.personas.pairing.app')
 config_cache = ConfigCache()
-
 
 def bootstrap_api():
 

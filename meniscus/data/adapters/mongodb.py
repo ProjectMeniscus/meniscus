@@ -39,9 +39,7 @@ _MONGODB_OPTIONS = [
 
 get_config().register_opts(_MONGODB_OPTIONS, group=_mongodb_group)
 
-## TODO: Document this damn thing --> pymongo.errors.OperationFailure
-
-
+## TODO: Document this damn thing --> pymongo.errors.OperationFailure. John telling John here...
 class MongoDatasourceHandler(DatasourceHandler):
 
     def __init__(self, conf):

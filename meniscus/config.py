@@ -1,12 +1,11 @@
 import os
 from oslo.config import cfg
+from portal import env
 
-CONFIG_FILE_ENV_VAR = 'CONFIG_FILE'
-
-if CONFIG_FILE_ENV_VAR in os.environ:
-    _DEFAULT_CONFIG_ARGS = ['--config-file', os.environ['CONFIG_FILE']]
-else:
-    _DEFAULT_CONFIG_ARGS = ['--config-file', '/etc/meniscus/meniscus.cfg']
+_DEFAULT_CONFIG_ARGS = [
+    '--config-file',
+    env.get('CONFIG_FILE', '/etc/meniscus/meniscus.cfg')
+]
 
 _config_opts = cfg.ConfigOpts()
 

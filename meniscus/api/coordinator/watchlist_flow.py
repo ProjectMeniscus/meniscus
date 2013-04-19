@@ -31,6 +31,7 @@ _WATCHLIST_THRESHOLDS = [
                help="""count of reported failures""")
 ]
 
+## TODO: Review this logic... I'm not sure this is sound exception handling -John
 get_config().register_opts(_WATCHLIST_THRESHOLDS, group=_WATCHLIST_GROUP)
 try:
     init_config()

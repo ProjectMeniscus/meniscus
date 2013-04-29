@@ -8,7 +8,6 @@ import requests
 from meniscus.api.utils.request import http_request
 from oslo.config import cfg
 from meniscus.api.coordinator import coordinator_flow
-from meniscus.api.coordinator import coordinator_errors
 from meniscus.api.personalities import PERSONALITIES
 from meniscus.config import get_config
 from meniscus.config import init_config
@@ -31,7 +30,7 @@ _WATCHLIST_THRESHOLDS = [
                help="""count of reported failures""")
 ]
 
-## TODO: Review this logic... I'm not sure this is sound exception handling -John
+## TODO: (Jhop) Review this logic, not sure this is sound exception handling
 get_config().register_opts(_WATCHLIST_THRESHOLDS, group=_WATCHLIST_GROUP)
 try:
     init_config()

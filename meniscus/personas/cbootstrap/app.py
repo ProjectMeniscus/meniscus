@@ -6,9 +6,8 @@ from meniscus.api.coordinator.resources import WorkerRegistrationResource
 from meniscus.api.coordinator.resources import WorkerWatchlistResource
 from meniscus.api.coordinator.resources import WorkerRoutesResource
 from meniscus.api.status.resources import WorkerUpdateResource
-from meniscus.api.status.resources import WorkerStatusResource
-
 from meniscus.api.datastore_init import db_handler
+
 
 def start_up():
 

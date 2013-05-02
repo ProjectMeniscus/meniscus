@@ -1,9 +1,9 @@
 falcon>=0.1.4
 wsgiref>=0.1.2
 pymongo>=2.5
-requests>=1.1.0
+requests>=1.2.0
 iso8601>=0.1.4
 eventlet>=0.12.1
 oslo.config>=1.1.0
-uWSGI>=1.9.6
+uWSGI>=1.9.8
 https://github.com/ProjectMeniscus/portal/blob/release/Meniscus%20Portal-0.1.tar.gz?raw=true

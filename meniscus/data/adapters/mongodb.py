@@ -112,7 +112,9 @@ class MongoDatasourceHandler(DatasourceHandler):
 
         self.database[object_name].save(document)
 
-    def delete(self, object_name, query_filter=dict(), limit_one=False):
+    def delete(self, object_name, query_filter=None, limit_one=False):
+        if query_filter is None:
+            query_filter = dict()
         self.database[object_name].remove(query_filter, True)
 
 

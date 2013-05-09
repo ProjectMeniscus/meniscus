@@ -78,8 +78,7 @@ def get_interface_ip(ifname):
 
 
 def get_lan_ip():
-    ip = socket.gethostbyname(socket.gethostname())
-    if ip.startswith("127.") and os.name != "nt":
+    if os.name != "nt":
         interfaces = [
             "eth0",
             "eth1",
@@ -94,10 +93,11 @@ def get_lan_ip():
         for ifname in interfaces:
             try:
                 ip = get_interface_ip(ifname)
-                break
+                return ip
             except IOError:
                 pass
-    return ip
+    return socket.gethostbyname(socket.gethostname())
+
 
 
 def get_cpu_core_count():

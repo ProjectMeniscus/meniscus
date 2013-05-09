@@ -60,11 +60,11 @@ class WhenTestingSysAssist(unittest.TestCase):
 
     def test_get_lan_ip_should_return_external_ip(self):
         with patch.object(sys_assist, 'get_interface_ip',
-                          return_value='10.6.60.95'), \
+                          return_value='10.6.60.99'), \
             patch.object(sys_assist.socket, 'gethostbyname',
                          return_value='127.0.0.1'):
             ip = sys_assist.get_lan_ip()
-            self.assertEqual(ip, '10.6.60.95')
+            self.assertEqual(ip, '10.6.60.99')
 
     def test_get_lan_ip_should_return_localhost(self):
         io_error = MagicMock()

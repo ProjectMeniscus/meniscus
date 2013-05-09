@@ -96,9 +96,8 @@ def get_lan_ip():
                 return ip
             except IOError:
                 pass
-    else:
-        ip = socket.gethostbyname(socket.gethostname())
-        return ip
+    return socket.gethostbyname(socket.gethostname())
+
 
 
 def get_cpu_core_count():

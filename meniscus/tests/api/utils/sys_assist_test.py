@@ -1,5 +1,4 @@
 import unittest
-import sys
 import meniscus.api.utils.sys_assist as sys_assist
 from mock import MagicMock
 from mock import patch

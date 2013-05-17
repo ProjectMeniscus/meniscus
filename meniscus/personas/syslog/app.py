@@ -1,44 +1,19 @@
-import json
+from multiprocessing import Process
+
 import falcon
+
+from portal.env import get_logger
+from portal.server import SyslogServer
 
 from meniscus.api.callback.resources import CallbackResource
 from meniscus.api.version.resources import VersionResource
+from meniscus.api.correlation.syslog_handler import MessageHandler
 from meniscus.personas.common.publish_stats import WorkerStatusPublisher
 from meniscus.personas.common.publish_stats import WorkerStatsPublisher
 from meniscus.personas.common.routing import Router
 
-from multiprocessing import Process
-
-from portal.env import get_logger
-from portal.server import SyslogServer
-from portal.input.rfc5424 import SyslogMessageHandler
-
 
 _LOG = get_logger('meniscus.personas.syslog.app')
-
-
-class MessageHandler(SyslogMessageHandler):
-
-    def __init__(self, router):
-        self.msg = b''
-        self.msg_head = None
-        self.msg_count = 0
-        self.router = router
-
-    def message_head(self, message_head):
-        self.msg_count += 1
-        self.msg_head = message_head
-
-    def message_part(self, message_part):
-        self.msg += message_part
-
-    def message_complete(self, last_message_part):
-        full_message = self.msg + last_message_part
-        outbound = self.msg_head.as_dict()
-        outbound['message'] = full_message.decode('utf-8')
-        self.router.route_message(outbound)
-        self.msg_head = None
-        self.msg = b''
 
 
 def start_up():

@@ -18,6 +18,7 @@ def validate_event_message_body(body):
     """
     This method validates the on_post request body
     """
+
     # validate host with tenant
     if 'host' not in body.keys() or not body['host']:
         raise errors.MessageValidationError("host cannot be empty")
@@ -31,67 +32,47 @@ def validate_event_message_body(body):
     return True
 
 
-class Correlator(object):
-    def __init__(self, tenant, message):
-        self.tenant = tenant
-        self.message = message
-        self._durable = False
-        self._job_id = None
-        self._job_status_uri = None
+def add_correlation_info_to_message(tenant, message):
+    host = find_host(tenant, host_name=message['host'])
 
-    def is_durable(self):
-        return self._durable
+    if not host:
+        raise errors.MessageValidationError(
+            "invalid host, host with name {0} cannot be located"
+            .format(self.message['host']))
 
-    def get_durable_job_info(self):
-        return {
-            "job_id": self._job_id,
-            "job_status_uri": self._job_status_uri
-        }
+    #initialize correlation dictionary with default values
+    correlation_dict = {
+        'host_id': host.get_id(),
+        'ep_id': None,
+        'pattern': None,
+        'durable': False,
+        'encrypted': False,
+    }
 
-    def process_message(self):
-        host = find_host(self.tenant, host_name=self.message['host'])
+    producer = find_event_producer_for_host(
+        tenant, host, message['pname'])
 
-        if not host:
-            raise errors.MessageValidationError(
-                "invalid host, host with name {0} cannot be located"
-                .format(self.message['host']))
-
-            #initialize correlation dictionary with default values
-        correlation_dict = {
-            'host_id': host.get_id(),
-            'ep_id': None,
-            'pattern': None,
-            'durable': False,
-            'encrypted': False,
-        }
-
-        producer = find_event_producer_for_host(
-            self.tenant, host, self.message['pname'])
-
-        if producer:
-            self._durable = producer.durable
-            correlation_dict.update({
-                'ep_id': producer.get_id(),
-                'pattern': producer.pattern,
-                'durable': producer.durable,
-                'encrypted': producer.encrypted
-            })
-
-            #todo(sgonzales) persist message and create job
-            if producer.durable:
-                self._job_id = str(uuid4())
-                self._job_status_uri = "http://{0}/v1/job/{1}/status"\
-                    .format("meniscus_uri", self._job_id)
-                correlation_dict.update({'job_id': self._job_id})
-
-        self.message.update({
-            "profile": "http://projectmeniscus.org/cee/profiles/base",
-            "meniscus": {
-                "correlation": correlation_dict
-            }
+    #if a valid producer was found, update values
+    if producer:
+        correlation_dict.update({
+            'ep_id': producer.get_id(),
+            'pattern': producer.pattern,
+            'durable': producer.durable,
+            'encrypted': producer.encrypted
         })
 
-        #todo(sgonzales) pass message to normalization worker
+        #todo(sgonzales) persist message and create job
+        if producer.durable:
+            durable_job_id = str(uuid4())
+            correlation_dict.update({'job_id': durable_job_id})
+
+    message.update({
+        "profile": "http://projectmeniscus.org/cee/profiles/base",
+        "meniscus": {
+            "tenant": self.tenant.tenant_id,
+            "correlation": correlation_dict
+        }
+    })
 
 
 class TenantIdentification(object):

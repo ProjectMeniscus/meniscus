@@ -6,12 +6,12 @@ from mock import patch
 import requests
 
 import meniscus.api.correlation.correlation_exceptions as exception
-from meniscus.api.correlation.correlation_process import ConfigCache
-from meniscus.api.correlation.correlation_process import Correlator
-from meniscus.api.correlation.correlation_process import TenantIdentification
-from meniscus.api.correlation.correlation_process import TenantCache
-from meniscus.api.correlation.correlation_process import TokenCache
-from meniscus.api.correlation.correlation_process \
+from meniscus.api.correlation.correlator import ConfigCache
+from meniscus.api.correlation.correlator import MessageCorrelator
+from meniscus.api.correlation.correlator import TenantIdentification
+from meniscus.api.correlation.correlator import TenantCache
+from meniscus.api.correlation.correlator import TokenCache
+from meniscus.api.correlation.correlator \
     import validate_event_message_body
 from meniscus.data.model.tenant import EventProducer
 from meniscus.data.model.tenant import Host
@@ -141,7 +141,7 @@ class WhenTestingCorrelationMessage(unittest.TestCase):
             "time": "2013-03-19T18:16:48.411029Z"
         }
 
-        test_message = Correlator(self.tenant, body)
+        test_message = MessageCorrelator(self.tenant, body)
         with self.assertRaises(exception.MessageValidationError):
             test_message.process_message()
 
@@ -152,7 +152,7 @@ class WhenTestingCorrelationMessage(unittest.TestCase):
             "time": "2013-03-19T18:16:48.411029Z"
         }
 
-        test_message = Correlator(self.tenant, body)
+        test_message = MessageCorrelator(self.tenant, body)
         test_message.process_message()
         message = test_message.message
         self.assertTrue(test_message.is_durable())
@@ -189,7 +189,7 @@ class WhenTestingCorrelationMessage(unittest.TestCase):
             "time": "2013-03-19T18:16:48.411029Z"
         }
 
-        test_message = Correlator(self.tenant, body)
+        test_message = MessageCorrelator(self.tenant, body)
         test_message.process_message()
         message = test_message.message
         self.assertFalse(test_message.is_durable())
@@ -217,7 +217,7 @@ class WhenTestingCorrelationMessage(unittest.TestCase):
             "time": "2013-03-19T18:16:48.411029Z"
         }
 
-        test_message = Correlator(self.tenant, body)
+        test_message = MessageCorrelator(self.tenant, body)
         test_message.process_message()
         message = test_message.message
         self.assertFalse(test_message.is_durable())

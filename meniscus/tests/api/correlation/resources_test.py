@@ -5,7 +5,7 @@ from mock import patch
 import falcon
 
 import meniscus.api.correlation.correlation_exceptions as errors
-import meniscus.api.correlation.correlation_process as process
+import meniscus.api.correlation.correlator as process
 from meniscus.api.correlation.resources import PublishMessageResource
 from meniscus.data.model.tenant import Tenant
 
@@ -50,7 +50,7 @@ class WhenTestingPublishMessage(unittest.TestCase):
             patch.object(process.TenantIdentification,
                          'get_validated_tenant',
                          MagicMock(return_value=self.tenant)), \
-            patch.object(process.Correlator,
+            patch.object(process.MessageCorrelator,
                          'process_message',
                          MagicMock(side_effect=
                          errors.MessageAuthenticationError)):
@@ -65,7 +65,7 @@ class WhenTestingPublishMessage(unittest.TestCase):
             patch.object(process.TenantIdentification,
                          'get_validated_tenant',
                          MagicMock(return_value=self.tenant)), \
-            patch.object(process.Correlator,
+            patch.object(process.MessageCorrelator,
                          'process_message',
                          MagicMock(side_effect=
                          errors.ResourceNotFoundError)):
@@ -80,7 +80,7 @@ class WhenTestingPublishMessage(unittest.TestCase):
             patch.object(process.TenantIdentification,
                          'get_validated_tenant',
                          MagicMock(return_value=self.tenant)), \
-            patch.object(process.Correlator,
+            patch.object(process.MessageCorrelator,
                          'process_message',
                          MagicMock(side_effect=
                          errors.CoordinatorCommunicationError)):
@@ -95,10 +95,10 @@ class WhenTestingPublishMessage(unittest.TestCase):
             patch.object(process.TenantIdentification,
                          'get_validated_tenant',
                          MagicMock(return_value=self.tenant)), \
-            patch.object(process.Correlator,
+            patch.object(process.MessageCorrelator,
                          'process_message',
                          MagicMock()), \
-            patch.object(process.Correlator,
+            patch.object(process.MessageCorrelator,
                          'is_durable',
                          MagicMock(return_value=False)):
             self.resource.on_post(self.req, self.resp, self.tenant_id)
@@ -112,10 +112,10 @@ class WhenTestingPublishMessage(unittest.TestCase):
             patch.object(process.TenantIdentification,
                          'get_validated_tenant',
                          MagicMock(return_value=self.tenant)), \
-            patch.object(process.Correlator,
+            patch.object(process.MessageCorrelator,
                          'process_message',
                          MagicMock()), \
-            patch.object(process.Correlator,
+            patch.object(process.MessageCorrelator,
                          'is_durable',
                          MagicMock(return_value=True)):
             self.resource.on_post(self.req, self.resp, self.tenant_id)

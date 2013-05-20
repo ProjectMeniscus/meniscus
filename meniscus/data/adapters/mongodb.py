@@ -1,4 +1,4 @@
-from pymongo import MongoClient
+import pyes
 
 from oslo.config import cfg
 from meniscus.config import get_config

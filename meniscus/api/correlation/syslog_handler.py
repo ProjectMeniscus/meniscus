@@ -49,7 +49,7 @@ class MessageHandler(SyslogMessageHandler):
         tenant = tenant_identification.get_validated_tenant()
 
         cee_message = self._convert_message_cee(syslog_message)
-        correlator.add_correlation_info_to_message(cee_message)
+        correlator.add_correlation_info_to_message(tenant, cee_message)
 
         return cee_message
 

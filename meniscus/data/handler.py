@@ -85,7 +85,7 @@ class DatasourceHandler():
             document = dict()
         raise NotImplementedError
 
-    def update(self, object_name, document=None):
+    def update(self, object_name, document=None, id=None):
         if document is None:
             document = dict()
         raise NotImplementedError

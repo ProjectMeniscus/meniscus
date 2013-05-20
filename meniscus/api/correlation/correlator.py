@@ -38,7 +38,7 @@ def add_correlation_info_to_message(tenant, message):
     if not host:
         raise errors.MessageValidationError(
             "invalid host, host with name {0} cannot be located"
-            .format(self.message['host']))
+            .format(message['host']))
 
     #initialize correlation dictionary with default values
     correlation_dict = {
@@ -69,7 +69,7 @@ def add_correlation_info_to_message(tenant, message):
     message.update({
         "profile": "http://projectmeniscus.org/cee/profiles/base",
         "meniscus": {
-            "tenant": self.tenant.tenant_id,
+            "tenant": tenant.tenant_id,
             "correlation": correlation_dict
         }
     })

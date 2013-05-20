@@ -34,8 +34,8 @@ class MessageHandler(SyslogMessageHandler):
         # from the syslog structured data
         try:
             tenant_data = syslog_message['sd'].pop('meniscus')
-            tenant_id = tenant_data['tenant_id']
-            message_token = tenant_data[MESSAGE_TOKEN]
+            tenant_id = tenant_data['tenant']
+            message_token = tenant_data['token']
 
         #if there is a key error then the syslog message did
         #not contain necessary credential information

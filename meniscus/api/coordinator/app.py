@@ -4,7 +4,6 @@ from meniscus.api.callback.resources import CallbackResource
 from meniscus.api.coordinator.resources import WorkerRoutesResource
 from meniscus.api.coordinator.resources import WorkerRegistrationResource
 from meniscus.api.coordinator.resources import WorkerWatchlistResource
-from meniscus.api.status.resources import WorkerUpdateResource
 from meniscus.api.status.resources import WorkerStatusResource
 from meniscus.api.status.resources import WorkersStatusResource
 from meniscus.api.tenant.resources import EventProducerResource
@@ -28,7 +27,6 @@ callback = CallbackResource()
 #Coordinator Resources
 worker_routes = WorkerRoutesResource(db_handler())
 worker_registration = WorkerRegistrationResource(db_handler())
-worker_update = WorkerUpdateResource(db_handler())
 workers_status = WorkersStatusResource(db_handler())
 worker_status = WorkerStatusResource(db_handler())
 worker_watchlist = WorkerWatchlistResource(db_handler())
@@ -55,9 +53,8 @@ api.add_route('/v1/callback', callback)
 api.add_route('/v1/pairing', worker_registration)
 api.add_route('/v1/worker/{worker_id}/routes', worker_routes)
 
-api.add_route('/v1/worker/{worker_id}/status', worker_update)
+api.add_route('/v1/worker/{worker_id}/status', worker_status)
 api.add_route('/v1/status', workers_status)
-api.add_route('/v1/status/{worker_id}', worker_status)
 
 api.add_route('/v1/workers/{worker_id}', worker_watchlist)
 

@@ -88,7 +88,7 @@ def get_lan_ip():
             "wifi0",
             "ath0",
             "ath1",
-            "ppp0",
+            "ppp0"
         ]
         for ifname in interfaces:
             try:
@@ -96,8 +96,11 @@ def get_lan_ip():
                 return ip
             except IOError:
                 pass
-    return socket.gethostbyname(socket.gethostname())
 
+            try:
+                return socket.gethostbyname(socket.gethostname())
+            except socket.gaierror:
+                return '127.0.0.1'
 
 
 def get_cpu_core_count():

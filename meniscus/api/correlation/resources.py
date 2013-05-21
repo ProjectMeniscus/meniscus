@@ -44,7 +44,8 @@ class PublishMessageResource(ApiResource):
 
         try:
             tenant = tenant_identification.get_validated_tenant()
-            correlator.add_correlation_info_to_message(tenant, message)
+            message = correlator.add_correlation_info_to_message(
+                tenant, message)
 
         except errors.MessageAuthenticationError as ex:
             abort(falcon.HTTP_401, ex.message)
@@ -60,7 +61,7 @@ class PublishMessageResource(ApiResource):
 
         #if message is durable, return durable job info
         if message['meniscus']['correlation']['durable']:
-            durable_job_id  = message['meniscus']['correlation']['job_id']
+            durable_job_id = message['meniscus']['correlation']['job_id']
             job_status_uri = "http://{0}/v1/job/{1}/status" \
                 .format("meniscus_uri", durable_job_id)
 

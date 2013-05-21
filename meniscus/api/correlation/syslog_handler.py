@@ -4,6 +4,7 @@ from meniscus.api.tenant.resources import MESSAGE_TOKEN
 from meniscus.api.correlation import correlator
 import meniscus.api.correlation.correlation_exceptions as errors
 
+
 class MessageHandler(SyslogMessageHandler):
 
     def __init__(self, router):
@@ -57,14 +58,14 @@ class MessageHandler(SyslogMessageHandler):
         cee_message = dict()
 
         cee_message['time'] = syslog_message['timestamp']
-        cee_message['host'] =  syslog_message['hostname']
-        cee_message['pname'] =  syslog_message['appname']
+        cee_message['host'] = syslog_message['hostname']
+        cee_message['pname'] = syslog_message['appname']
         cee_message['pri'] = syslog_message['priority']
-        cee_message['ver'] =  syslog_message['version']
-        cee_message['pid'] =  syslog_message['processid']
-        cee_message['msgid'] =  syslog_message['messageid']
-        cee_message['msg'] =  syslog_message['message']
+        cee_message['ver'] = syslog_message['version']
+        cee_message['pid'] = syslog_message['processid']
+        cee_message['msgid'] = syslog_message['messageid']
+        cee_message['msg'] = syslog_message['message']
 
-        cee_message['native']  = syslog_message['sd']
+        cee_message['native'] = syslog_message['sd']
 
         return cee_message

@@ -99,7 +99,6 @@ def get_lan_ip():
     return socket.gethostbyname(socket.gethostname())
 
 
-
 def get_cpu_core_count():
     return multiprocessing.cpu_count()
 

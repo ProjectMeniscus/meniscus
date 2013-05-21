@@ -74,6 +74,8 @@ def add_correlation_info_to_message(tenant, message):
         }
     })
 
+    return message
+
 
 class TenantIdentification(object):
     def __init__(self, tenant_id, message_token):

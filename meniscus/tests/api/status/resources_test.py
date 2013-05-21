@@ -3,7 +3,6 @@ import unittest
 import falcon
 from mock import MagicMock
 
-from meniscus.api.status.resources import WorkerUpdateResource
 from meniscus.api.status.resources import WorkerStatusResource
 from meniscus.api.status.resources import WorkersStatusResource
 from meniscus.data.model.worker import Worker
@@ -48,7 +47,7 @@ class WhenTestingWorkerUpdateOnPut(unittest.TestCase):
         self.worker_dict = Worker(**self.registration).format()
         self.worker_not_found = None
         self.db_handler = MagicMock()
-        self.resource = WorkerUpdateResource(self.db_handler)
+        self.resource = WorkerStatusResource(self.db_handler)
         self.worker_id = '51375fc4eea50d53066292b6'
 
     def test_req_body_validation(self):

@@ -21,7 +21,7 @@ def _status_not_valid():
     abort(falcon.HTTP_400, 'status update does not contain required fields.')
 
 
-class WorkerUpdateResource(ApiResource):
+class WorkerStatusResource(ApiResource):
 
     def __init__(self, db_handler):
         """
@@ -70,6 +70,18 @@ class WorkerUpdateResource(ApiResource):
         self.db.update('worker', worker.format_for_save())
         resp.status = falcon.HTTP_200
 
+    def on_get(self, req, resp, worker_id):
+        #find the worker in db
+        worker_dict = self.db.find_one('worker', {'worker_id': worker_id})
+
+        if not worker_dict:
+            _worker_not_found()
+
+        worker = Worker(**worker_dict)
+
+        resp.status = falcon.HTTP_200
+        resp.body = format_response_body({'status': worker.get_status()})
+
 
 class WorkersStatusResource(ApiResource):
 
@@ -89,24 +101,3 @@ class WorkersStatusResource(ApiResource):
 
         resp.status = falcon.HTTP_200
         resp.body = format_response_body({'status': workers_status})
-
-
-class WorkerStatusResource(ApiResource):
-
-    def __init__(self, db_handler):
-        """
-        initializes db_handler
-        """
-        self.db = db_handler
-
-    def on_get(self, req, resp, worker_id):
-        #find the worker in db
-        worker_dict = self.db.find_one('worker', {'worker_id': worker_id})
-
-        if not worker_dict:
-            _worker_not_found()
-
-        worker = Worker(**worker_dict)
-
-        resp.status = falcon.HTTP_200
-        resp.body = format_response_body({'status': worker.get_status()})

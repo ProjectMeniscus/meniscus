@@ -7,7 +7,7 @@ import meniscus.api.correlation.correlation_exceptions as errors
 
 class MessageHandler(SyslogMessageHandler):
 
-    def __init__(self, router):
+    def __init__(self, router=None):
         self.msg = b''
         self.msg_head = None
         self.outbound = None

@@ -5,8 +5,8 @@ from mock import patch
 from portal.input.rfc5424 import SyslogMessageHead
 
 import meniscus.api.correlation.correlation_exceptions as errors
-from meniscus.api.correlation import syslog_handler
-from meniscus.api.correlation.syslog_handler import correlator
+from meniscus.api.correlation import syslog
+from meniscus.api.correlation.syslog import correlator
 
 
 def suite():
@@ -21,7 +21,7 @@ class WhenTestingSyslogHandler(unittest.TestCase):
         self.router = MagicMock()
         self.tenant_id = '5164b8f4-16fb-4376-9d29-8a6cbaa02fa9'
         self.token = '87324559-33aa-4534-bfd1-036472a32f2e'
-        self.syslog_handler = syslog_handler.MessageHandler(self.router)
+        self.syslog_handler = syslog.MessageHandler(self.router)
         self.syslog_message_head = SyslogMessageHead()
 
         self.syslog_message_head.priority = '46'
@@ -100,7 +100,7 @@ class WhenTestingSyslogHandler(unittest.TestCase):
             self.message_part_3
         ).decode('utf-8')
 
-        with patch.object(syslog_handler.MessageHandler,
+        with patch.object(syslog.MessageHandler,
                           '_correlate_syslog_message',
                           correlate_function):
 

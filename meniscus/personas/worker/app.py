@@ -29,7 +29,7 @@ def start_up():
     publish_stats_service.run()
 
     server = SyslogServer(
-        ("0.0.0.0", 5140), syslog_handler.MessageHandler())
+        ("0.0.0.0", 5140), syslog_handler.WorkerSyslogHandler())
     Process(target=server.start).start()
 
     return application

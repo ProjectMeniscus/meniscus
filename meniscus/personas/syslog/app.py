@@ -7,7 +7,7 @@ from portal.server import SyslogServer
 
 from meniscus.api.callback.resources import CallbackResource
 from meniscus.api.version.resources import VersionResource
-from meniscus.api.correlation.syslog_handler import MessageHandler
+from meniscus.api.correlation.syslog import MessageHandler
 from meniscus.personas.common.publish_stats import WorkerStatusPublisher
 from meniscus.personas.common.publish_stats import WorkerStatsPublisher
 from meniscus.personas.common.routing import Router

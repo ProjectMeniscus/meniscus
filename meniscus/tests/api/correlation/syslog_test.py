@@ -137,7 +137,7 @@ class WhenTestingSyslogHandler(unittest.TestCase):
         add_correlation_func = MagicMock()
         with patch.object(correlator.TenantIdentification,
                           'get_validated_tenant', get_validated_tenant_func), \
-            patch('meniscus.api.correlation.syslog_handler.correlator.'
+            patch('meniscus.api.correlation.syslog.correlator.'
                   'add_correlation_info_to_message', add_correlation_func):
             self.syslog_handler._correlate_syslog_message(syslog_message)
         get_validated_tenant_func.assert_called_once()

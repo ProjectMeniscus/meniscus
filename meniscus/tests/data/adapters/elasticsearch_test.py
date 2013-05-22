@@ -8,9 +8,10 @@ from meniscus.data.handler import datasource_handler
 
 from meniscus.data.adapters.elasticsearch import format_search
 
+
 def suite():
     suite = unittest.TestSuite()
-    suite.addTest(WhenConnectingToLiveMongoDB())
+    suite.addTest(WhenConnectingToLiveES())
 
     return suite
 
@@ -61,7 +62,7 @@ class WhenBuildingQueryObjects(unittest.TestCase):
 class WhenConnectingToLiveES(unittest.TestCase):
 
     def setUp(self):
-        init_config(['--config-file', '/home/zinic/meniscus.conf'])
+        init_config(['--config-file', 'meniscus.cfg'])
         conf = get_config()
         self.handler = datasource_handler(conf)
         self.handler.connect()

@@ -6,13 +6,7 @@ from mock import patch
 import requests
 
 import meniscus.api.correlation.correlation_exceptions as exception
-from meniscus.api.correlation.correlation_process import ConfigCache
-from meniscus.api.correlation.correlation_process import Correlator
-from meniscus.api.correlation.correlation_process import TenantIdentification
-from meniscus.api.correlation.correlation_process import TenantCache
-from meniscus.api.correlation.correlation_process import TokenCache
-from meniscus.api.correlation.correlation_process \
-    import validate_event_message_body
+from meniscus.api.correlation import correlator
 from meniscus.data.model.tenant import EventProducer
 from meniscus.data.model.tenant import Host
 from meniscus.data.model.tenant import HostProfile
@@ -68,37 +62,37 @@ class WhenTestingMessageBodyValidation(unittest.TestCase):
         body = self.body_no_host
         self.assertFalse('host' in body.keys())
         with self.assertRaises(exception.MessageValidationError):
-            validate_event_message_body(body)
+            correlator.validate_event_message_body(body)
 
     def test_should_raise_exception_for_empty_host(self):
         body = self.body_empty_host
         self.assertFalse(body['host'])
         with self.assertRaises(exception.MessageValidationError):
-            validate_event_message_body(body)
+            correlator.validate_event_message_body(body)
 
     def test_should_raise_exception_for_no_pname(self):
         body = self.body_no_pname
         self.assertFalse('pname' in body.keys())
         with self.assertRaises(exception.MessageValidationError):
-            validate_event_message_body(body)
+            correlator.validate_event_message_body(body)
 
     def test_should_raise_exception_for_empty_pname(self):
         body = self.body_empty_pname
         self.assertFalse(body['pname'])
         with self.assertRaises(exception.MessageValidationError):
-            validate_event_message_body(body)
+            correlator.validate_event_message_body(body)
 
     def test_should_raise_exception_for_no_time(self):
         body = self.body_no_time
         self.assertFalse('time' in body.keys())
         with self.assertRaises(exception.MessageValidationError):
-            validate_event_message_body(body)
+            correlator.validate_event_message_body(body)
 
     def test_should_raise_exception_for_empty_time(self):
         body = self.body_empty_time
         self.assertFalse(body['time'])
         with self.assertRaises(exception.MessageValidationError):
-            validate_event_message_body(body)
+            correlator.validate_event_message_body(body)
 
     def test_should_return_true_for_valid_body(self):
         body = self.body_valid
@@ -108,7 +102,7 @@ class WhenTestingMessageBodyValidation(unittest.TestCase):
         self.assertTrue(body['pname'])
         self.assertTrue('time' in body.keys())
         self.assertTrue(body['time'])
-        self.assertTrue(validate_event_message_body(body))
+        self.assertTrue(correlator.validate_event_message_body(body))
 
 
 class WhenTestingCorrelationMessage(unittest.TestCase):
@@ -135,27 +129,26 @@ class WhenTestingCorrelationMessage(unittest.TestCase):
                              hosts=self.hosts)
 
     def test_process_message_throws_exception_host_not_found(self):
-        body = {
+        message = {
             "host": "host99",
             "pname": "pname",
             "time": "2013-03-19T18:16:48.411029Z"
         }
 
-        test_message = Correlator(self.tenant, body)
         with self.assertRaises(exception.MessageValidationError):
-            test_message.process_message()
+            correlator.add_correlation_info_to_message(
+                self.tenant, message)
 
     def test_process_message_durable(self):
-        body = {
+        message = {
             "host": "host1",
             "pname": "producer1",
             "time": "2013-03-19T18:16:48.411029Z"
         }
 
-        test_message = Correlator(self.tenant, body)
-        test_message.process_message()
-        message = test_message.message
-        self.assertTrue(test_message.is_durable())
+        message = correlator.add_correlation_info_to_message(
+            self.tenant, message)
+        self.assertTrue(message['meniscus']['correlation']['durable'])
         self.assertTrue('host' in message.keys())
         self.assertTrue('pname' in message.keys())
         self.assertTrue('time' in message.keys())
@@ -176,23 +169,16 @@ class WhenTestingCorrelationMessage(unittest.TestCase):
         self.assertTrue('encrypted' in meniscus_dict.keys())
         self.assertTrue(meniscus_dict['durable'])
 
-        durable_job = test_message.get_durable_job_info()
-        self.assertTrue('job_id' in durable_job.keys())
-        self.assertTrue(durable_job['job_id'])
-        self.assertTrue('job_status_uri' in durable_job.keys())
-        self.assertTrue(durable_job['job_status_uri'])
-
     def test_process_message_not_durable(self):
-        body = {
+        message = {
             "host": "host1",
             "pname": "producer2",
             "time": "2013-03-19T18:16:48.411029Z"
         }
 
-        test_message = Correlator(self.tenant, body)
-        test_message.process_message()
-        message = test_message.message
-        self.assertFalse(test_message.is_durable())
+        message = correlator.add_correlation_info_to_message(
+            self.tenant, message)
+        self.assertFalse(message['meniscus']['correlation']['durable'])
         self.assertTrue('host' in message.keys())
         self.assertTrue('pname' in message.keys())
         self.assertTrue('time' in message.keys())
@@ -211,16 +197,15 @@ class WhenTestingCorrelationMessage(unittest.TestCase):
         self.assertFalse('job_id' in meniscus_dict.keys())
 
     def test_process_message_default(self):
-        body = {
+        message = {
             "host": "host1",
             "pname": "producer99",
             "time": "2013-03-19T18:16:48.411029Z"
         }
 
-        test_message = Correlator(self.tenant, body)
-        test_message.process_message()
-        message = test_message.message
-        self.assertFalse(test_message.is_durable())
+        message = correlator.add_correlation_info_to_message(
+            self.tenant, message)
+        self.assertFalse(message['meniscus']['correlation']['durable'])
         self.assertTrue('host' in message.keys())
         self.assertTrue('pname' in message.keys())
         self.assertTrue('time' in message.keys())
@@ -279,144 +264,158 @@ class WhenTestingTenantIdentification(unittest.TestCase):
         self.get_config = MagicMock(return_value=self.config)
 
     def test_get_validated_tenant_throws_auth_exception_from_cache(self):
-        tenant_identify = TenantIdentification(
+        tenant_identify = correlator.TenantIdentification(
             self.tenant_id, self.invalid_message_token)
 
-        with patch.object(TokenCache, 'get_token', self.get_token):
+        with patch.object(correlator.TokenCache, 'get_token', self.get_token):
 
             with self.assertRaises(exception.MessageAuthenticationError):
                 tenant_identify.get_validated_tenant()
 
     def test_get_validated_tenant_from_cache_returns_tenant(self):
-        tenant_identify = TenantIdentification(
+        tenant_identify = correlator.TenantIdentification(
             self.tenant_id, self.valid_message_token)
 
-        with patch.object(TokenCache, 'get_token', self.get_token), \
-                patch.object(TenantCache, 'get_tenant', self.get_tenant):
+        with patch.object(
+                correlator.TokenCache, 'get_token', self.get_token), \
+                patch.object(
+                    correlator.TenantCache, 'get_tenant', self.get_tenant):
 
                 tenant = tenant_identify.get_validated_tenant()
 
         self.assertIsInstance(tenant, Tenant)
 
     def test_get_validated_tenant_from_coordinator_returns_tenant(self):
-        tenant_identify = TenantIdentification(
+        tenant_identify = correlator.TenantIdentification(
             self.tenant_id, self.valid_message_token)
 
-        with patch.object(TokenCache, 'get_token', self.get_token), \
-            patch.object(TenantCache, 'get_tenant', self.get_none),\
-            patch.object(TenantIdentification, '_get_tenant_from_coordinator',
-                         self.get_tenant):
+        with patch.object(
+                correlator.TokenCache, 'get_token', self.get_token), \
+            patch.object(correlator.TenantCache, 'get_tenant', self.get_none),\
+            patch.object(
+                correlator.TenantIdentification,
+                '_get_tenant_from_coordinator',
+                self.get_tenant):
             tenant = tenant_identify.get_validated_tenant()
         self.assertIsInstance(tenant, Tenant)
 
     def test_get_coord_validated_tenant_from_coordinator_returns_tenant(self):
-        tenant_identify = TenantIdentification(
+        tenant_identify = correlator.TenantIdentification(
             self.tenant_id, self.valid_message_token)
 
-        with patch.object(TokenCache, 'get_token', self.get_none), \
-            patch.object(TenantIdentification,
+        with patch.object(correlator.TokenCache, 'get_token', self.get_none), \
+            patch.object(correlator.TenantIdentification,
                          '_validate_token_with_coordinator', MagicMock()), \
-            patch.object(TenantIdentification, '_get_tenant_from_coordinator',
-                         self.get_tenant):
+            patch.object(
+                correlator.TenantIdentification,
+                '_get_tenant_from_coordinator',
+                self.get_tenant):
 
             tenant = tenant_identify.get_validated_tenant()
 
         self.assertIsInstance(tenant, Tenant)
 
     def test_validate_token_with_coordinator_throws_communication_error(self):
-        tenant_identify = TenantIdentification(
+        tenant_identify = correlator.TenantIdentification(
             self.tenant_id, self.valid_message_token)
         http_request = MagicMock(
             side_effect=requests.RequestException)
 
-        with patch.object(ConfigCache, 'get_config', self.get_config),\
+        with patch.object(
+                correlator.ConfigCache, 'get_config', self.get_config),\
             patch('meniscus.api.correlation.'
-                  'correlation_process.http_request', http_request):
+                  'correlator.http_request', http_request):
 
             with self.assertRaises(exception.CoordinatorCommunicationError):
                 tenant_identify._validate_token_with_coordinator()
 
     def test_validate_token_with_coordinator_throws_auth_error(self):
-        tenant_identify = TenantIdentification(
+        tenant_identify = correlator.TenantIdentification(
             self.tenant_id, self.invalid_message_token)
         response = MagicMock()
         response.status_code = httplib.NOT_FOUND
         http_request = MagicMock(return_value=response)
 
-        with patch.object(ConfigCache, 'get_config', self.get_config), \
+        with patch.object(
+                correlator.ConfigCache, 'get_config', self.get_config), \
             patch('meniscus.api.correlation.'
-                  'correlation_process.http_request', http_request):
+                  'correlator.http_request', http_request):
 
             with self.assertRaises(exception.MessageAuthenticationError):
                 tenant_identify._validate_token_with_coordinator()
 
     def test_validate_token_with_coordinator_returns_true(self):
-        tenant_identify = TenantIdentification(
+        tenant_identify = correlator.TenantIdentification(
             self.tenant_id, self.valid_message_token)
         response = MagicMock()
         response.status_code = httplib.OK
         http_request = MagicMock(return_value=response)
 
-        with patch.object(ConfigCache, 'get_config', self.get_config), \
+        with patch.object(
+                correlator.ConfigCache, 'get_config', self.get_config), \
             patch('meniscus.api.correlation.'
-                  'correlation_process.http_request', http_request):
+                  'correlator.http_request', http_request):
 
             result = tenant_identify._validate_token_with_coordinator()
             self.assertTrue(result)
 
     def test_get_tenant_from_coordinator_exception_on_http_request(self):
-        tenant_identify = TenantIdentification(
+        tenant_identify = correlator.TenantIdentification(
             self.tenant_id, self.valid_message_token)
         http_request = MagicMock(
             side_effect=requests.RequestException)
 
-        with patch.object(ConfigCache, 'get_config', self.get_config), \
+        with patch.object(correlator.ConfigCache,
+                          'get_config', self.get_config), \
             patch('meniscus.api.correlation.'
-                  'correlation_process.http_request', http_request):
+                  'correlator.http_request', http_request):
 
             with self.assertRaises(exception.CoordinatorCommunicationError):
                 tenant_identify._get_tenant_from_coordinator()
 
     def test_get_tenant_from_coordinator_exception_for_no_tenant_found(self):
-        tenant_identify = TenantIdentification(
+        tenant_identify = correlator.TenantIdentification(
             self.tenant_id, self.valid_message_token)
         response = MagicMock()
         response.status_code = httplib.NOT_FOUND
         http_request = MagicMock(return_value=response)
 
-        with patch.object(ConfigCache, 'get_config', self.get_config),\
+        with patch.object(
+                correlator.ConfigCache, 'get_config', self.get_config),\
             patch('meniscus.api.correlation.'
-                  'correlation_process.http_request', http_request):
+                  'correlator.http_request', http_request):
 
             with self.assertRaises(exception.ResourceNotFoundError):
                 tenant_identify._get_tenant_from_coordinator()
 
     def test_get_tenant_from_coordinator_exception_on_bad_response_code(self):
-        tenant_identify = TenantIdentification(
+        tenant_identify = correlator.TenantIdentification(
             self.tenant_id, self.valid_message_token)
         response = MagicMock()
         response.status_code = httplib.UNAUTHORIZED
         http_request = MagicMock(return_value=response)
 
-        with patch.object(ConfigCache, 'get_config', self.get_config), \
+        with patch.object(
+                correlator.ConfigCache, 'get_config', self.get_config), \
             patch('meniscus.api.correlation.'
-                  'correlation_process.http_request', http_request):
+                  'correlator.http_request', http_request):
 
             with self.assertRaises(exception.CoordinatorCommunicationError):
                 tenant_identify._get_tenant_from_coordinator()
 
     def test_get_tenant_from_coordinator_returns_tenant(self):
-        tenant_identify = TenantIdentification(
+        tenant_identify = correlator.TenantIdentification(
             self.tenant_id, self.valid_message_token)
         response = MagicMock()
         response.status_code = httplib.OK
         http_request = MagicMock(return_value=response)
 
-        with patch.object(ConfigCache, 'get_config', self.get_config), \
+        with patch.object(
+                correlator.ConfigCache, 'get_config', self.get_config), \
             patch('meniscus.api.correlation.'
-                  'correlation_process.http_request', http_request), \
+                  'correlator.http_request', http_request), \
             patch('meniscus.api.correlation.'
-                  'correlation_process.load_tenant_from_dict',
+                  'correlator.load_tenant_from_dict',
                   self.tenant_found):
 
             tenant = tenant_identify._get_tenant_from_coordinator()

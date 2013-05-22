@@ -15,7 +15,7 @@ def format_terms(terms):
     for term_key in terms:
         formatted_terms.append({
             'term': {
-                term_key : terms[term_key]
+                term_key: terms[term_key]
             }
         })
     return formatted_terms
@@ -27,7 +27,7 @@ def format_search(positive_terms=None, negative_terms=None):
         query['must'] = format_terms(positive_terms)
     if negative_terms:
         query['must_not'] = format_terms(negative_terms)
-    return { 'bool': query }
+    return {'bool': query}
 
 
 # Elasticsearch configuration options
@@ -47,6 +47,7 @@ _ES_OPTIONS = [
 
 get_config().register_opts(_ES_OPTIONS, group=_es_group)
 
+
 class PyesDatasourceHandler(DatasourceHandler):
 
     def __init__(self, conf):
@@ -61,10 +62,11 @@ class PyesDatasourceHandler(DatasourceHandler):
         self.connection.flush()
 
     def connect(self):
-        self.connection =pyes.ES(self.es_servers)
+        self.connection = pyes.ES(self.es_servers)
 
         if self.username and self.password:
-            pass #should auth
+            #Todo:{JHopper)Add Authentication
+            pass
 
         self.status = STATUS_CONNECTED
 

@@ -1,13 +1,12 @@
 from portal.input.rfc5424 import SyslogMessageHandler
 
-from meniscus.api.tenant.resources import MESSAGE_TOKEN
 from meniscus.api.correlation import correlator
 import meniscus.api.correlation.correlation_exceptions as errors
 
 
 class MessageHandler(SyslogMessageHandler):
 
-    def __init__(self, router):
+    def __init__(self, router=None):
         self.msg = b''
         self.msg_head = None
         self.outbound = None

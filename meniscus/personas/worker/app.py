@@ -7,13 +7,12 @@ from portal.server import SyslogServer
 
 from meniscus.api.callback.resources import CallbackResource
 from meniscus.api.version.resources import VersionResource
-from meniscus.api.correlation.syslog import MessageHandler
 from meniscus.personas.common.publish_stats import WorkerStatusPublisher
 from meniscus.personas.common.publish_stats import WorkerStatsPublisher
-from meniscus.personas.common.routing import Router
+from meniscus.personas.worker import syslog_handler
 
 
-_LOG = get_logger('meniscus.personas.syslog.app')
+_LOG = get_logger('meniscus.personas.worker.app')
 
 
 def start_up():
@@ -30,7 +29,7 @@ def start_up():
     publish_stats_service.run()
 
     server = SyslogServer(
-        ("0.0.0.0", 5140), MessageHandler(Router()))
+        ("0.0.0.0", 5140), syslog_handler.WorkerSyslogHandler())
     Process(target=server.start).start()
 
     return application

@@ -25,6 +25,11 @@ PERSONALITIES = [
         'alternate': 'normalization'
     },
     {
+        'personality': 'workercd d',
+        'downstream': '',
+        'alternate': ''
+    },
+    {
         'personality': 'coordinator',
         'downstream': '',
         'alternate': ''

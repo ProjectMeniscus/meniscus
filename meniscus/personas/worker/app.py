@@ -10,9 +10,9 @@ from meniscus.api.version.resources import VersionResource
 from meniscus.personas.common.publish_stats import WorkerStatusPublisher
 from meniscus.personas.common.publish_stats import WorkerStatsPublisher
 from meniscus.personas.worker import syslog_handler
+from meniscus.queue.resources import celery
 
-
-_LOG = get_logger('meniscus.personas.worker.app')
+_LOG = get_logger(__name__)
 
 
 def start_up():
@@ -32,4 +32,5 @@ def start_up():
         ("0.0.0.0", 5140), syslog_handler.WorkerSyslogHandler())
     Process(target=server.start).start()
 
+    celery.worker_main()
     return application

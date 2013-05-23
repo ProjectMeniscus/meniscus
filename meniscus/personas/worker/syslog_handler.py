@@ -1,5 +1,5 @@
 from meniscus.api.correlation.syslog import MessageHandler
-from meniscus.api.datastore_init import db_handler
+from meniscus.api.storage import persistence
 
 class WorkerSyslogHandler(MessageHandler):
 
@@ -8,11 +8,7 @@ class WorkerSyslogHandler(MessageHandler):
         full_message = self.msg + last_message_part
         syslog_message = self.msg_head.as_dict()
         syslog_message['message'] = full_message.decode('utf-8')
-        self._persist_message(syslog_message)
+        persistence.persist_message(syslog_message)
         self.msg_head = None
         self.msg = b''
 
-    def _persist_message(self, message):
-        """Takes a message dict and persists it to the configured database."""
-        _sink = db_handler()
-        _sink.put('logs', message)

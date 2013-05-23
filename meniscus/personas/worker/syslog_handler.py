@@ -1,5 +1,5 @@
 from meniscus.api.correlation.syslog import MessageHandler
-from meniscus.api.storage import persistence
+from meniscus.api.storage.persistence import persist_message
 
 class WorkerSyslogHandler(MessageHandler):
 
@@ -8,7 +8,7 @@ class WorkerSyslogHandler(MessageHandler):
         full_message = self.msg + last_message_part
         syslog_message = self.msg_head.as_dict()
         syslog_message['message'] = full_message.decode('utf-8')
-        persistence.persist_message(syslog_message)
+        persist_message(syslog_message)
         self.msg_head = None
         self.msg = b''
 

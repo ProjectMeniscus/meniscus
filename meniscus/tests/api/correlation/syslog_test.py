@@ -87,7 +87,8 @@ class WhenTestingSyslogHandler(unittest.TestCase):
             }
         }
         correlate_function = MagicMock(return_value=correlated_message)
-        self.router.route_message = MagicMock()
+        persist_message_func = MagicMock()
+        persist_message_func.delay = MagicMock()
 
         self.syslog_handler.message_head(self.syslog_message_head)
         self.syslog_handler.message_part(self.message_part_1)
@@ -100,13 +101,14 @@ class WhenTestingSyslogHandler(unittest.TestCase):
             self.message_part_3
         ).decode('utf-8')
 
-        with patch.object(syslog.MessageHandler,
-                          '_correlate_syslog_message',
-                          correlate_function):
+        with patch('meniscus.api.correlation.syslog._correlate_syslog_message',
+                   correlate_function),\
+            patch('meniscus.api.correlation.syslog.persist_message',
+                  persist_message_func):
 
             self.syslog_handler.message_complete(self.message_part_3)
             correlate_function.assert_called_once_with(syslog_message)
-            self.router.route_message.assert_called_once_with(
+            persist_message_func.delay.assert_called_once_with(
                 correlated_message)
             self.assertIs(self.syslog_handler.msg_head, None)
             self.assertIs(self.syslog_handler.msg, b'')
@@ -119,11 +121,11 @@ class WhenTestingSyslogHandler(unittest.TestCase):
             self.message_part_3
         ).decode('utf-8')
 
-        #remove necessary aythentication for test
+        #remove necessary authentication for test
         syslog_message['sd'].pop('meniscus')
 
         with self.assertRaises(errors.MessageValidationError):
-            self.syslog_handler._correlate_syslog_message(syslog_message)
+            syslog._correlate_syslog_message(syslog_message)
 
     def test_correlate_message(self):
         syslog_message = self.syslog_message_head.as_dict()
@@ -139,7 +141,7 @@ class WhenTestingSyslogHandler(unittest.TestCase):
                           'get_validated_tenant', get_validated_tenant_func), \
             patch('meniscus.api.correlation.syslog.correlator.'
                   'add_correlation_info_to_message', add_correlation_func):
-            self.syslog_handler._correlate_syslog_message(syslog_message)
+            syslog._correlate_syslog_message(syslog_message)
         get_validated_tenant_func.assert_called_once()
         add_correlation_func.assert_called_once()
 
@@ -151,7 +153,7 @@ class WhenTestingSyslogHandler(unittest.TestCase):
             self.message_part_3
         ).decode('utf-8')
 
-        cee_message = self.syslog_handler._convert_message_cee(syslog_message)
+        cee_message = syslog._convert_message_cee(syslog_message)
 
         self.assertEquals(cee_message['ver'], syslog_message['version'])
         self.assertEquals(cee_message['msgid'], syslog_message['messageid'])

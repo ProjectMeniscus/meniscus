@@ -102,6 +102,7 @@ def get_lan_ip():
             except socket.gaierror:
                 return '127.0.0.1'
 
+
 def get_cpu_core_count():
     return multiprocessing.cpu_count()
 

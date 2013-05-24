@@ -7,13 +7,10 @@ from meniscus.api import load_body
 from meniscus.api.correlation import correlator
 import meniscus.api.correlation.correlation_exceptions as errors
 from meniscus.api.tenant.resources import MESSAGE_TOKEN
-from meniscus.personas.common.routing import RoutingException
+from meniscus.api.storage.persistence import persist_message
 
 
 class PublishMessageResource(ApiResource):
-
-    def __init__(self, router):
-        self.router = router
 
     def _validate_req_body_on_post(self, body):
         """
@@ -54,10 +51,7 @@ class PublishMessageResource(ApiResource):
         except errors.CoordinatorCommunicationError:
             abort(falcon.HTTP_500)
 
-        try:
-            self.router.route_message(message)
-        except RoutingException as ex:
-            abort(falcon.HTTP_500, 'error routing message')
+        persist_message(message)
 
         #if message is durable, return durable job info
         if message['meniscus']['correlation']['durable']:

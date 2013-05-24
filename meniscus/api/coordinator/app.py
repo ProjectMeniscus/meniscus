@@ -1,9 +1,6 @@
 import falcon
 
-from meniscus.api.callback.resources import CallbackResource
-from meniscus.api.coordinator.resources import WorkerRoutesResource
 from meniscus.api.coordinator.resources import WorkerRegistrationResource
-from meniscus.api.coordinator.resources import WorkerWatchlistResource
 from meniscus.api.status.resources import WorkerStatusResource
 from meniscus.api.status.resources import WorkersStatusResource
 from meniscus.api.tenant.resources import EventProducerResource
@@ -22,14 +19,12 @@ from meniscus.api.datastore_init import db_handler
 
 #Common Resource(s)
 versions = VersionResource()
-callback = CallbackResource()
 
 #Coordinator Resources
-worker_routes = WorkerRoutesResource(db_handler())
+
 worker_registration = WorkerRegistrationResource(db_handler())
 workers_status = WorkersStatusResource(db_handler())
 worker_status = WorkerStatusResource(db_handler())
-worker_watchlist = WorkerWatchlistResource(db_handler())
 
 #Tenant Resources
 tenant = TenantResource(db_handler())
@@ -47,16 +42,12 @@ application = api = falcon.API()
 
 # Common Routing
 api.add_route('/', versions)
-api.add_route('/v1/callback', callback)
 
 # Coordinator Routing
 api.add_route('/v1/pairing', worker_registration)
-api.add_route('/v1/worker/{worker_id}/routes', worker_routes)
 
 api.add_route('/v1/worker/{worker_id}/status', worker_status)
 api.add_route('/v1/status', workers_status)
-
-api.add_route('/v1/workers/{worker_id}', worker_watchlist)
 
 # Tenant Routing
 api.add_route('/v1/tenant', tenant)

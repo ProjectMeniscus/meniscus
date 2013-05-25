@@ -36,7 +36,7 @@ get_config().register_group(_es_group)
 
 _ES_OPTIONS = [
     cfg.ListOpt('es_servers',
-                default=['localhost:27017'],
+                default=['localhost:9200'],
                 help="""ES servers to connect to."""
                 ),
     cfg.StrOpt('index',

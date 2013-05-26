@@ -1,13 +1,12 @@
 import pyes
-import pprint
 import uuid
-import pyes.connection
-from oslo.config import cfg
+
 from meniscus.config import get_config
 from meniscus.data.handler import (
     DatabaseHandlerError, DatasourceHandler, register_handler,
     STATUS_CONNECTED, STATUS_CLOSED
 )
+from oslo.config import cfg
 
 
 def format_terms(terms):
@@ -62,8 +61,7 @@ class PyesDatasourceHandler(DatasourceHandler):
         self.connection.flush()
 
     def connect(self):
-        self.connection = pyes.connection.connect_thread_local(["elasticsearch-dev.projectmeniscus.org:9500"])
-        #self.connection = pyes.ES(self.es_servers)
+        self.connection = pyes.ES(self.es_servers)
 
         if self.username and self.password:
             #Todo:{JHopper)Add Authentication
@@ -94,7 +92,7 @@ class PyesDatasourceHandler(DatasourceHandler):
     def put(self, object_name, document=None):
         if document is None:
             document = dict()
-        #self._check_connection()
+        self._check_connection()
         _id = uuid.uuid4()
         self.connection.index(document, self.index, object_name, _id)
         return _id
@@ -112,7 +110,10 @@ class PyesDatasourceHandler(DatasourceHandler):
         self.connection.update(
             document, self.index, object_name, id)
 
-    def delete(self, object_name, query_filter=dict(), limit_one=False):
+    def delete(self, object_name, query_filter=None, limit_one=False):
+        if query_filter is None:
+            query_filter = dict()
+
         self.connection.delete_by_query(
             [self.index], [object_name], format_search(query_filter))
 

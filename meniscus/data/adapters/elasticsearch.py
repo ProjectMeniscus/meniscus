@@ -1,7 +1,7 @@
 import pyes
 import pprint
 import uuid
-
+import pyes.connection
 from oslo.config import cfg
 from meniscus.config import get_config
 from meniscus.data.handler import (
@@ -62,7 +62,8 @@ class PyesDatasourceHandler(DatasourceHandler):
         self.connection.flush()
 
     def connect(self):
-        self.connection = pyes.ES(self.es_servers)
+        self.connection = pyes.connection.connect_thread_local(self.es_servers)
+        #self.connection = pyes.ES(self.es_servers)
 
         if self.username and self.password:
             #Todo:{JHopper)Add Authentication

@@ -1,8 +1,43 @@
 from celery import Celery
 
+import meniscus.config as config
+from oslo.config import cfg
+
+# Celery configuration options
+_CELERY_GROUP = cfg.OptGroup(name='celery', title='Celery Options')
+config.get_config().register_group(_CELERY_GROUP)
+
+_CELERY = [
+    cfg.StrOpt('BROKER_URL',
+               default="librabbitmq://guest@localhost//",
+               help="""url to the broker behind celery"""
+    ),
+    cfg.IntOpt('CELERYD_CONCURRENCY',
+               default=10,
+               help="""Number of concurrent worker processes/threads"""
+    ),
+    cfg.BoolOpt('CELERY_DISABLE_RATE_LIMITS',
+                default=True,
+                help="""disable celery rate limit"""
+    ),
+    cfg.StrOpt( 'CELERY_TASK_SERIALIZER',
+               default="json",
+               help="""default serialization method to use"""
+    )
+]
+
+config.get_config().register_opts(_CELERY, group=_CELERY_GROUP)
+
+try:
+    config.init_config()
+except config.cfg.ConfigFilesNotFoundError:
+    #TODO(sgonzales) Log config error
+    pass
+
+meniscus_conf = config.get_config()
+
+
 celery = Celery('meniscus',
                 broker='librabbitmq://guest@localhost//')
 
-#celery.conf.CELERYD_POOL = 'eventlet'
-celery.conf.CELERYD_CONCURRENCY = 100
-celery.conf.CELERY_DISABLE_RATE_LIMITS = True
+celery.conf = meniscus_conf.celery

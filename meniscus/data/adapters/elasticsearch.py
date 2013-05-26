@@ -1,4 +1,5 @@
 import pyes
+from pyes.connection_http import update_connection_pool
 import uuid
 
 from meniscus.config import get_config
@@ -61,6 +62,7 @@ class PyesDatasourceHandler(DatasourceHandler):
         self.connection.flush()
 
     def connect(self):
+        update_connection_pool(125)
         self.connection = pyes.ES(self.es_servers)
 
         if self.username and self.password:

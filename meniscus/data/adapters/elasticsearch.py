@@ -94,7 +94,7 @@ class PyesDatasourceHandler(DatasourceHandler):
     def put(self, object_name, document=None):
         if document is None:
             document = dict()
-        self._check_connection()
+        #self._check_connection()
         _id = uuid.uuid4()
         self.connection.index(document, self.index, object_name, _id)
         return _id

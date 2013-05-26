@@ -62,7 +62,7 @@ class PyesDatasourceHandler(DatasourceHandler):
         self.connection.flush()
 
     def connect(self):
-        self.connection = pyes.connection.connect_thread_local(self.es_servers)
+        self.connection = pyes.connection.connect_thread_local(["elasticsearch-dev.projectmeniscus.org:9500"])
         #self.connection = pyes.ES(self.es_servers)
 
         if self.username and self.password:

@@ -1,5 +1,8 @@
-from meniscus.api.datastore_init import db_handler
+
+#from meniscus.api.datastore_init import db_handler
+import eventlet
 from meniscus.queue import celery
+db_handler = eventlet.import_patched('meniscus.api.datastore_init.db_handler')
 
 
 @celery.task(acks_late=True, max_retries=0,

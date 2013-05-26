@@ -1,8 +1,9 @@
 import eventlet
+eventlet.monkey_patch()
 
 from meniscus.api.datastore_init import db_handler
 from meniscus.queue import celery
-eventlet.monkey_patch()
+
 
 @celery.task(acks_late=True, max_retries=0,
              ignore_result=True, serializer="json")

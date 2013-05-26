@@ -34,10 +34,13 @@ except config.cfg.ConfigFilesNotFoundError:
     #TODO(sgonzales) Log config error
     pass
 
-meniscus_conf = config.get_config()
+celery_conf = config.get_config().celery
 
 
 celery = Celery('meniscus',
                 broker='librabbitmq://guest@localhost//')
 
-celery.conf = meniscus_conf.celery
+celery.conf.BROKER_URL = celery_conf.BROKER_URL
+celery.conf.CELERY_DISABLE_RATE_LIMITS = celery_conf.CELERYD_CONCURRENCY
+celery.conf.CELERY_DISABLE_RATE_LIMITS = celery_conf.CELERY_DISABLE_RATE_LIMITS
+celery.conf.CELERY_TASK_SERIALIZER = celery_conf.CELERY_TASK_SERIALIZER

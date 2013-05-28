@@ -1,45 +1,140 @@
 {
-    "tenant": {
-        "tenant_id": "12345",
-        "hosts": [
-            {
-                "id": 121,
-                "hostname": "ws-n01",
-                "ip_address_v4": "127.0.0.1",
-                "ip_address_v6": "::1",
-                "profile": 122
-            }
-        ],
-        "profiles": [
-            {
-                "id": 122,
-                "name": "test",
-                "event_producers": [
-                    123,
-                    124
-                ]
-            }
-        ],
-        "event_producers": [
-            {
-                "id": 123,
-                "name": "apache",
-                "pattern": "apache2.cee",
-                "durable": false,
-                "encrypted": false
-            },
-            {
-                "id": 124,
-                "name": "system.auth",
-                "pattern": "auth_log.cee",
-                "durable": false,
-                "encrypted": false
-            }
-        ],
+    "id": "http://projectmeniscus.org/json/tenant#",
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "description": "Tenant API schema",
+
+    "type": "object",
+    "additionalProperties": false,
+
+    "properties": {
+        "tenant": {
+            "$ref": "#/definitions/tenant"
+        },
+        "host": {
+            "$ref": "#/definitions/host"
+        },
+        "profile": {
+            "$ref": "#/definitions/profile"
+        },
+        "event_producer": {
+            "$ref": "#/definitions/event_producer"
+        },
         "token": {
-            "valid": "{UUID4}",
-            "previous": "{UUID4}",
-            "last_changed": "2012-12-11T15:48:23.217459-06:00"
+            "$ref": "#/definitions/token"
+        }
+    },
+
+    "oneOf": [
+        { "required": ["tenant"] },
+        { "required": ["host"] },
+        { "required": ["profile"] },
+        { "required": ["event_producer"] },
+        { "required": ["token"] }
+    ],
+
+    "definitions": {
+        "tenant": {
+            "required": ["tenant_id"],
+            "additionalProperties": false,
+
+            "properties": {
+                "tenant_id": {
+                	"type": "string"
+                },
+                "hosts": {
+                    "type": "array",
+                    "items": { "$ref": "#/definitions/host" }
+                },
+                "profiles": {
+                    "type": "array",
+                    "items": { "$ref": "#/definitions/profile" }
+                },
+                "event_producers": {
+                    "type": "array",
+                    "items": { "$ref": "#/definitions/event_producer" }
+                },
+                "token": {
+                    "$ref": "#/definitions/token"
+                }
+            }
+        },
+
+        "host": {
+            "required": ["id", "hostname"],
+            "additionalProperties": false,
+
+            "properties": {
+                "id": {
+                    "type": "number"
+                },
+                "hostname": {
+                    "type": "string"
+                },
+                "ip_address_v4": {
+                    "type": "string"
+                },
+                "ip_address_v6": {
+                    "type": "string"
+                },
+                "profile": {
+                    "type": "number"
+                }
+            }
+        },
+
+        "profile": {
+            "required": ["id", "name"],
+            "additionalProperties": false,
+
+            "properties": {
+                "id": {
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "event_producers": {
+                    "type": "array",
+                    "items": { "type": "number" }
+                }
+            }
+        },
+
+        "event_producer": {
+            "required": ["id", "name"],
+            "additionalProperties": false,
+
+            "properties": {
+                "id": {
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "durable": {
+                    "type": "boolean"
+                },
+                "encrypted": {
+                    "type": "boolean"
+                }
+            }
+        },
+
+        "token": {
+            "required": ["valid"],
+            "additionalProperties": false,
+
+            "properties": {
+                "valid": {
+                    "type": "string"
+                },
+                "previous": {
+                    "type": "string"
+                },
+                "last_changed": {
+                    "type": "string"
+                }
+            }
         }
     }
 }

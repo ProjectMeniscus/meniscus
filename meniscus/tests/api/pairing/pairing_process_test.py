@@ -53,16 +53,13 @@ class WhenTestingPairingProcess(unittest.TestCase):
         with patch.object(pairing_process.NativeProxy, 'restart') \
                 as server_restart, \
                 patch.object(pairing_process.PairingProcess,
-                             '_register_with_coordinator') as register, \
-                patch.object(pairing_process.PairingProcess,
-                             '_get_worker_routes') as routes:
+                             '_register_with_coordinator') as register:
 
                 self.pairing_process._pair_with_coordinator(
                     self.api_secret, self.coordinator_uri, self.personality)
 
                 server_restart.assert_called_once()
                 register.assert_called_once()
-                routes.assert_called_once()
 
     def test_should_return_true_for_register_with_coordinator(self):
         self.resp.status_code = httplib.ACCEPTED
@@ -83,12 +80,6 @@ class WhenTestingPairingProcess(unittest.TestCase):
                 jsonutils.dumps(self.registration),
                 http_verb='POST')
 
-    def test_should_return_true_for_get_worker_routes(self):
-        with patch('meniscus.api.pairing.pairing_process.routing.'
-                   'get_routes_from_coordinator',
-                   MagicMock(return_value=True)) as get_routes:
-                self.assertTrue(self.pairing_process._get_worker_routes())
-                get_routes.assert_called_once()
 
 if __name__ == '__main__':
     unittest.main()

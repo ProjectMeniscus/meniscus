@@ -13,7 +13,6 @@ class Worker(object):
         self.worker_id = kwargs.get('worker_id', str(uuid.uuid4()))
         self.worker_token = kwargs.get('worker_token', str(uuid.uuid4()))
         self.hostname = kwargs['hostname']
-        self.callback = kwargs['callback']
         self.ip_address_v4 = kwargs['ip_address_v4']
         self.ip_address_v6 = kwargs['ip_address_v6']
         self.personality = kwargs['personality']
@@ -25,7 +24,6 @@ class Worker(object):
             'worker_id': self.worker_id,
             'worker_token': self.worker_token,
             'hostname': self.hostname,
-            'callback': self.callback,
             'ip_address_v4': self.ip_address_v4,
             'ip_address_v6': self.ip_address_v6,
             'personality': self.personality,
@@ -71,8 +69,6 @@ class WorkerRegistration(object):
         self.hostname = platform.node()
         self.ip_address_v4 = sys_assist.get_lan_ip()
         self.ip_address_v6 = ""
-        self.callback = 'http://{0}:8080/v1/callback'.format(
-            self.ip_address_v4)
         self.personality = personality
         self.status = status
         self.system_info = SystemInfo()
@@ -80,7 +76,6 @@ class WorkerRegistration(object):
     def format(self):
         return{
             'hostname': self.hostname,
-            'callback': self.callback,
             'ip_address_v4': self.ip_address_v4,
             'ip_address_v6': self.ip_address_v6,
             'personality': self.personality,
@@ -136,37 +131,3 @@ class WorkerConfiguration(object):
             'worker_id': self.worker_id,
             'coordinator_uri': self.coordinator_uri
         }
-
-
-class WatchlistItem(object):
-    """
-    Watchlist table item for keeping track of workers that are unresponsive
-    """
-    def __init__(self, worker_id, last_changed=None, watch_count=None,
-                 _id=None):
-
-        self.worker_id = worker_id
-        self._id = _id
-
-        if _id is None:
-            self.last_changed = datetime.now()
-            self.watch_count = 1
-        else:
-            self.last_changed = last_changed
-            self.watch_count = watch_count
-
-    def increment(self):
-        self.last_changed = datetime.now()
-        self.watch_count += 1
-
-    def format(self):
-        return {
-            'worker_id': self.worker_id,
-            'last_changed': self.last_changed,
-            'watch_count': self.watch_count,
-        }
-
-    def format_for_save(self):
-        worker_dict = self.format()
-        worker_dict['_id'] = self._id
-        return worker_dict

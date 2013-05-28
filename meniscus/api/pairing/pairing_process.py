@@ -10,7 +10,6 @@ from meniscus.data.model.worker import WorkerConfiguration
 from meniscus.data.model.worker import WorkerRegistration
 from meniscus.data.cache_handler import ConfigCache
 from meniscus.openstack.common import jsonutils
-from meniscus.personas.common import routing
 from meniscus.proxy import NativeProxy
 
 
@@ -44,10 +43,8 @@ class PairingProcess(object):
         #register with coordinator
         if self._register_with_coordinator(
                 coordinator_uri, personality, registration, auth_header):
-            #if registered successfully, get worker routes and restart
-            if self._get_worker_routes():
-                server = NativeProxy()
-                server.restart()
+            server = NativeProxy()
+            server.restart()
 
     @retry(tries=TRIES, delay=DELAY, backoff=BACKOFF)
     def _register_with_coordinator(
@@ -73,10 +70,3 @@ class PairingProcess(object):
             config_cache.set_config(config)
 
             return True
-
-    @retry(tries=TRIES, delay=DELAY, backoff=BACKOFF)
-    def _get_worker_routes(self):
-        """
-        get the associated routes for the worker and store them in cache
-        """
-        return routing.get_routes_from_coordinator()

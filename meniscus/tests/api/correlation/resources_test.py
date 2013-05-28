@@ -18,8 +18,7 @@ def suite():
 
 class WhenTestingPublishMessage(unittest.TestCase):
     def setUp(self):
-        self.router = MagicMock()
-        self.resource = PublishMessageResource(self.router)
+        self.resource = PublishMessageResource()
         self.body = {
             "host": "host",
             "pname": "pname",
@@ -124,7 +123,9 @@ class WhenTestingPublishMessage(unittest.TestCase):
                          MagicMock(return_value=self.tenant)), \
             patch('meniscus.api.correlation.resources.correlator.'
                   'add_correlation_info_to_message',
-                  MagicMock(return_value=message)):
+                  MagicMock(return_value=message)),\
+            patch('meniscus.api.correlation.resources.persist_message',
+                  MagicMock()):
             self.resource.on_post(self.req, self.resp, self.tenant_id)
             self.assertEquals(self.resp.status, falcon.HTTP_204)
 
@@ -168,7 +169,9 @@ class WhenTestingPublishMessage(unittest.TestCase):
                          MagicMock(return_value=self.tenant)), \
             patch('meniscus.api.correlation.resources.correlator.'
                   'add_correlation_info_to_message',
-                  MagicMock(return_value=message)):
+                  MagicMock(return_value=message)), \
+            patch('meniscus.api.correlation.resources.persist_message',
+                  MagicMock()):
             self.resource.on_post(self.req, self.resp, self.tenant_id)
             self.assertEquals(self.resp.status, falcon.HTTP_202)
             self.assertTrue("job_id" in self.resp.body)

@@ -6,7 +6,6 @@ from meniscus.data.model.worker import SystemInfo
 from meniscus.data.model.worker import Worker
 from meniscus.data.model.worker import WorkerConfiguration
 from meniscus.data.model.worker import WorkerRegistration
-from meniscus.data.model.worker import WatchlistItem
 
 
 def suite():
@@ -78,8 +77,6 @@ class WhenTestingWorkerRegistrationObject(unittest.TestCase):
     def test_WorkerRegistration_new(self):
         worker_dict = self.worker_reg.format()
         self.assertTrue('hostname' in worker_dict)
-        self.assertTrue('callback' in worker_dict)
-        self.assertTrue('/callback' in worker_dict['callback'])
         self.assertTrue('ip_address_v4' in worker_dict)
         self.assertTrue('ip_address_v6' in worker_dict)
         self.assertTrue('personality' in worker_dict)
@@ -167,37 +164,6 @@ class WhenTestingWorkerConfigurationObject(unittest.TestCase):
         self.assertEqual(worker_dict['coordinator_uri'],
                          'http://172.22.15.25:8080/v1')
 
-
-class WhenTestingWatchlistItem(unittest.TestCase):
-
-    def setUp(self):
-        self.worker_id = '598c36b6-4939-4857-8f9b-322663714a11'
-        self.time = datetime.now()
-        self.watch_count = 4
-        self._id = "uniqueid12345"
-        self.item = WatchlistItem(self.worker_id)
-        self.tracked_item = WatchlistItem(self.worker_id,
-                                          self.time,
-                                          self.watch_count,
-                                          self._id)
-
-    def test_new_watchlist_item_bare(self):
-        self.assertEqual(self.item.worker_id, self.worker_id)
-        self.assertEqual(self.item.watch_count, 1)
-        self.assertIsNotNone(self.item.last_changed)
-        self.assertIsNone(self.item._id)
-
-    def _test_increment(self):
-        watch_item = WatchlistItem(self.worker_id)
-        watch_item.increment()
-        self.assertEqual(watch_item.watch_count, 2)
-
-    def test_tracked_watchlist_item(self):
-        item_dic = self.tracked_item.format_for_save()
-        self.assertEqual(item_dic['worker_id'], self.worker_id)
-        self.assertEqual(item_dic['watch_count'], self.watch_count)
-        self.assertEqual(item_dic['last_changed'], self.time)
-        self.assertEqual(item_dic['_id'], self._id)
 
 if __name__ == '__main__':
     unittest.main()

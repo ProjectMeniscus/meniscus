@@ -1,13 +1,13 @@
 import pyes
-import pprint
+from pyes.connection_http import update_connection_pool
 import uuid
 
-from oslo.config import cfg
 from meniscus.config import get_config
 from meniscus.data.handler import (
     DatabaseHandlerError, DatasourceHandler, register_handler,
     STATUS_CONNECTED, STATUS_CLOSED
 )
+from oslo.config import cfg
 
 
 def format_terms(terms):
@@ -36,7 +36,7 @@ get_config().register_group(_es_group)
 
 _ES_OPTIONS = [
     cfg.ListOpt('es_servers',
-                default=['localhost:27017'],
+                default=['localhost:9200'],
                 help="""ES servers to connect to."""
                 ),
     cfg.StrOpt('index',
@@ -62,6 +62,7 @@ class PyesDatasourceHandler(DatasourceHandler):
         self.connection.flush()
 
     def connect(self):
+        update_connection_pool(125)
         self.connection = pyes.ES(self.es_servers)
 
         if self.username and self.password:
@@ -111,7 +112,10 @@ class PyesDatasourceHandler(DatasourceHandler):
         self.connection.update(
             document, self.index, object_name, id)
 
-    def delete(self, object_name, query_filter=dict(), limit_one=False):
+    def delete(self, object_name, query_filter=None, limit_one=False):
+        if query_filter is None:
+            query_filter = dict()
+
         self.connection.delete_by_query(
             [self.index], [object_name], format_search(query_filter))
 

@@ -1,0 +1,12 @@
+{
+    "worker_configuration": {
+        "personality": "worker",
+        "personality_module": "meniscus.personas.worker",
+        "worker_token": "94d6176b-9188-4409-8648-7374d0326e6b",
+        "worker_id": "8cc3b103-9b23-4e1c-afb1-8c5973621b55",
+        "coordinators": [
+            "http://172.22.15.25:8080/v1",
+            "http://172.22.15.25:8080/v1"
+        ]
+    }
+}

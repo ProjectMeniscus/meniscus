@@ -143,7 +143,8 @@ def _durable_must_be_bool():
 
 class TenantResource(ApiResource):
 
-    def __init__(self, db_handler):
+    def __init__(self, db_handler, validator):
+        super(TenantResource, self).__init__(validator)
         self.db = db_handler
 
     def _validate_req_body_on_post(self, body):
@@ -175,11 +176,11 @@ class TenantResource(ApiResource):
 
 class UserResource(ApiResource):
 
-    def __init__(self, db_handler):
+    def __init__(self, db_handler, validator):
+        super(UserResource, self).__init__(validator)
         self.db = db_handler
 
     def on_get(self, req, resp, tenant_id):
-
         tenant = find_tenant(self.db, tenant_id=tenant_id)
 
         if not tenant:
@@ -201,7 +202,8 @@ class UserResource(ApiResource):
 
 class HostProfilesResource(ApiResource):
 
-    def __init__(self, db_handler):
+    def __init__(self, db_handler, validator):
+        super(HostProfilesResource, self).__init__(validator)
         self.db = db_handler
 
     def on_get(self, req, resp, tenant_id):
@@ -276,7 +278,8 @@ class HostProfilesResource(ApiResource):
 
 class HostProfileResource(ApiResource):
 
-    def __init__(self, db_handler):
+    def __init__(self, db_handler, validator):
+        super(HostProfileResource, self).__init__(validator)
         self.db = db_handler
 
     def on_get(self, req, resp, tenant_id, profile_id):
@@ -379,7 +382,9 @@ class HostProfileResource(ApiResource):
 
 
 class EventProducersResource(ApiResource):
-    def __init__(self, db_handler):
+
+    def __init__(self, db_handler, validator):
+        super(EventProducersResource, self).__init__(validator)
         self.db = db_handler
 
     def on_get(self, req, resp, tenant_id):
@@ -459,7 +464,8 @@ class EventProducersResource(ApiResource):
 
 class EventProducerResource(ApiResource):
 
-    def __init__(self, db_handler):
+    def __init__(self, db_handler, validator):
+        super(EventProducerResource, self).__init__(validator)
         self.db = db_handler
 
     def on_get(self, req, resp, tenant_id, event_producer_id):
@@ -564,7 +570,8 @@ class EventProducerResource(ApiResource):
 
 class HostsResource(ApiResource):
 
-    def __init__(self, db_session):
+    def __init__(self, db_session, validator):
+        super(HostsResource, self).__init__(validator)
         self.db = db_session
 
     def on_get(self, req, resp, tenant_id):
@@ -646,7 +653,8 @@ class HostsResource(ApiResource):
 
 class HostResource(ApiResource):
 
-    def __init__(self, db_handler):
+    def __init__(self, db_handler, validator):
+        super(HostResource, self).__init__(validator)
         self.db = db_handler
 
     def on_get(self, req, resp, tenant_id, host_id):
@@ -744,7 +752,8 @@ class HostResource(ApiResource):
 
 class TokenResource(ApiResource):
 
-    def __init__(self, db_handler):
+    def __init__(self, db_handler, validator):
+        super(TokenResource, self).__init__(validator)
         self.db = db_handler
 
     def on_head(self, req, resp, tenant_id):

@@ -1,6 +1,7 @@
 import unittest
 import meniscus.env as env
 
+
 class WhenGettingLoggers(unittest.TestCase):
 
     def test_should_get_logger(self):

@@ -85,5 +85,3 @@ class JsonSchemaValidator(object):
             return (True, None)
         except ValidationError as ve:
             return (False, ve)
-
-

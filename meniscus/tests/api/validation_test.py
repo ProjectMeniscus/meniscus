@@ -1,14 +1,16 @@
-import os
-import json
 import unittest
-from jsonschema import validate, ValidationError
+
+from mock import MagicMock
+from meniscus.api.validation import ValidatorFactory
 
 
 class WhenLoading(unittest.TestCase):
 
     def setUp(self):
-        schema_json = open('../etc/meniscus/schemas/tenant.json', 'r').read()
-        self.schema = json.loads(schema_json)
+        conf = MagicMock()
+        conf.schemas.schema_directory = '../etc/meniscus/schemas'
+        validator_factory = ValidatorFactory(conf)
+        self.validator = validator_factory.get_validator('tenant')
 
     def tearDown(self):
         pass
@@ -20,7 +22,8 @@ class WhenLoading(unittest.TestCase):
                 'hostname': 'test'
             }
         }
-        validate(host_obj, self.schema)
+        result = self.validator.validate(host_obj)
+        self.assertTrue(result[0])
 
     def test_should_validate_simple_tenant_object(self):
         tenant_obj = {
@@ -28,7 +31,8 @@ class WhenLoading(unittest.TestCase):
                 'tenant_id': '12345'
             }
         }
-        validate(tenant_obj, self.schema)
+        result = self.validator.validate(tenant_obj)
+        self.assertTrue(result[0])
 
     def test_should_reject_bad_tenant_id(self):
         tenant_obj = {
@@ -37,8 +41,8 @@ class WhenLoading(unittest.TestCase):
             }
         }
 
-        with self.assertRaises(ValidationError):
-            validate(tenant_obj, self.schema)
+        result = self.validator.validate(tenant_obj)
+        self.assertFalse(result[0])
 
     def test_should_reject_additional_properties(self):
         tenant_obj = {
@@ -48,8 +52,8 @@ class WhenLoading(unittest.TestCase):
             }
         }
 
-        with self.assertRaises(ValidationError):
-            validate(tenant_obj, self.schema)
+        result = self.validator.validate(tenant_obj)
+        self.assertFalse(result[0])
 
     def test_should_reject_mutex_objects(self):
         tenant_obj = {
@@ -61,8 +65,8 @@ class WhenLoading(unittest.TestCase):
             }
         }
 
-        with self.assertRaises(ValidationError):
-            validate(tenant_obj, self.schema)
+        result = self.validator.validate(tenant_obj)
+        self.assertFalse(result[0])
 
 
 if __name__ == '__main__':

@@ -2,11 +2,17 @@ import falcon
 
 from meniscus.openstack.common import jsonutils
 
+
 class ApiResource(object):
     """
     Base class for API resources
     """
-    pass
+
+    def __init__(self, validator=None):
+        self.validator = validator
+
+    def load_body(self, req):
+        return load_body(req, self.validator)
 
 
 def abort(status=falcon.HTTP_500, message=None):
@@ -25,7 +31,7 @@ def format_response_body(body):
     return jsonutils.dumps(body)
 
 
-def load_body(req, required=[]):
+def load_body(req, validator=None):
     """
     Helper function for loading an HTTP request body from JSON into a
     Python dictionary
@@ -36,6 +42,13 @@ def load_body(req, required=[]):
         abort(falcon.HTTP_500, 'Read Error')
 
     try:
-        return jsonutils.loads(raw_json)
+        obj = jsonutils.loads(raw_json)
     except ValueError:
         abort(falcon.HTTP_400, 'Malformed JSON')
+
+    if validator:
+        validation_result = validator.validate(obj)
+        if not validation_result[0]:
+            abort(falcon.HTTP_400, validation_result[1].message)
+
+    return obj

@@ -1,4 +1,5 @@
 import falcon
+import meniscus.config as config
 
 from meniscus.api.coordinator.resources import WorkerRegistrationResource
 from meniscus.api.status.resources import WorkerStatusResource
@@ -15,27 +16,38 @@ from meniscus.api.tenant.resources import TokenResource
 from meniscus.api.version.resources import VersionResource
 
 from meniscus.api.datastore_init import db_handler
+from meniscus.api.validation import ValidatorFactory
 
 
 def start_up():
+    #Tenant API schema validator
+    ValidatorFactory
+
     #Common Resource(s)
     versions = VersionResource()
 
+    #Datastore adapter/session manager
+    datastore = db_handler()
+
+    #API Payload Validator
+    validator_factory = ValidatorFactory(config.get_config())
+    validator = validator_factory.get_validator('tenant')
+
     #Coordinator Resources
-    worker_registration = WorkerRegistrationResource(db_handler())
-    workers_status = WorkersStatusResource(db_handler())
-    worker_status = WorkerStatusResource(db_handler())
+    worker_registration = WorkerRegistrationResource(datastore, validator)
+    workers_status = WorkersStatusResource(datastore, validator)
+    worker_status = WorkerStatusResource(datastore, validator)
 
     #Tenant Resources
-    tenant = TenantResource(db_handler())
-    user = UserResource(db_handler())
-    profiles = HostProfilesResource(db_handler())
-    profile = HostProfileResource(db_handler())
-    event_producers = EventProducersResource(db_handler())
-    event_producer = EventProducerResource(db_handler())
-    hosts = HostsResource(db_handler())
-    host = HostResource(db_handler())
-    token = TokenResource(db_handler())
+    tenant = TenantResource(datastore, validator)
+    user = UserResource(datastore, validator)
+    profiles = HostProfilesResource(datastore, validator)
+    profile = HostProfileResource(datastore, validator)
+    event_producers = EventProducersResource(datastore, validator)
+    event_producer = EventProducerResource(datastore, validator)
+    hosts = HostsResource(datastore, validator)
+    host = HostResource(datastore, validator)
+    token = TokenResource(datastore, validator)
 
     # Create API
     application = api = falcon.API()

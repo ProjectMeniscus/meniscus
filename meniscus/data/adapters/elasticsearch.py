@@ -31,7 +31,7 @@ def format_search(positive_terms=None, negative_terms=None):
 
 
 # Elasticsearch configuration options
-_es_group = cfg.OptGroup(name='elasticsearch', title=' ElasticSearch Options')
+_es_group = cfg.OptGroup(name='elasticsearch', title='ElasticSearch Options')
 get_config().register_group(_es_group)
 
 _ES_OPTIONS = [

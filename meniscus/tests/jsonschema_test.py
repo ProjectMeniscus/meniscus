@@ -16,7 +16,8 @@ class WhenLoading(unittest.TestCase):
     def test_should_validate_host_object(self):
         host_obj = {
             'host': {
-                'id': 12345
+                'id': 12345,
+                'hostname': 'test'
             }
         }
         validate(host_obj, self.schema)

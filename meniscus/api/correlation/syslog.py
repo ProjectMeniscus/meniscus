@@ -3,6 +3,10 @@ from portal.input.rfc5424 import SyslogMessageHandler
 from meniscus.api.correlation import correlator
 import meniscus.api.correlation.correlation_exceptions as errors
 from meniscus.api.storage.persistence import persist_message
+from meniscus import env
+
+
+LOG = env.get_logger(__name__)
 
 
 class MessageHandler(SyslogMessageHandler):

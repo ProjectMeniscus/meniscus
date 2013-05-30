@@ -1,42 +1,30 @@
-import logging
-
 from os import environ as env
+from oslo.config import cfg
+from meniscus.openstack.common import log as logging
+from meniscus.config import _DEFAULT_CONFIG_ARGS
 
 
-_DEFAULT_LOG_LEVEL = logging.WARN
-_CONSOLE_STREAM = logging.StreamHandler()
-_VALID_LOGGING_LEVELS = [
-    'DEBUG',
-    'INFO',
-    'ERROR',
-    'WARN'
-]
+CONF = cfg.CONF
+CONF.import_opt('verbose', 'meniscus.openstack.common.log')
+CONF.import_opt('debug', 'meniscus.openstack.common.log')
+CONF.import_opt('log_file', 'meniscus.openstack.common.log')
+CONF.import_opt('log_dir', 'meniscus.openstack.common.log')
+CONF.import_opt('use_syslog', 'meniscus.openstack.common.log')
+CONF.import_opt('syslog_log_facility', 'meniscus.openstack.common.log')
+CONF.import_opt('log_config', 'meniscus.openstack.common.log')
 
+try:
+    cfg.CONF(args=_DEFAULT_CONFIG_ARGS)
+except cfg.ConfigFilesNotFoundError as ex:
+    print("unable to read logging configuration from file")
 
-def _init():
-    if not '_INITIALIZED' in globals():
-        globals()['_INITIALIZED'] = True
-
-        log_level = get('LOG', None)
-        if log_level:
-            if log_level in _VALID_LOGGING_LEVELS:
-                print('Overriding logging level to {}.'.format(log_level))
-                globals()['_DEFAULT_LOG_LEVEL'] = getattr(logging, log_level)
-            else:
-                print('Logging level {} not understood.'.format(log_level))
+logging.setup('meniscus')
 
 
 def get_logger(logger_name):
-    logger = logging.getLogger(logger_name)
-    logger.setLevel(_DEFAULT_LOG_LEVEL)
-    logger.propagate = False
-    logger.addHandler(_CONSOLE_STREAM)
-    return logger
+    return logging.getLogger(logger_name)
 
 
 def get(name, default=None):
     value = env.get(name)
     return value if value else default
-
-
-_init()

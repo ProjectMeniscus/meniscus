@@ -1,7 +1,6 @@
 import meniscus.config as config
-
-from meniscus.env import get_logger
 from meniscus.data import adapters
+from meniscus.env import get_logger
 from meniscus.data.handler import datasource_handler
 
 

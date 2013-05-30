@@ -9,6 +9,5 @@ def persist_message(message):
     try:
         _sink = db_handler()
         _sink.put('logs', message)
-        _sink.close()
     except:
         persist_message.retry()

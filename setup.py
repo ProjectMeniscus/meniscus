@@ -19,8 +19,8 @@ setup(
         "testtools",
         "httpretty",
         "tox",
-	"six",
-	"ordereddict"
+        "six",
+        "ordereddict"
     ],
     install_requires=[
         "falcon",

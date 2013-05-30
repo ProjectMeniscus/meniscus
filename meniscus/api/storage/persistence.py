@@ -5,12 +5,9 @@ from meniscus.queue import celery
 @celery.task(acks_late=True, max_retries=0,
              ignore_result=True, serializer="json")
 def persist_message(message):
-    """Takes a message dict and persists it to the configured database."""
+    """Takes a message and persists it to the datastrore."""
     try:
         _sink = db_handler()
-        _sink.close()
-        _sink.connect()
         _sink.put('logs', message)
-        _sink.close()
     except:
         persist_message.retry()

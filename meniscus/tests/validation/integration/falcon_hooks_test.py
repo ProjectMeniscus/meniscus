@@ -49,6 +49,14 @@ class TestValidationHook(testing.TestBase):
         self.resource = ValidatedResource()
         self.api.add_route(self.test_route, self.resource)
 
+    def test_unhandled_media_type(self):
+        self.simulate_request(self.test_route,
+                              method='POST',
+                              headers={'content-type': 'application/xml'},
+                              body=unicode('<animal type="falcon">'))
+
+        self.assertFalse(self.resource.validated)
+
     def test_valid_payload(self):
         self.simulate_request(self.test_route,
                               method='POST',

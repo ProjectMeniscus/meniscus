@@ -22,25 +22,24 @@ def validation_hook(validator):
     equal to the parsed request body as a python array or dictionary.
 
     If the media type of the content is not JSON, this hook sets the
-    'validated' parameter to False.
+    'validated' parameter to False and the 'doc' parameter to None.
 
     If validation fails, this hook responds to the requester with a 400 and a
     detail message.
     """
     def validate(req, resp, params):
         params['validated'] = False
+        params['doc'] = None
 
         # We only care about JSON content types
-        if req.content_type and req.content_type.lower() != 'application/json':
-            return
+        if req.content_type and req.content_type.lower() == 'application/json':
+            json_body = _load_json_body(req.stream)
+            result = validator.validate(json_body)
 
-        json_body = _load_json_body(req.stream)
-        result = validator.validate(json_body)
+            if not result.valid:
+                raise falcon.HTTPError(falcon.HTTP_400, result.error.message)
 
-        if not result.valid:
-            raise falcon.HTTPError(falcon.HTTP_400, result.error.message)
-
-        # Set a custom parameters on the request
-        params['validated'] = True
-        params['doc'] = json_body
+            # Set a custom parameters on the request
+            params['validated'] = True
+            params['doc'] = json_body
     return validate

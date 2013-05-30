@@ -4,3 +4,5 @@ nosexcover
 testtools
 httpretty>=0.5.10
 tox
+ordereddict
+six

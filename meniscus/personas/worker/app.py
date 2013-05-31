@@ -18,7 +18,7 @@ _LOG = get_logger(__name__)
 def start_up():
 
     application = api = falcon.API()
-    api.add_route('/v1', VersionResource())
+    api.add_route('/', VersionResource())
 
     #http correlation endpoint
     api.add_route('/v1/tenant/{tenant_id}/publish', PublishMessageResource())
@@ -34,5 +34,5 @@ def start_up():
         ("0.0.0.0", 5140), syslog.MessageHandler())
     Process(target=server.start).start()
 
-    celery.worker_main()
+    Process(celery.worker_main).start()
     return application

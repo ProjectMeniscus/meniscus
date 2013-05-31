@@ -48,7 +48,7 @@ def load_body(req, validator=None):
     if validator:
         validation_result = validator.validate(obj)
         if not validation_result[0]:
-            LOG.debug('json validation failed')
+            LOG.debug('json schema validation failed')
             abort(falcon.HTTP_400, validation_result[1].message)
 
     return obj

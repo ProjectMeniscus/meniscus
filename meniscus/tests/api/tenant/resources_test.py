@@ -119,7 +119,7 @@ class TestingTenantApiBase(unittest.TestCase):
 class WhenTestingTenantResourceOnPost(TestingTenantApiBase):
 
     def _set_resource(self):
-        self.resource = TenantResource(self.db_handler, self.validator)
+        self.resource = TenantResource(self.db_handler)
 
     def test_should_throw_exception_for_tenant_id_not_provided(self):
         self.stream.read.return_value = u'{ "tenant_xxx" : "1237" }'
@@ -154,7 +154,7 @@ class WhenTestingTenantResourceOnPost(TestingTenantApiBase):
 class WhenTestingUserResourceOnGet(TestingTenantApiBase):
 
     def _set_resource(self):
-        self.resource = UserResource(self.db_handler, self.validator)
+        self.resource = UserResource(self.db_handler)
 
     def test_should_throw_exception_for_tenants_not_found(self):
         with patch('meniscus.api.tenant.resources.find_tenant',
@@ -183,7 +183,7 @@ class WhenTestingUserResourceOnGet(TestingTenantApiBase):
 class WhenTestingUserResourceOnDelete(TestingTenantApiBase):
 
     def _set_resource(self):
-        self.resource = UserResource(self.db_handler, self.validator)
+        self.resource = UserResource(self.db_handler)
 
     def test_should_throw_exception_for_tenants_not_found(self):
         with patch('meniscus.api.tenant.resources.find_tenant',
@@ -201,7 +201,7 @@ class WhenTestingUserResourceOnDelete(TestingTenantApiBase):
 class WhenTestingHostProfilesResourceOnGet(TestingTenantApiBase):
 
     def _set_resource(self):
-        self.resource = HostProfilesResource(self.db_handler, self.validator)
+        self.resource = HostProfilesResource(self.db_handler)
 
     def test_should_throw_exception_for_tenants_not_found_on_get(self):
         with patch('meniscus.api.tenant.resources.find_tenant',
@@ -234,7 +234,7 @@ class WhenTestingHostProfilesResourceOnGet(TestingTenantApiBase):
 class WhenTestingHostProfilesResourceOnPost(TestingTenantApiBase):
 
     def _set_resource(self):
-        self.resource = HostProfilesResource(self.db_handler, self.validator)
+        self.resource = HostProfilesResource(self.db_handler)
 
     def test_should_throw_exception_for_tenants_not_found(self):
         self.stream.read.return_value = u'{ "name" : "profile1" }'
@@ -290,7 +290,7 @@ class WhenTestingHostProfilesResourceOnPost(TestingTenantApiBase):
 class WhenTestingHostProfileResourceOnGet(TestingTenantApiBase):
 
     def _set_resource(self):
-        self.resource = HostProfileResource(self.db_handler, self.validator)
+        self.resource = HostProfileResource(self.db_handler)
 
     def test_should_throw_exception_for_tenants_not_found_on_get(self):
         with patch('meniscus.api.tenant.resources.find_tenant',
@@ -329,7 +329,7 @@ class WhenTestingHostProfileResourceOnGet(TestingTenantApiBase):
 class WhenTestingHostProfileResourceOnPut(TestingTenantApiBase):
 
     def _set_resource(self):
-        self.resource = HostProfileResource(self.db_handler, self.validator)
+        self.resource = HostProfileResource(self.db_handler)
 
     def test_should_throw_exception_for_profile_name_empty(self):
         self.stream.read.return_value = u'{ "name" : "" }'
@@ -403,7 +403,7 @@ class WhenTestingHostProfileResourceOnPut(TestingTenantApiBase):
 class WhenTestingHostProfileResourceOnDelete(TestingTenantApiBase):
 
     def _set_resource(self):
-        self.resource = HostProfileResource(self.db_handler, self.validator)
+        self.resource = HostProfileResource(self.db_handler)
 
     def test_should_throw_exception_for_tenant_not_found(self):
         with patch('meniscus.api.tenant.resources.find_tenant',
@@ -430,7 +430,7 @@ class WhenTestingHostProfileResourceOnDelete(TestingTenantApiBase):
 class WhenTestingEventProducersResourceValidate(TestingTenantApiBase):
 
     def _set_resource(self):
-        self.resource = EventProducersResource(self.db_handler, self.validator)
+        self.resource = EventProducersResource(self.db_handler)
 
     def test_should_throw_exception_for_bad_durable_val(self):
         body = {
@@ -454,7 +454,7 @@ class WhenTestingEventProducersResourceValidate(TestingTenantApiBase):
 class WhenTestingEventProducersResourceOnGet(TestingTenantApiBase):
 
     def _set_resource(self):
-        self.resource = EventProducersResource(self.db_handler, self.validator)
+        self.resource = EventProducersResource(self.db_handler)
 
     def test_should_throw_exception_for_tenants_not_found_on_get(self):
         with patch('meniscus.api.tenant.resources.find_tenant',
@@ -490,7 +490,7 @@ class WhenTestingEventProducersResourceOnGet(TestingTenantApiBase):
 class WhenTestingEventProducersResourceOnPost(TestingTenantApiBase):
 
     def _set_resource(self):
-        self.resource = EventProducersResource(self.db_handler, self.validator)
+        self.resource = EventProducersResource(self.db_handler)
 
     def test_should_throw_exception_for_tenants_not_found(self):
         self.stream.read.return_value = u'{ "name" : "producer55", ' \
@@ -556,7 +556,7 @@ class WhenTestingEventProducersResourceOnPost(TestingTenantApiBase):
 class WhenTestingEventProducerResourceValidate(TestingTenantApiBase):
 
     def _set_resource(self):
-        self.resource = EventProducerResource(self.db_handler, self.validator)
+        self.resource = EventProducerResource(self.db_handler)
 
     def test_should_throw_exception_for_bad_durable_val(self):
         body = {'durable': "bad_data"}
@@ -572,7 +572,7 @@ class WhenTestingEventProducerResourceValidate(TestingTenantApiBase):
 class WhenTestingEventProducerResourceOnGet(TestingTenantApiBase):
 
     def _set_resource(self):
-        self.resource = EventProducerResource(self.db_handler, self.validator)
+        self.resource = EventProducerResource(self.db_handler)
 
     def test_should_throw_exception_for_tenants_not_found(self):
         with patch('meniscus.api.tenant.resources.find_tenant',
@@ -614,7 +614,7 @@ class WhenTestingEventProducerResourceOnGet(TestingTenantApiBase):
 class WhenTestingEventProducerResourceOnPut(TestingTenantApiBase):
 
     def _set_resource(self):
-        self.resource = EventProducerResource(self.db_handler, self.validator)
+        self.resource = EventProducerResource(self.db_handler)
 
     def test_should_throw_exception_for_tenants_not_found(self):
         self.stream.read.return_value = u'{ "name" : "producer1", ' \
@@ -682,7 +682,7 @@ class WhenTestingEventProducerResourceOnPut(TestingTenantApiBase):
 class WhenTestingEventProducerResourceOnDelete(TestingTenantApiBase):
 
     def _set_resource(self):
-        self.resource = EventProducerResource(self.db_handler, self.validator)
+        self.resource = EventProducerResource(self.db_handler)
 
     def test_should_throw_exception_for_tenants_not_found(self):
         with patch('meniscus.api.tenant.resources.find_tenant',
@@ -709,7 +709,7 @@ class WhenTestingEventProducerResourceOnDelete(TestingTenantApiBase):
 class WhenTestingHostsResourceValidation(TestingTenantApiBase):
 
     def _set_resource(self):
-        self.resource = HostsResource(self.db_handler, self.validator)
+        self.resource = HostsResource(self.db_handler)
 
     def test_should_throw_value_error_bad_profile_id(self):
         body = {'hostname': 'host', 'profile_id': "bad_data"}
@@ -724,7 +724,7 @@ class WhenTestingHostsResourceValidation(TestingTenantApiBase):
 class WhenTestingHostsResourceOnGet(TestingTenantApiBase):
 
     def _set_resource(self):
-        self.resource = HostsResource(self.db_handler, self.validator)
+        self.resource = HostsResource(self.db_handler)
 
     def test_should_throw_exception_for_tenants_not_found(self):
         with patch('meniscus.api.tenant.resources.find_tenant',
@@ -759,7 +759,7 @@ class WhenTestingHostsResourceOnGet(TestingTenantApiBase):
 class WhenTestingHostsResourceOnPost(TestingTenantApiBase):
 
     def _set_resource(self):
-        self.resource = HostsResource(self.db_handler, self.validator)
+        self.resource = HostsResource(self.db_handler)
 
     def test_should_throw_exception_for_tenants_not_found(self):
         self.stream.read.return_value = u'{ "hostname" : "host1" }'
@@ -824,7 +824,7 @@ class WhenTestingHostsResourceOnPost(TestingTenantApiBase):
 class WhenTestingHostResourceValidation(TestingTenantApiBase):
 
     def _set_resource(self):
-        self.resource = HostResource(self.db_handler, self.validator)
+        self.resource = HostResource(self.db_handler)
 
     def test_should_throw_value_error_bad_profile_id(self):
         body = {'profile_id': "bad_data"}
@@ -839,7 +839,7 @@ class WhenTestingHostResourceValidation(TestingTenantApiBase):
 class WhenTestingHostResourceOnGet(TestingTenantApiBase):
 
     def _set_resource(self):
-        self.resource = HostResource(self.db_handler, self.validator)
+        self.resource = HostResource(self.db_handler)
 
     def test_should_throw_exception_for_tenant_not_found(self):
         with patch('meniscus.api.tenant.resources.find_tenant',
@@ -881,7 +881,7 @@ class WhenTestingHostResourceOnGet(TestingTenantApiBase):
 class WhenTestingHostResourceOnPut(TestingTenantApiBase):
 
     def _set_resource(self):
-        self.resource = HostResource(self.db_handler, self.validator)
+        self.resource = HostResource(self.db_handler)
 
     def test_should_throw_exception_for_tenant_not_found(self):
         self.stream.read.return_value = u'{ "hostname" : "host1" }'
@@ -965,7 +965,7 @@ class WhenTestingHostResourceOnPut(TestingTenantApiBase):
 class WhenTestingHostResourceOnDelete(TestingTenantApiBase):
 
     def _set_resource(self):
-        self.resource = HostResource(self.db_handler, self.validator)
+        self.resource = HostResource(self.db_handler)
 
     def test_should_throw_exception_for_tenants_not_found(self):
         with patch('meniscus.api.tenant.resources.find_tenant',
@@ -992,7 +992,7 @@ class WhenTestingHostResourceOnDelete(TestingTenantApiBase):
 class WhenTestingTokenResourceOnHead(TestingTenantApiBase):
 
     def _set_resource(self):
-        self.resource = TokenResource(self.db_handler, self.validator)
+        self.resource = TokenResource(self.db_handler)
 
     def test_should_throw_exception_for_tenant_not_found(self):
         self.req.get_header.return_value = \
@@ -1054,7 +1054,7 @@ class WhenTestingTokenResourceOnHead(TestingTenantApiBase):
 class WhenTestingTokenResourceOnGet(TestingTenantApiBase):
 
     def _set_resource(self):
-        self.resource = TokenResource(self.db_handler, self.validator)
+        self.resource = TokenResource(self.db_handler)
 
     def test_should_throw_tenant_not_found(self):
         with patch('meniscus.api.tenant.resources.find_tenant',
@@ -1078,7 +1078,7 @@ class WhenTestingTokenResourceOnGet(TestingTenantApiBase):
 class WhenTestingTokenResourceValidation(TestingTenantApiBase):
 
     def _set_resource(self):
-        self.resource = TokenResource(self.db_handler, self.validator)
+        self.resource = TokenResource(self.db_handler)
 
     def test_should_throw_exception_for_non_bool_value(self):
         body = {'token': {'invalidate_now': 'True'}}
@@ -1108,7 +1108,7 @@ class WhenTestingTokenResourceValidation(TestingTenantApiBase):
 class WhenTestingTokenResourceOnPost(TestingTenantApiBase):
 
     def _set_resource(self):
-        self.resource = TokenResource(self.db_handler, self.validator)
+        self.resource = TokenResource(self.db_handler)
 
     def test_should_throw_exception_for_tenant_not_found_on_post(self):
         self.req.stream = None

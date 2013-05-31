@@ -16,13 +16,9 @@ from meniscus.api.tenant.resources import TokenResource
 from meniscus.api.version.resources import VersionResource
 
 from meniscus.api.datastore_init import db_handler
-from meniscus.api.validation import ValidatorFactory
 
 
 def start_up():
-    #Tenant API schema validator
-    ValidatorFactory
-
     #Common Resource(s)
     versions = VersionResource()
 
@@ -31,7 +27,7 @@ def start_up():
 
     #API Payload Validator
     validator_factory = ValidatorFactory(config.get_config())
-    validator = validator_factory.get_validator('tenant')
+    validator = None
 
     #Coordinator Resources
     worker_registration = WorkerRegistrationResource(datastore, validator)

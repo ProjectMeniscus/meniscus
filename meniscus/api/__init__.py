@@ -9,12 +9,7 @@ class ApiResource(object):
     """
     Base class for API resources
     """
-
-    def __init__(self, validator=None):
-        self.validator = validator
-
-    def load_body(self, req):
-        return load_body(req, self.validator)
+    pass
 
 
 def abort(status=falcon.HTTP_500, message=None):

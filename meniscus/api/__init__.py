@@ -1,7 +1,9 @@
 import falcon
 
+from meniscus import env
 from meniscus.openstack.common import jsonutils
 
+LOG = env.get_logger(__name__)
 
 class ApiResource(object):
     """
@@ -38,17 +40,20 @@ def load_body(req, validator=None):
     """
     try:
         raw_json = req.stream.read()
-    except Exception:
+    except Exception, ex:
+        LOG.debug(ex.message)
         abort(falcon.HTTP_500, 'Read Error')
 
     try:
         obj = jsonutils.loads(raw_json)
-    except ValueError:
+    except ValueError, ex:
+        LOG.debug(ex.message)
         abort(falcon.HTTP_400, 'Malformed JSON')
 
     if validator:
         validation_result = validator.validate(obj)
         if not validation_result[0]:
+            LOG.debug('json validation failed')
             abort(falcon.HTTP_400, validation_result[1].message)
 
     return obj

@@ -34,5 +34,5 @@ def start_up():
         ("0.0.0.0", 5140), syslog.MessageHandler())
     Process(target=server.start).start()
 
-    Process(celery.worker_main).start()
+    Process(target=celery.worker_main).start()
     return application

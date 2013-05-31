@@ -42,8 +42,7 @@ def load_body(req, validator=None):
     try:
         obj = jsonutils.loads(raw_json)
     except ValueError, ex:
-        print raw_json
-        LOG.debug(ex.message, repr(raw_json))
+        LOG.debug('Malformed JSON{0}'.format(raw_json))
         abort(falcon.HTTP_400, 'Malformed JSON')
 
     if validator:

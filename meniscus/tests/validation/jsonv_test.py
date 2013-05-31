@@ -1,15 +1,16 @@
 import unittest
 
 from mock import MagicMock
-from meniscus.api.validation import ValidatorFactory
+
+from meniscus.validation.jsonv import (JsonSchemaValidatorFactory,
+                                       DirectorySchemaLoader)
 
 
 class WhenLoading(unittest.TestCase):
 
     def setUp(self):
-        conf = MagicMock()
-        conf.schemas.schema_directory = '../etc/meniscus/schemas'
-        validator_factory = ValidatorFactory(conf)
+        schema_loader = DirectorySchemaLoader('../etc/meniscus/schemas')
+        validator_factory = JsonSchemaValidatorFactory(schema_loader)
         self.validator = validator_factory.get_validator('tenant')
 
     def tearDown(self):
@@ -23,7 +24,7 @@ class WhenLoading(unittest.TestCase):
             }
         }
         result = self.validator.validate(host_obj)
-        self.assertTrue(result[0])
+        self.assertTrue(result.valid)
 
     def test_should_validate_simple_tenant_object(self):
         tenant_obj = {
@@ -32,7 +33,7 @@ class WhenLoading(unittest.TestCase):
             }
         }
         result = self.validator.validate(tenant_obj)
-        self.assertTrue(result[0])
+        self.assertTrue(result.valid)
 
     def test_should_reject_bad_tenant_id(self):
         tenant_obj = {
@@ -42,7 +43,7 @@ class WhenLoading(unittest.TestCase):
         }
 
         result = self.validator.validate(tenant_obj)
-        self.assertFalse(result[0])
+        self.assertFalse(result.valid)
 
     def test_should_reject_additional_properties(self):
         tenant_obj = {
@@ -53,7 +54,7 @@ class WhenLoading(unittest.TestCase):
         }
 
         result = self.validator.validate(tenant_obj)
-        self.assertFalse(result[0])
+        self.assertFalse(result.valid)
 
     def test_should_reject_mutex_objects(self):
         tenant_obj = {
@@ -66,7 +67,7 @@ class WhenLoading(unittest.TestCase):
         }
 
         result = self.validator.validate(tenant_obj)
-        self.assertFalse(result[0])
+        self.assertFalse(result.valid)
 
 
 if __name__ == '__main__':

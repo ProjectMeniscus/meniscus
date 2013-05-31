@@ -20,8 +20,6 @@ from meniscus.data.model.tenant import Tenant
 from meniscus.data.model.tenant import Token
 from meniscus.openstack.common import jsonutils
 
-from meniscus.api.validation import ValidatorFactory
-
 
 def suite():
 
@@ -65,11 +63,7 @@ def suite():
 class TestingTenantApiBase(unittest.TestCase):
 
     def setUp(self):
-        conf = MagicMock()
-        conf.schemas.schema_directory = '../etc/meniscus/schemas'
-        validator_factory = ValidatorFactory(conf)
-        self.validator = validator_factory.get_validator('tenant')
-
+        self.validator = MagicMock()
         self.db_handler = MagicMock()
 
         self.stream = MagicMock()

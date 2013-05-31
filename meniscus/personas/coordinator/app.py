@@ -25,25 +25,21 @@ def start_up():
     #Datastore adapter/session manager
     datastore = db_handler()
 
-    #API Payload Validator
-    validator_factory = ValidatorFactory(config.get_config())
-    validator = None
-
     #Coordinator Resources
-    worker_registration = WorkerRegistrationResource(datastore, validator)
-    workers_status = WorkersStatusResource(datastore, validator)
-    worker_status = WorkerStatusResource(datastore, validator)
+    worker_registration = WorkerRegistrationResource(datastore)
+    workers_status = WorkersStatusResource(datastore)
+    worker_status = WorkerStatusResource(datastore)
 
     #Tenant Resources
-    tenant = TenantResource(datastore, validator)
-    user = UserResource(datastore, validator)
-    profiles = HostProfilesResource(datastore, validator)
-    profile = HostProfileResource(datastore, validator)
-    event_producers = EventProducersResource(datastore, validator)
-    event_producer = EventProducerResource(datastore, validator)
-    hosts = HostsResource(datastore, validator)
-    host = HostResource(datastore, validator)
-    token = TokenResource(datastore, validator)
+    tenant = TenantResource(datastore)
+    user = UserResource(datastore)
+    profiles = HostProfilesResource(datastore)
+    profile = HostProfileResource(datastore)
+    event_producers = EventProducersResource(datastore)
+    event_producer = EventProducerResource(datastore)
+    hosts = HostsResource(datastore)
+    host = HostResource(datastore)
+    token = TokenResource(datastore)
 
     # Create API
     application = api = falcon.API()

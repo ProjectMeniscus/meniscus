@@ -36,7 +36,7 @@ def load_body(req, validator=None):
     try:
         raw_json = req.stream.read()
     except Exception, ex:
-        LOG.debug(ex.message)
+        LOG.debug(ex)
         abort(falcon.HTTP_500, 'Read Error')
 
     try:

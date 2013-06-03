@@ -36,7 +36,7 @@ def retry(tries, delay=3, backoff=2):
                     return True
 
                 _LOG.debug(
-                    'function {0} failed, will retry in {0} seconds'
+                    'function {0} failed, will retry in {1} seconds'
                     .format(f.__name__, mdelay))
                 mtries -= 1      # consume an attempt
                 time.sleep(mdelay)  # wait...

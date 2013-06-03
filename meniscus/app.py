@@ -21,11 +21,11 @@ def bootstrap_api():
     if config:
         personality_module = config.personality_module
         _LOG.info('loading personality module from config: {0}'
-                 .format(personality_module))
+                  .format(personality_module))
     else:
         personality_module = DEFAULT_PERSONALITY_MODULE
         _LOG.info('loading default personality module: {0}'
-                 .format(personality_module))
+                  .format(personality_module))
 
     #load the personality module as a plug in
     plugin_mod = import_module(personality_module)

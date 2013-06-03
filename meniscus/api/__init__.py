@@ -42,13 +42,32 @@ def load_body(req, validator=None):
     try:
         obj = jsonutils.loads(raw_json)
     except ValueError, ex:
-        LOG.debug('Malformed JSON{0}'.format(raw_json))
+        LOG.debug('Malformed JSON: {0}'.format(raw_json))
         abort(falcon.HTTP_400, 'Malformed JSON')
 
     if validator:
         validation_result = validator.validate(obj)
         if not validation_result[0]:
-            LOG.debug('json schema validation failed')
+            LOG.debug('JSON schema validation failed: {0}'.format(obj))
             abort(falcon.HTTP_400, validation_result[1].message)
 
     return obj
+
+
+def handle_api_exception(operation_name=None):
+    """
+    Handle general exceptions by logging exception
+    and returning 500 back to client
+    """
+    def exceptions_decorator(fn):
+        def handler(*args, **kwargs):
+            try:
+                fn(*args, **kwargs)
+            except Exception as e:
+                message = _('{0} failure - please contact site '
+                            'administrator').format(operation_name or
+                                                    _("System"))
+                LOG.exception(operation_name)
+                abort(message=message)
+        return handler
+    return exceptions_decorator

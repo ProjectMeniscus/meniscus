@@ -1,11 +1,12 @@
 
 from oslo.config import cfg
 
+from meniscus.api.coordinator import coordinator_errors as error
 from meniscus.api.personalities import PERSONALITIES
 from meniscus.config import get_config
 from meniscus.config import init_config
 from meniscus.data.model.worker import Worker
-from meniscus.api.coordinator import coordinator_errors as error
+from meniscus import env
 
 # cache configuration options
 _COORDINATOR_GROUP = cfg.OptGroup(name='coordinator_settings',
@@ -32,6 +33,8 @@ except cfg.ConfigFilesNotFoundError:
 
 VALID_ROUTE_LIST = conf.coordinator_settings.valid_route_list
 VALID_STATUS_LIST = conf.coordinator_settings.valid_status_list
+
+LOG = env.get_logger(__name__)
 
 
 # worker registration resource

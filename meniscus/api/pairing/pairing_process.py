@@ -9,6 +9,7 @@ from meniscus.api.utils.retry import retry
 from meniscus.data.model.worker import WorkerConfiguration
 from meniscus.data.model.worker import WorkerRegistration
 from meniscus.data.cache_handler import ConfigCache
+from meniscus import env
 from meniscus.openstack.common import jsonutils
 from meniscus.proxy import NativeProxy
 
@@ -17,6 +18,8 @@ from meniscus.proxy import NativeProxy
 TRIES = 6
 DELAY = 60
 BACKOFF = 2
+
+_LOG = env.get_logger(__name__)
 
 
 class PairingProcess(object):
@@ -58,6 +61,8 @@ class PairingProcess(object):
                                     registration), http_verb='POST')
 
         except requests.RequestException:
+            _LOG.exception(
+                'Pairing Process: error posting worker registration')
             return False
 
         if resp.status_code == httplib.ACCEPTED:

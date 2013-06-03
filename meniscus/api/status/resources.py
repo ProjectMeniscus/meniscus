@@ -1,9 +1,7 @@
 import falcon
 
-from meniscus.api import abort
-from meniscus.api import ApiResource
-from meniscus.api import format_response_body
-from meniscus.api import load_body
+from meniscus.api import (abort, ApiResource, format_response_body,
+                          handle_api_exception, load_body)
 from meniscus.data.model.worker import Worker
 
 
@@ -42,6 +40,7 @@ class WorkerStatusResource(ApiResource):
         if not any(check_body):
             _status_not_valid()
 
+    @handle_api_exception(operation_name='WorkerStatus PUT')
     def on_put(self, req, resp, worker_id):
         """
         updates a worker's status
@@ -70,6 +69,7 @@ class WorkerStatusResource(ApiResource):
         self.db.update('worker', worker.format_for_save())
         resp.status = falcon.HTTP_200
 
+    @handle_api_exception(operation_name='WorkerStatus GET')
     def on_get(self, req, resp, worker_id):
         #find the worker in db
         worker_dict = self.db.find_one('worker', {'worker_id': worker_id})
@@ -91,6 +91,7 @@ class WorkersStatusResource(ApiResource):
         """
         self.db = db_handler
 
+    @handle_api_exception(operation_name='WorkersStatus GET')
     def on_get(self, req, resp):
 
         workers = self.db.find('worker')

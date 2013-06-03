@@ -120,6 +120,6 @@ class PyesDatasourceHandler(DatasourceHandler):
             [self.index], [object_name], format_search(query_filter))
 
 
-def register_elasticsaerch():
+def register_elasticsearch():
     """Registers this handler and makes it available for use"""
     register_handler('elasticsearch', PyesDatasourceHandler)

@@ -1,6 +1,5 @@
 import falcon
-from meniscus.api import ApiResource
-from meniscus.api import load_body
+from meniscus.api import ApiResource, handle_api_exception, load_body
 from meniscus.api.pairing.pairing_process import PairingProcess
 
 
@@ -10,6 +9,7 @@ class PairingConfigurationResource(ApiResource):
     configure the worker for pairing with its coordinator
     """
 
+    @handle_api_exception(operation_name='PairingConfiguration POST')
     def on_post(self, req, resp):
         body = load_body(req)
 

@@ -3,10 +3,12 @@ import falcon
 from meniscus.api.version.resources import VersionResource
 from meniscus.api.pairing.resources import PairingConfigurationResource
 from meniscus.api.coordinator.resources import WorkerRegistrationResource
-from meniscus.api.coordinator.resources import WorkerWatchlistResource
-from meniscus.api.coordinator.resources import WorkerRoutesResource
-from meniscus.api.status.resources import WorkerUpdateResource
+from meniscus.api.status.resources import WorkerStatusResource
 from meniscus.api.datastore_init import db_handler
+from meniscus import env
+
+
+_LOG = env.get_logger(__name__)
 
 
 def start_up():
@@ -21,9 +23,7 @@ def start_up():
     versions = VersionResource()
     configuration = PairingConfigurationResource()
     worker_registration = WorkerRegistrationResource(db_handler())
-    worker_watchlist = WorkerWatchlistResource(db_handler())
-    worker_routes = WorkerRoutesResource(db_handler())
-    worker_update = WorkerUpdateResource(db_handler())
+    worker_status = WorkerStatusResource(db_handler())
 
     # Routing
     application = api = falcon.API()
@@ -34,8 +34,6 @@ def start_up():
 
     # Worker Registration Routing
     api.add_route('/v1/pairing', worker_registration)
-    api.add_route('/v1/worker/{worker_id}', worker_watchlist)
-    api.add_route('/v1/worker/{worker_id}/routes', worker_routes)
-    api.add_route('/v1/worker/{worker_id}/status', worker_update)
+    api.add_route('/v1/worker/{worker_id}/status', worker_status)
 
     return application

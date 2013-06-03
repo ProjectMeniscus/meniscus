@@ -3,6 +3,7 @@ import falcon
 from meniscus.api import abort
 from meniscus.api import ApiResource
 from meniscus.api import format_response_body
+from meniscus.api import handle_api_exception
 from meniscus.api import load_body
 from meniscus.data.model.util import find_event_producer
 from meniscus.data.model.util import find_host
@@ -150,6 +151,7 @@ class TenantResource(ApiResource):
         if 'tenant_id' not in body.keys() or not body['tenant_id']:
             _tenant_id_not_provided()
 
+    @handle_api_exception(operation_name='TenantResource POST')
     def on_post(self, req, resp):
         body = load_body(req)
 
@@ -178,6 +180,7 @@ class UserResource(ApiResource):
     def __init__(self, db_handler):
         self.db = db_handler
 
+    @handle_api_exception(operation_name='UserResource GET')
     def on_get(self, req, resp, tenant_id):
         tenant = find_tenant(self.db, tenant_id=tenant_id)
 
@@ -187,6 +190,7 @@ class UserResource(ApiResource):
         resp.status = falcon.HTTP_200
         resp.body = format_response_body({'tenant': tenant.format()})
 
+    @handle_api_exception(operation_name='UserResource DELETE')
     def on_delete(self, req, resp, tenant_id):
         tenant = find_tenant(self.db, tenant_id=tenant_id)
 
@@ -203,6 +207,7 @@ class HostProfilesResource(ApiResource):
     def __init__(self, db_handler):
         self.db = db_handler
 
+    @handle_api_exception(operation_name='HostProfile GET')
     def on_get(self, req, resp, tenant_id):
         #ensure the tenant exists
         tenant = find_tenant(self.db, tenant_id=tenant_id)
@@ -228,6 +233,7 @@ class HostProfilesResource(ApiResource):
             except (TypeError, ValueError):
                 _profile_producer_ids_invalid()
 
+    @handle_api_exception(operation_name='HostProfiles POST')
     def on_post(self, req, resp, tenant_id):
         body = load_body(req)
 
@@ -278,6 +284,7 @@ class HostProfileResource(ApiResource):
     def __init__(self, db_handler):
         self.db = db_handler
 
+    @handle_api_exception(operation_name='HostProfile GET')
     def on_get(self, req, resp, tenant_id, profile_id):
         #verify the tenant exists
         tenant = find_tenant(self.db, tenant_id=tenant_id)
@@ -307,6 +314,7 @@ class HostProfileResource(ApiResource):
             except (TypeError, ValueError):
                 _profile_producer_ids_invalid()
 
+    @handle_api_exception(operation_name='HostProfile PUT')
     def on_put(self, req, resp, tenant_id, profile_id):
         #load the message
         body = load_body(req)
@@ -354,6 +362,7 @@ class HostProfileResource(ApiResource):
         self.db.update('tenant', tenant.format_for_save())
         resp.status = falcon.HTTP_200
 
+    @handle_api_exception(operation_name='HostProfile DELETE')
     def on_delete(self, req, resp, tenant_id, profile_id):
         #verify the tenant exists
         tenant = find_tenant(self.db, tenant_id=tenant_id)
@@ -382,6 +391,7 @@ class EventProducersResource(ApiResource):
     def __init__(self, db_handler):
         self.db = db_handler
 
+    @handle_api_exception(operation_name='Event Producers DELETE')
     def on_get(self, req, resp, tenant_id):
         tenant = find_tenant(self.db, tenant_id=tenant_id)
 
@@ -408,6 +418,7 @@ class EventProducersResource(ApiResource):
             if body['encrypted'] not in [True, False]:
                 _encrypted_must_be_bool()
 
+    @handle_api_exception(operation_name='Event Producers POST')
     def on_post(self, req, resp, tenant_id):
         body = load_body(req)
 
@@ -462,6 +473,7 @@ class EventProducerResource(ApiResource):
     def __init__(self, db_handler):
         self.db = db_handler
 
+    @handle_api_exception(operation_name='Event Producer GET')
     def on_get(self, req, resp, tenant_id, event_producer_id):
         #verify the tenant exists
         tenant = find_tenant(self.db, tenant_id=tenant_id)
@@ -496,6 +508,7 @@ class EventProducerResource(ApiResource):
             if body['encrypted'] not in [True, False]:
                 _encrypted_must_be_bool()
 
+    @handle_api_exception(operation_name='Event Producer PUT')
     def on_put(self, req, resp, tenant_id, event_producer_id):
         body = load_body(req)
 
@@ -538,6 +551,7 @@ class EventProducerResource(ApiResource):
 
         resp.status = falcon.HTTP_200
 
+    @handle_api_exception(operation_name='Event Producer DELETE')
     def on_delete(self, req, resp, tenant_id, event_producer_id):
         #verify the tenant exists
         tenant = find_tenant(self.db, tenant_id=tenant_id)
@@ -567,6 +581,7 @@ class HostsResource(ApiResource):
     def __init__(self, db_session):
         self.db = db_session
 
+    @handle_api_exception(operation_name='Hosts GET')
     def on_get(self, req, resp, tenant_id):
         #verify the tenant exists
         tenant = find_tenant(self.db, tenant_id=tenant_id)
@@ -588,6 +603,7 @@ class HostsResource(ApiResource):
             except (TypeError, ValueError):
                 _host_profile_id_invalid()
 
+    @handle_api_exception(operation_name='Hosts POST')
     def on_post(self, req, resp, tenant_id):
         body = load_body(req)
 
@@ -649,6 +665,7 @@ class HostResource(ApiResource):
     def __init__(self, db_handler):
         self.db = db_handler
 
+    @handle_api_exception(operation_name='Host GET')
     def on_get(self, req, resp, tenant_id, host_id):
         #verify the tenant exists
         tenant = find_tenant(self.db, tenant_id=tenant_id)
@@ -675,6 +692,7 @@ class HostResource(ApiResource):
             except (TypeError, ValueError):
                 _host_profile_id_invalid()
 
+    @handle_api_exception(operation_name='Host PUT')
     def on_put(self, req, resp, tenant_id, host_id):
         body = load_body(req)
 
@@ -723,6 +741,7 @@ class HostResource(ApiResource):
 
         resp.status = falcon.HTTP_200
 
+    @handle_api_exception(operation_name='Host DELETE')
     def on_delete(self, req, resp, tenant_id, host_id):
         #verify the tenant exists
         tenant = find_tenant(self.db, tenant_id=tenant_id)
@@ -747,6 +766,7 @@ class TokenResource(ApiResource):
     def __init__(self, db_handler):
         self.db = db_handler
 
+    @handle_api_exception(operation_name='Token HEAD')
     def on_head(self, req, resp, tenant_id):
 
         #get message token, or abort if token is not in header
@@ -763,6 +783,7 @@ class TokenResource(ApiResource):
 
         resp.status = falcon.HTTP_200
 
+    @handle_api_exception(operation_name='Token GET')
     def on_get(self, req, resp, tenant_id):
 
         #verify the tenant exists
@@ -795,6 +816,7 @@ class TokenResource(ApiResource):
         if hours_diff < MIN_TOKEN_TIME_LIMIT_HRS:
             _token_time_limit_not_reached()
 
+    @handle_api_exception(operation_name='Token POST')
     def on_post(self, req, resp, tenant_id):
 
         body = dict()

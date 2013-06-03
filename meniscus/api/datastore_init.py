@@ -1,10 +1,10 @@
 import meniscus.config as config
 from meniscus.data import adapters
-from meniscus.env import get_logger
+from meniscus import env
 from meniscus.data.handler import datasource_handler
 
 
-_LOG = get_logger('meniscus.api.datastore_init')
+_LOG = env.get_logger(__name__)
 
 
 def db_handler():

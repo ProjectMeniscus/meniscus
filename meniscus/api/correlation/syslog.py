@@ -6,7 +6,7 @@ from meniscus.api.storage.persistence import persist_message
 from meniscus import env
 
 
-LOG = env.get_logger(__name__)
+_LOG = env.get_logger(__name__)
 
 
 class MessageHandler(SyslogMessageHandler):
@@ -31,8 +31,11 @@ class MessageHandler(SyslogMessageHandler):
         syslog_message['message'] = full_message.decode('utf-8')
         cee_message = _correlate_syslog_message(syslog_message)
 
-        #pass persist_message call to queue
-        persist_message.delay(cee_message)
+        try:
+            #pass persist_message call to queue
+            persist_message.delay(cee_message)
+        except Exception as ex:
+            _LOG.exception('unable to place persist_message task on queue')
 
         #reset for next message
         self.msg_head = None
@@ -50,8 +53,9 @@ def _correlate_syslog_message(syslog_message):
     #if there is a key error then the syslog message did
     #not contain necessary credential information
     except KeyError:
-        raise errors.MessageValidationError(
-            'tenant_id or message token not provided')
+        message = 'tenant_id or message token not provided'
+        _LOG.debug('Message validation failed: {0}'.format(message))
+        raise errors.MessageValidationError(message)
 
     #validate the tenant and the message token
     tenant_identification = correlator.TenantIdentification(

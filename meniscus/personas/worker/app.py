@@ -2,7 +2,6 @@ from multiprocessing import Process
 
 import falcon
 
-from portal.env import get_logger
 from portal.server import SyslogServer
 
 from meniscus.api.correlation.resources import PublishMessageResource
@@ -10,9 +9,10 @@ from meniscus.api.version.resources import VersionResource
 from meniscus.personas.common.publish_stats import WorkerStatusPublisher
 from meniscus.personas.common.publish_stats import WorkerStatsPublisher
 from meniscus.api.correlation import syslog
+from meniscus import env
 from meniscus.queue import celery
 
-_LOG = get_logger(__name__)
+_LOG = env.get_logger(__name__)
 
 
 def start_up():

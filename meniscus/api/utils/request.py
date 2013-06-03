@@ -1,5 +1,10 @@
 import requests
 
+from meniscus import env
+
+
+_LOG = env.get_logger(__name__)
+
 
 HTTP_VERBS = (
     'GET',
@@ -38,11 +43,11 @@ def http_request(url, add_headers=None, json_payload='{}', http_verb='GET',
             return requests.head(url, headers=headers, timeout=request_timeout)
 
     except requests.ConnectionError as conn_err:
-        # TODO: Log this when we have a logger ready
+        _LOG.exception(conn_err.message)
         raise conn_err
     except requests.HTTPError as http_err:
-        # TODO: Log this when we have a logger ready
+        _LOG.exception(http_err.message)
         raise http_err
     except requests.RequestException as req_err:
-        # TODO: Log this when we have a logger ready
+        _LOG.exception(req_err.message)
         raise req_err

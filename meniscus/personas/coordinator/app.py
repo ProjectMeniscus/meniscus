@@ -16,6 +16,10 @@ from meniscus.api.tenant.resources import TokenResource
 from meniscus.api.version.resources import VersionResource
 
 from meniscus.api.datastore_init import db_handler
+from meniscus import env
+
+
+_LOG = env.get_logger(__name__)
 
 
 def start_up():

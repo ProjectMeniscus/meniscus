@@ -1,7 +1,12 @@
 from celery import Celery
 
-import meniscus.config as config
 from oslo.config import cfg
+
+import meniscus.config as config
+from meniscus import env
+
+
+_LOG = env.get_logger(__name__)
 
 # Celery configuration options
 _CELERY_GROUP = cfg.OptGroup(name='celery', title='Celery Options')
@@ -30,15 +35,14 @@ config.get_config().register_opts(_CELERY, group=_CELERY_GROUP)
 
 try:
     config.init_config()
-except config.cfg.ConfigFilesNotFoundError:
-    #TODO(sgonzales) Log config error
-    pass
+except config.cfg.ConfigFilesNotFoundError as ex:
+    _LOG.exception(ex.message)
+
 
 celery_conf = config.get_config().celery
 
 
-celery = Celery('meniscus',
-                broker='librabbitmq://guest@localhost//')
+celery = Celery('meniscus')
 
 celery.conf.BROKER_URL = celery_conf.BROKER_URL
 celery.conf.CELERYD_CONCURRENCY = celery_conf.CELERYD_CONCURRENCY

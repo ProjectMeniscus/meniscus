@@ -1,6 +1,10 @@
 import time
 import math
 
+from meniscus import env
+
+_LOG = env.get_logger(__name__)
+
 
 # Retry decorator with exponential backoff
 def retry(tries, delay=3, backoff=2):
@@ -31,12 +35,18 @@ def retry(tries, delay=3, backoff=2):
                 if rv is True:  # Done on success
                     return True
 
+                _LOG.debug(
+                    'function {0} failed, will retry in {0} seconds'
+                    .format(f.__name__, mdelay))
                 mtries -= 1      # consume an attempt
                 time.sleep(mdelay)  # wait...
                 mdelay *= backoff  # make future wait longer
 
                 rv = f(*args, **kwargs)  # Try again
 
+            _LOG.debug(
+                'function {0} failed, max retries exceeded'
+                .format(f.__name__))
             return False  # Ran out of tries :-(
 
         return f_retry  # true decorator -> decorated function

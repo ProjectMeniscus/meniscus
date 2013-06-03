@@ -12,6 +12,10 @@ from meniscus.data.cache_handler import TokenCache
 from meniscus.data.model.util import find_event_producer_for_host
 from meniscus.data.model.util import find_host
 from meniscus.data.model.util import load_tenant_from_dict
+from meniscus import env
+
+
+_LOG = env.get_logger(__name__)
 
 
 def validate_event_message_body(body):
@@ -36,9 +40,10 @@ def add_correlation_info_to_message(tenant, message):
     host = find_host(tenant, host_name=message['host'])
 
     if not host:
-        raise errors.MessageValidationError(
-            "invalid host, host with name {0} cannot be located"
-            .format(message['host']))
+        message = 'invalid host, host with name {0} cannot be located'.\
+            format(message['host'])
+        _LOG.debug(message)
+        raise errors.MessageValidationError(message)
 
     #initialize correlation dictionary with default values
     correlation_dict = {
@@ -137,7 +142,8 @@ class TenantIdentification(object):
             resp = http_request(request_uri, token_header,
                                 http_verb='HEAD')
 
-        except requests.RequestException:
+        except requests.RequestException as ex:
+            _LOG.exception(ex.message)
             raise errors.CoordinatorCommunicationError
 
         if resp.status_code != httplib.OK:
@@ -168,7 +174,8 @@ class TenantIdentification(object):
             resp = http_request(request_uri, token_header,
                                 http_verb='GET')
 
-        except requests.RequestException:
+        except requests.RequestException as ex:
+            _LOG.exception(ex.message)
             raise errors.CoordinatorCommunicationError
 
         if resp.status_code == httplib.OK:
@@ -177,6 +184,8 @@ class TenantIdentification(object):
             return tenant
 
         elif resp.status_code == httplib.NOT_FOUND:
-            raise errors.ResourceNotFoundError('Unable to locate tenant.')
+            message = 'unable to locate tenant.'
+            _LOG.debug(message)
+            raise errors.ResourceNotFoundError(message)
         else:
             raise errors.CoordinatorCommunicationError

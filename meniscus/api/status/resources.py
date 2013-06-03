@@ -40,6 +40,7 @@ class WorkerStatusResource(ApiResource):
         if not any(check_body):
             _status_not_valid()
 
+    @handle_api_exception(operation_name='WorkerStatus PUT')
     def on_put(self, req, resp, worker_id):
         """
         updates a worker's status
@@ -68,6 +69,7 @@ class WorkerStatusResource(ApiResource):
         self.db.update('worker', worker.format_for_save())
         resp.status = falcon.HTTP_200
 
+    @handle_api_exception(operation_name='WorkerStatus GET')
     def on_get(self, req, resp, worker_id):
         #find the worker in db
         worker_dict = self.db.find_one('worker', {'worker_id': worker_id})

@@ -3,7 +3,8 @@ import falcon
 from meniscus import env
 from meniscus.openstack.common import jsonutils
 
-LOG = env.get_logger(__name__)
+_LOG = env.get_logger(__name__)
+
 
 class ApiResource(object):
     """
@@ -36,19 +37,19 @@ def load_body(req, validator=None):
     try:
         raw_json = req.stream.read()
     except Exception, ex:
-        LOG.debug(ex)
+        _LOG.debug(ex)
         abort(falcon.HTTP_500, 'Read Error')
 
     try:
         obj = jsonutils.loads(raw_json)
     except ValueError, ex:
-        LOG.debug('Malformed JSON: {0}'.format(raw_json))
+        _LOG.debug('Malformed JSON: {0}'.format(raw_json))
         abort(falcon.HTTP_400, 'Malformed JSON')
 
     if validator:
         validation_result = validator.validate(obj)
         if not validation_result[0]:
-            LOG.debug('JSON schema validation failed: {0}'.format(obj))
+            _LOG.debug('JSON schema validation failed: {0}'.format(obj))
             abort(falcon.HTTP_400, validation_result[1].message)
 
     return obj
@@ -63,10 +64,14 @@ def handle_api_exception(operation_name=None):
         def handler(*args, **kwargs):
             try:
                 fn(*args, **kwargs)
+
+            except falcon.HTTPError as ex:
+                _LOG.debug('{0} : {1}'.format(ex.status, ex.title))
+                raise ex
             except Exception as e:
                 message = ('{0} failure - please contact site '
-                            'administrator').format(operation_name or "System")
-                LOG.exception(operation_name)
+                           'administrator').format(operation_name or "System")
+                _LOG.exception(operation_name)
                 abort(message=message)
         return handler
     return exceptions_decorator

@@ -1,9 +1,7 @@
 import falcon
 
-from meniscus.api import abort
-from meniscus.api import ApiResource
-from meniscus.api import format_response_body
-from meniscus.api import load_body
+from meniscus.api import (abort, ApiResource, format_response_body,
+                          handle_api_exception, load_body)
 from meniscus.api.correlation import correlator
 import meniscus.api.correlation.correlation_exceptions as errors
 from meniscus.api.tenant.resources import MESSAGE_TOKEN
@@ -22,6 +20,7 @@ class PublishMessageResource(ApiResource):
         except errors.MessageValidationError as ex:
             abort(falcon.HTTP_400, ex.message)
 
+    @handle_api_exception(operation_name='Publish Message POST')
     def on_post(self, req, resp, tenant_id):
         """
         This method is passed log event data by a tenant. The request will

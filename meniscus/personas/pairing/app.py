@@ -2,6 +2,10 @@ import falcon
 
 from meniscus.api.version.resources import VersionResource
 from meniscus.api.pairing.resources import PairingConfigurationResource
+from meniscus import env
+
+
+_LOG = env.get_logger(__name__)
 
 
 def start_up():

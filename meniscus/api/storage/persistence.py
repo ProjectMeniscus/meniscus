@@ -3,7 +3,7 @@ from meniscus.queue import celery
 from meniscus import env
 
 
-LOG = env.get_logger(__name__)
+_LOG = env.get_logger(__name__)
 
 
 @celery.task(acks_late=True, max_retries=0,
@@ -14,5 +14,5 @@ def persist_message(message):
         _sink = db_handler()
         _sink.put('logs', message)
     except Exception as ex:
-        LOG.exception(ex)
+        _LOG.exception(ex)
         persist_message.retry()

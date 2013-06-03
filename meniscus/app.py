@@ -9,7 +9,7 @@ DEFAULT_PERSONALITY_MODULE = env.get('WORKER_PERSONA',
                                      'meniscus.personas.pairing.app')
 config_cache = ConfigCache()
 
-LOG = env.get_logger(__name__)
+_LOG = env.get_logger(__name__)
 
 
 def bootstrap_api():
@@ -20,11 +20,11 @@ def bootstrap_api():
 
     if config:
         personality_module = config.personality_module
-        LOG.info('loading personality module from config: {0}'
+        _LOG.info('loading personality module from config: {0}'
                  .format(personality_module))
     else:
         personality_module = DEFAULT_PERSONALITY_MODULE
-        LOG.info('loading default personality module: {0}'
+        _LOG.info('loading default personality module: {0}'
                  .format(personality_module))
 
     #load the personality module as a plug in

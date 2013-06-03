@@ -64,9 +64,8 @@ def handle_api_exception(operation_name=None):
             try:
                 fn(*args, **kwargs)
             except Exception as e:
-                message = _('{0} failure - please contact site '
-                            'administrator').format(operation_name or
-                                                    _("System"))
+                message = ('{0} failure - please contact site '
+                            'administrator').format(operation_name or "System")
                 LOG.exception(operation_name)
                 abort(message=message)
         return handler

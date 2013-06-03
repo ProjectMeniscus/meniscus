@@ -1,11 +1,11 @@
 falcon>=0.1.4
 wsgiref>=0.1.2
 pymongo>=2.5
-requests>=1.2.0
+requests>=1.2.3
 iso8601>=0.1.4
 eventlet>=0.12.1
-oslo.config>=1.1.0
-uWSGI>=1.9.8
+oslo.config>=1.1.1
+uWSGI>=1.9.11
 pyes>=0.20.0
 jsonschema>=2.0.0
 celery>=3.0.19

@@ -7,7 +7,6 @@ from meniscus.api.status.resources import WorkerStatusResource
 from meniscus.api.datastore_init import db_handler
 from meniscus import env
 
-
 _LOG = env.get_logger(__name__)
 
 

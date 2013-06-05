@@ -10,4 +10,4 @@ pyes>=0.20.0
 jsonschema>=2.0.0
 celery>=3.0.19
 librabbitmq>=1.0.1
-https://github.com/ProjectMeniscus/portal/blob/release/Meniscus%20Portal-0.1.2.tar.gz?raw=true
+https://github.com/ProjectMeniscus/portal/blob/release/Meniscus%20Portal-0.1.5.tar.gz?raw=true

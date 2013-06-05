@@ -16,9 +16,9 @@ CONF.import_opt('log_config', 'meniscus.openstack.common.log')
 try:
     cfg.CONF(args=_DEFAULT_CONFIG_ARGS)
 except cfg.ConfigFilesNotFoundError as ex:
-    print("unable to read logging configuration from file")
+    pass
 
-logging.setup('meniscus')
+#logging.setup('meniscus')
 
 
 def get_logger(logger_name):

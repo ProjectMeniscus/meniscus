@@ -2,14 +2,16 @@
 from meniscus.ext.plugin import import_module
 from meniscus.data.cache_handler import ConfigCache
 from meniscus import env
+from meniscus.openstack.common import log
 
+
+log.setup('meniscus')
+_LOG = env.get_logger(__name__)
 
 # Adding a hook into environment variables let's us override this
 DEFAULT_PERSONALITY_MODULE = env.get('WORKER_PERSONA',
                                      'meniscus.personas.pairing.app')
 config_cache = ConfigCache()
-
-_LOG = env.get_logger(__name__)
 
 
 def bootstrap_api():

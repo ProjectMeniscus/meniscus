@@ -6,7 +6,7 @@ from meniscus import env
 _LOG = env.get_logger(__name__)
 
 
-@celery.task(acks_late=True, max_retries=0,
+@celery.task(acks_late=True, max_retries=None,
              ignore_result=True, serializer="json")
 def persist_message(message):
     """Takes a message and persists it to the datastore."""

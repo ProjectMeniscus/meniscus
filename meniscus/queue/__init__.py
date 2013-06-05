@@ -42,7 +42,7 @@ except config.cfg.ConfigFilesNotFoundError as ex:
 celery_conf = config.get_config().celery
 
 
-celery = Celery('meniscus')
+celery = Celery('meniscus', broker=celery_conf.BROKER_URL)
 
 celery.conf.BROKER_URL = celery_conf.BROKER_URL
 celery.conf.CELERYD_CONCURRENCY = celery_conf.CELERYD_CONCURRENCY

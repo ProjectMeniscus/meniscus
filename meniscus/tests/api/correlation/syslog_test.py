@@ -2,7 +2,7 @@ import unittest
 
 from mock import MagicMock
 from mock import patch
-from portal.input.rfc5424 import SyslogMessageHead
+from portal.input.usyslog import SyslogMessageHead
 
 import meniscus.api.correlation.correlation_exceptions as errors
 from meniscus.api.correlation import syslog
@@ -33,11 +33,11 @@ class WhenTestingSyslogHandler(unittest.TestCase):
         self.syslog_message_head.messageid = '-'
         self.syslog_message_head.sd = dict()
 
-        self.syslog_message_head.create_sd('meniscus')
-        self.syslog_message_head.add_sd_field(
-            'meniscus', 'tenant', self.tenant_id)
-        self.syslog_message_head.add_sd_field(
-            'meniscus', 'token', self.token)
+        self.syslog_message_head.create_sde('meniscus')
+        self.syslog_message_head.set_sd_field('tenant')
+        self.syslog_message_head.set_sd_value(self.tenant_id)
+        self.syslog_message_head.set_sd_field('token')
+        self.syslog_message_head.set_sd_value(self.token)
         self.message_part_1 = 'test sys'
         self.message_part_2 = 'log msg '
         self.message_part_3 = 'parser  '
@@ -112,6 +112,17 @@ class WhenTestingSyslogHandler(unittest.TestCase):
                 correlated_message)
             self.assertIs(self.syslog_handler.msg_head, None)
             self.assertIs(self.syslog_handler.msg, b'')
+
+    def test_exception(self):
+        mock_env = MagicMock()
+
+        mock_debug = MagicMock()
+        mock_env.debug = mock_debug
+        ex = Exception('test exception')
+        with patch('meniscus.api.correlation.syslog._LOG', mock_env):
+            self.syslog_handler.exception(ex)
+            mock_debug.assert_called_once_with(
+                'syslog parser error: test exception')
 
     def test_correlate_message_raises_validation_error(self):
         syslog_message = self.syslog_message_head.as_dict()

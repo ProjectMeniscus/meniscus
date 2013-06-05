@@ -1,4 +1,4 @@
-from portal.input.rfc5424 import SyslogMessageHandler
+from portal.input.usyslog import SyslogMessageHandler
 
 from meniscus.api.correlation import correlator
 import meniscus.api.correlation.correlation_exceptions as errors
@@ -40,6 +40,9 @@ class MessageHandler(SyslogMessageHandler):
         #reset for next message
         self.msg_head = None
         self.msg = b''
+
+    def exception(self, ex):
+        _LOG.debug('syslog parser error: {0}'.format(ex.message))
 
 
 def _correlate_syslog_message(syslog_message):

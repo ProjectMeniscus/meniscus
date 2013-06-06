@@ -20,7 +20,8 @@ setup(
         "httpretty",
         "tox",
         "six",
-        "ordereddict"
+        "ordereddict",
+        "pylognorm"
     ],
     install_requires=[
         "falcon",

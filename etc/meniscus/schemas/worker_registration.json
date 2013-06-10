@@ -1,27 +1,116 @@
 {
-    "worker_registration": {
-        "hostname": "worker-01",
-        "callback": "192.168.100.101:8080/v1/configuration/",
-        "ip_address_v4": "192.168.100.101",
-        "ip_address_v6": "::1",
-        "personality": "correlation|normalization|storage",
-        "status": "new|online|offline|draining",
+    "id": "http://projectmeniscus.org/json/worker_registration#",
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "description": "Worker Registration Schema",
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+        "required": [
+            "hostname",
+            "callback",
+            "ip_address_v4",
+            "ip_address_v6",
+            "personality",
+            "status",
+            "system_info"
+        ],
+        "hostname": {
+            "type": "string"
+        },
+        "callback": {
+            "type": "string"
+        },
+        "ip_address_v4": {
+            "type": "string"
+        },
+        "ip_address_v6": {
+            "type": "string"
+        },
+        "personality": {
+            "enum": [
+                "coordinator",
+                "worker"
+            ]
+        },
+        "status": {
+            "enum": [
+                "new",
+                "online",
+                "offline",
+                "draining"
+            ]
+        },
         "system_info": {
-            "os_type": "Darwin-11.4.2-x86_64-i386-64bit",
-            "memory_mb": "1024",
-            "architecture": "",
-            "cpu_cores": "4",
+            "$ref": "#/definitions/system_info"
+        }
+    },
+    "oneOf": [
+        {
+            "required": [
+                "system_info"
+            ]
+        }
+    ],
+    "definitions": {
+        "system_info": {
+            "required": [
+                "os_type",
+                "memory_mb",
+                "architecture",
+                "cpu_cores"
+            ],
+            "additionalProperties": false,
+            "os_type": {
+                "type": "string"
+            },
+            "memory_mb": {
+                "type": "integer"
+            },
+            "architecture": {
+                "type": "string"
+            },
+            "cpu_cores": {
+                "type": "integer"
+            },
             "disk_usage": {
-                "/dev/sda1": {
-                    "total": 313764528,
-                    "used": 112512436
-                }
+                "$ref": "#/definitions/disk_usage"
             },
             "load_average": {
-                "1": 0.24755859375,
-                "5": 1.0751953125,
-                "15": 0.9365234375
+                "$ref": "#/definitions/load_average"
             }
+        },
+        "disk_usage": {
+            "additionalProperties": "#/definitions/storage"
+        },
+        "storage": {
+            "required": [
+                "total",
+                "used"
+            ],
+            "additionalProperties": false,
+            "total": {
+                "type": "integer"
+            },
+            "used": {
+                "type": "integer"
+            }
+        },
+        "load_average": {
+            "1": {
+                "type": "integer"
+            },
+            "5": {
+                "type": "integer"
+            },
+            "15": {
+                "type": "integer"
+            },
+            "required": [
+                "1",
+                "5",
+                "15"
+            ],
+            "additionalProperties": false
         }
     }
 }

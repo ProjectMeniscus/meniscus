@@ -39,7 +39,8 @@
 
             "properties": {
                 "tenant_id": {
-                	"type": "string"
+                	"type": "string",
+                    "minLength": 1
                 },
                 "hosts": {
                     "type": "array",
@@ -83,7 +84,7 @@
         },
 
         "profile": {
-            "required": ["id", "name"],
+            "required": ["name"],
             "additionalProperties": false,
 
             "properties": {
@@ -91,9 +92,10 @@
                     "type": "number"
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 1
                 },
-                "event_producers": {
+                "event_producer_ids": {
                     "type": "array",
                     "items": { "type": "number" }
                 }

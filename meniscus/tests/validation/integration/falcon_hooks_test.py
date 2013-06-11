@@ -56,7 +56,6 @@ class TestValidationHook(testing.TestBase):
 
         self.assertEqual(falcon.HTTP_415, self.srmock.status)
 
-
     def test_valid_payload(self):
         self.simulate_request(self.test_route,
                               method='POST',

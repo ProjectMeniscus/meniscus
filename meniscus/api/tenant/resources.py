@@ -29,13 +29,6 @@ def _tenant_not_found():
     abort(falcon.HTTP_404, 'Unable to locate tenant.')
 
 
-def _tenant_id_not_provided():
-    """
-    sends an http 400 response to the caller when a a tenant id is not given
-    """
-    abort(falcon.HTTP_400, 'Malformed request, tenant_id cannot be empty')
-
-
 def _host_not_found():
     """
     sends an http 404 response to the caller
@@ -61,16 +54,16 @@ def _host_profile_id_invalid():
 
 def _profile_not_found():
     """
-    sends an http 400 response to the caller
+    sends an http 404 response to the caller
     """
-    abort(falcon.HTTP_400, 'Unable to locate host profile.')
+    abort(falcon.HTTP_404, 'Unable to locate host profile.')
 
 
-def _profile_name_not_provided():
+def _producer_invalid():
     """
     sends an http 400 response to the caller
     """
-    abort(falcon.HTTP_400, 'Malformed request, name cannot be empty')
+    abort(falcon.HTTP_400, 'event producers specified do not exist.')
 
 
 def _producer_not_found():
@@ -78,15 +71,6 @@ def _producer_not_found():
     sends an http 404 response to the caller
     """
     abort(falcon.HTTP_404, 'Unable to locate event producer.')
-
-
-def _profile_producer_ids_invalid():
-    """
-    sends an http 400 response to the caller
-    """
-    abort(
-        falcon.HTTP_400,
-        'Malformed request, event_producer_ids must be a list of integers')
 
 
 def _producer_name_not_provided():
@@ -217,25 +201,11 @@ class HostProfilesResource(ApiResource):
             'profiles': [p.format() for p in tenant.profiles]
         })
 
-    def _validate_req_body_on_post(self, body):
-        if 'name' not in body.keys() or not body['name']:
-            _profile_name_not_provided()
-
-        #validate that event_producer_ids is a list of integers
-        if 'event_producer_ids' in body.keys() and body['event_producer_ids']:
-            event_producer_ids = body['event_producer_ids']
-            try:
-                [int(p_id) for p_id in event_producer_ids]
-            except (TypeError, ValueError):
-                _profile_producer_ids_invalid()
-
     @handle_api_exception(operation_name='Profiles POST')
-    #@falcon.before(get_validator('tenant'))
-    def on_post(self, req, resp, tenant_id):
-        body = load_body(req)
+    @falcon.before(get_validator('tenant'))
+    def on_post(self, req, resp, tenant_id, validated_body):
 
-        self._validate_req_body_on_post(body)
-
+        body = validated_body['profile']
         tenant = find_tenant(self.db, tenant_id=tenant_id)
 
         if not tenant:
@@ -262,7 +232,7 @@ class HostProfilesResource(ApiResource):
                 #abort if any of the event_producers being passed in are not
                 # valid event_producers for this tenant
                 if not find_event_producer(tenant, producer_id=producer_id):
-                    _producer_not_found()
+                    _producer_invalid()
 
             #update the list of event_producers
             new_host_profile.event_producers = producer_ids
@@ -297,26 +267,11 @@ class HostProfileResource(ApiResource):
         resp.status = falcon.HTTP_200
         resp.body = format_response_body({'profile': profile.format()})
 
-    def _validate_req_body_on_put(self, body):
-        # if the request includes name field, validate it is not empty
-        if 'name' in body.keys():
-            if not body['name']:
-                _profile_name_not_provided()
-
-        #validate that event_producer_ids is a list of integers
-        if 'event_producer_ids' in body.keys() and body['event_producer_ids']:
-            event_producer_ids = body['event_producer_ids']
-            try:
-                [int(p_id) for p_id in event_producer_ids]
-            except (TypeError, ValueError):
-                _profile_producer_ids_invalid()
-
     @handle_api_exception(operation_name='HostProfile PUT')
-    def on_put(self, req, resp, tenant_id, profile_id):
+    @falcon.before(get_validator('tenant'))
+    def on_put(self, req, resp, tenant_id, profile_id, validated_body):
         #load the message
-        body = load_body(req)
-
-        self._validate_req_body_on_put(body)
+        body = validated_body['profile']
 
         #verify the tenant exists
         tenant = find_tenant(self.db, tenant_id=tenant_id)
@@ -351,7 +306,7 @@ class HostProfileResource(ApiResource):
                 # valid event_producers for this tenant
 
                 if not find_event_producer(tenant, producer_id=producer_id):
-                    _producer_not_found()
+                    _producer_invalid()
 
             #update the list of event_producers
             profile.event_producers = producer_ids

@@ -70,6 +70,7 @@ class TestingTenantApiBase(unittest.TestCase):
 
         self.req = MagicMock()
         self.req.stream = self.stream
+        self.req.content_type = 'application/json'
 
         self.resp = MagicMock()
 
@@ -137,7 +138,7 @@ class WhenTestingTenantResourceOnPost(TestingTenantApiBase):
                 self.resource.on_post(self.req, self.resp)
 
     def test_should_return_201(self):
-        self.stream.read.return_value = u'{ "tenant_id" : "1234" }'
+        self.stream.read.return_value = u'{"tenant":{ "tenant_id" : "1234" }}'
         with patch('meniscus.api.tenant.resources.find_tenant',
                    self.tenant_not_found):
             self.resource.on_post(self.req, self.resp)

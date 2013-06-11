@@ -16,6 +16,7 @@ from meniscus.data.model.tenant import Tenant
 from meniscus.data.model.tenant import Token
 from meniscus.openstack.common.timeutils import parse_isotime
 from meniscus.openstack.common.timeutils import isotime
+from meniscus.api.validator_init import get_validator
 
 MESSAGE_TOKEN = 'MESSAGE-TOKEN'
 MIN_TOKEN_TIME_LIMIT_HRS = 3
@@ -147,16 +148,11 @@ class TenantResource(ApiResource):
     def __init__(self, db_handler):
         self.db = db_handler
 
-    def _validate_req_body_on_post(self, body):
-        if 'tenant_id' not in body.keys() or not body['tenant_id']:
-            _tenant_id_not_provided()
-
     @handle_api_exception(operation_name='TenantResource POST')
-    def on_post(self, req, resp):
-        body = load_body(req)
+    @falcon.before(get_validator('tenant'))
+    def on_post(self, req, resp, validated_body):
 
-        self._validate_req_body_on_post(body)
-
+        body = validated_body['tenant']
         tenant_id = str(body['tenant_id'])
 
         #validate that tenant does not already exists
@@ -233,7 +229,8 @@ class HostProfilesResource(ApiResource):
             except (TypeError, ValueError):
                 _profile_producer_ids_invalid()
 
-    @handle_api_exception(operation_name='HostProfiles POST')
+    @handle_api_exception(operation_name='Profiles POST')
+    #@falcon.before(get_validator('tenant'))
     def on_post(self, req, resp, tenant_id):
         body = load_body(req)
 

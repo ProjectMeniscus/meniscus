@@ -33,8 +33,7 @@ def validation_hook(validator):
         # We only care about JSON content types
         if not (req.content_type
                 and req.content_type.lower() == 'application/json'):
-            print 'content type:\n'
-            print req.content_type
+
             raise falcon.HTTPError(falcon.HTTP_415, 'Unsupported Media Type')
 
         json_body = _load_json_body(req.stream)

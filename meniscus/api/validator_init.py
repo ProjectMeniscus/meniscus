@@ -15,9 +15,9 @@ config.get_config().register_group(_JSON_SCHEMA_GROUP)
 
 _JSON_SCHEMA = [
     cfg.StrOpt('schema_dir',
-               default="../etc/meniscus/schemas",
+               default="../etc/meniscus/schemas/",
                help="""directory holding json schema files"""
-    )
+               )
 ]
 
 config.get_config().register_opts(_JSON_SCHEMA, group=_JSON_SCHEMA_GROUP)
@@ -32,7 +32,6 @@ conf = config.get_config()
 _schema_loader = jsonv.DirectorySchemaLoader(conf.json_schema.schema_dir)
 _validation_factory = jsonv.JsonSchemaValidatorFactory(_schema_loader)
 
+
 def get_validator(schema_name):
-    return validation_hook( _validation_factory.get_validator(schema_name))
-
-
+    return validation_hook(_validation_factory.get_validator(schema_name))

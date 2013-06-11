@@ -28,18 +28,21 @@ def validation_hook(validator):
     detail message.
     """
     def validate(req, resp, params):
-        params['validated'] = False
-        params['doc'] = None
+        params['validated_body'] = None
 
         # We only care about JSON content types
-        if req.content_type and req.content_type.lower() == 'application/json':
-            json_body = _load_json_body(req.stream)
-            result = validator.validate(json_body)
+        if not (req.content_type
+                and req.content_type.lower() == 'application/json'):
+            print 'content type:\n'
+            print req.content_type
+            raise falcon.HTTPError(falcon.HTTP_415, 'Unsupported Media Type')
 
-            if not result.valid:
-                raise falcon.HTTPError(falcon.HTTP_400, result.error.message)
+        json_body = _load_json_body(req.stream)
+        result = validator.validate(json_body)
 
-            # Set a custom parameters on the request
-            params['validated'] = True
-            params['doc'] = json_body
+        if not result.valid:
+            raise falcon.HTTPError(falcon.HTTP_400, result.error.message)
+
+        # Set a custom parameters on the request
+        params['validated_body'] = json_body
     return validate

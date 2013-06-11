@@ -36,11 +36,10 @@ _validation_factory = JsonSchemaValidatorFactory(SchemaMock())
 @falcon.before(validation_hook(_validation_factory.get_validator('mock')))
 class ValidatedResource(object):
 
-    def on_post(self, req, resp, validated, doc):
+    def on_post(self, req, resp, validated_body):
         self.req = req
         self.resp = resp
-        self.validated = validated
-        self.doc = doc
+        self.validated_body = validated_body
 
 
 class TestValidationHook(testing.TestBase):
@@ -55,7 +54,8 @@ class TestValidationHook(testing.TestBase):
                               headers={'content-type': 'application/xml'},
                               body=unicode('<animal type="falcon">'))
 
-        self.assertFalse(self.resource.validated)
+        self.assertEqual(falcon.HTTP_415, self.srmock.status)
+
 
     def test_valid_payload(self):
         self.simulate_request(self.test_route,
@@ -63,8 +63,7 @@ class TestValidationHook(testing.TestBase):
                               headers={'content-type': 'application/json'},
                               body=json.dumps({'animal': 'falcon'}))
 
-        self.assertTrue(self.resource.validated)
-        self.assertEqual(self.resource.doc, {'animal': 'falcon'})
+        self.assertEqual(self.resource.validated_body, {'animal': 'falcon'})
 
     def test_invalid_payload(self):
         self.simulate_request(self.test_route,

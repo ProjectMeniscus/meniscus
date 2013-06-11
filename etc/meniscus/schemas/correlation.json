@@ -1,0 +1,28 @@
+{
+    "id": "http://projectmeniscus.org/json/correlation#",
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "description": "Correlation API json-schema",
+
+    "type": "object",
+    "additionalProperties": false,
+
+    "properties": {
+        "host":  {
+            "type": "string"
+        },
+        "pname": {
+            "type": "string"
+        },
+        "time": {
+            "type": "string"
+        },
+        "native": {
+            "additionalProperties": "#"
+        }
+    },
+    "required": [
+        "host",
+        "pname",
+        "time"
+    ]
+}

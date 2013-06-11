@@ -29,29 +29,6 @@ def _tenant_not_found():
     abort(falcon.HTTP_404, 'Unable to locate tenant.')
 
 
-def _host_not_found():
-    """
-    sends an http 404 response to the caller
-    """
-    abort(falcon.HTTP_400, 'Unable to locate host.')
-
-
-def _hostname_not_provided():
-    """
-    sends an http 400 response to the caller when a a tenant id is not given
-    """
-    abort(falcon.HTTP_400, 'Malformed request, hostname cannot be empty')
-
-
-def _host_profile_id_invalid():
-    """
-    sends an http 400 response to the caller
-    """
-    abort(
-        falcon.HTTP_400,
-        'Malformed request, invalid value for profile_id')
-
-
 def _profile_not_found():
     """
     sends an http 404 response to the caller
@@ -73,18 +50,27 @@ def _producer_not_found():
     abort(falcon.HTTP_404, 'Unable to locate event producer.')
 
 
-def _producer_name_not_provided():
+def _host_not_found():
+    """
+    sends an http 404 response to the caller
+    """
+    abort(falcon.HTTP_400, 'Unable to locate host.')
+
+
+def _hostname_not_provided():
+    """
+    sends an http 400 response to the caller when a a tenant id is not given
+    """
+    abort(falcon.HTTP_400, 'Malformed request, hostname cannot be empty')
+
+
+def _host_profile_id_invalid():
     """
     sends an http 400 response to the caller
     """
-    abort(falcon.HTTP_400, 'Malformed request, name cannot be empty')
-
-
-def _producer_pattern_not_provided():
-    """
-    sends an http 400 response to the caller
-    """
-    abort(falcon.HTTP_400, 'Malformed request, pattern cannot be empty')
+    abort(
+        falcon.HTTP_400,
+        'Malformed request, profile specified does not exist')
 
 
 def _message_token_is_invalid():
@@ -109,22 +95,6 @@ def _token_time_limit_not_reached():
     abort(falcon.HTTP_409,
           'Message tokens can only be changed once every {0} hours'
           .format(MIN_TOKEN_TIME_LIMIT_HRS))
-
-
-def _encrypted_must_be_bool():
-    """
-    sends an http 400 response to the caller
-    """
-    abort(falcon.HTTP_400,
-          'Malformed request, encrypted must be true or false')
-
-
-def _durable_must_be_bool():
-    """
-    sends an http 400 response to the caller
-    """
-    abort(falcon.HTTP_400,
-          'Malformed request, durable must be true or false')
 
 
 class TenantResource(ApiResource):
@@ -371,10 +341,9 @@ class EventProducersResource(ApiResource):
                 _encrypted_must_be_bool()
 
     @handle_api_exception(operation_name='Event Producers POST')
-    def on_post(self, req, resp, tenant_id):
-        body = load_body(req)
-
-        self._validate_req_body_on_post(body)
+    @falcon.before(get_validator('tenant'))
+    def on_post(self, req, resp, tenant_id, validated_body):
+        body = validated_body['event_producer']
 
         tenant = find_tenant(self.db, tenant_id=tenant_id)
 
@@ -461,10 +430,10 @@ class EventProducerResource(ApiResource):
                 _encrypted_must_be_bool()
 
     @handle_api_exception(operation_name='Event Producer PUT')
-    def on_put(self, req, resp, tenant_id, event_producer_id):
-        body = load_body(req)
+    @falcon.before(get_validator('tenant'))
+    def on_put(self, req, resp, tenant_id, event_producer_id, validated_body):
 
-        self._validate_req_body_on_put(body)
+        body = validated_body['event_producer']
 
         #verify the tenant exists
         tenant = find_tenant(self.db, tenant_id=tenant_id)

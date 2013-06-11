@@ -103,7 +103,7 @@
         },
 
         "event_producer": {
-            "required": ["id", "name"],
+            "required": ["name", "pattern"],
             "additionalProperties": false,
 
             "properties": {
@@ -111,7 +111,12 @@
                     "type": "number"
                 },
                 "name": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 1
+                },
+                "pattern": {
+                    "type": "string",
+                    "minLength": 1
                 },
                 "durable": {
                     "type": "boolean"

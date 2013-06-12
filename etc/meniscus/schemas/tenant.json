@@ -61,7 +61,7 @@
         },
 
         "host": {
-            "required": ["id", "hostname"],
+            "required": ["hostname"],
             "additionalProperties": false,
 
             "properties": {
@@ -69,7 +69,8 @@
                     "type": "number"
                 },
                 "hostname": {
-                    "type": "string"
+                    "type": "string",
+                    "minLength": 1
                 },
                 "ip_address_v4": {
                     "type": "string"
@@ -77,7 +78,7 @@
                 "ip_address_v6": {
                     "type": "string"
                 },
-                "profile": {
+                "profile_id": {
                     "type": "number"
                 }
             }
@@ -128,18 +129,12 @@
         },
 
         "token": {
-            "required": ["valid"],
+            "required": ["invalidate_now"],
             "additionalProperties": false,
 
             "properties": {
-                "valid": {
-                    "type": "string"
-                },
-                "previous": {
-                    "type": "string"
-                },
-                "last_changed": {
-                    "type": "string"
+                "invalidate_now": {
+                    "type": "boolean"
                 }
             }
         }

@@ -54,7 +54,7 @@ def _host_not_found():
     """
     sends an http 404 response to the caller
     """
-    abort(falcon.HTTP_400, 'Unable to locate host.')
+    abort(falcon.HTTP_404, 'Unable to locate host.')
 
 
 def _hostname_not_provided():
@@ -64,7 +64,7 @@ def _hostname_not_provided():
     abort(falcon.HTTP_400, 'Malformed request, hostname cannot be empty')
 
 
-def _host_profile_id_invalid():
+def _profile_id_invalid():
     """
     sends an http 400 response to the caller
     """
@@ -78,14 +78,6 @@ def _message_token_is_invalid():
     sends an http 404 response to the caller
     """
     abort(falcon.HTTP_404)
-
-
-def _token_invalidate_now_malformed():
-    """
-    sends an http 400 response to the caller
-    """
-    abort(falcon.HTTP_400,
-          'Malformed request, invalidate_now must be a boolean ')
 
 
 def _token_time_limit_not_reached():
@@ -325,21 +317,6 @@ class EventProducersResource(ApiResource):
                                          [p.format()
                                           for p in tenant.event_producers]})
 
-    def _validate_req_body_on_post(self, body):
-        if 'name' not in body.keys() or not body['name']:
-            _producer_name_not_provided()
-
-        if 'pattern' not in body.keys() or not body['pattern']:
-            _producer_pattern_not_provided()
-
-        if 'durable' in body.keys():
-            if body['durable'] not in [True, False]:
-                _durable_must_be_bool()
-
-        if 'encrypted' in body.keys():
-            if body['encrypted'] not in [True, False]:
-                _encrypted_must_be_bool()
-
     @handle_api_exception(operation_name='Event Producers POST')
     @falcon.before(get_validator('tenant'))
     def on_post(self, req, resp, tenant_id, validated_body):
@@ -411,23 +388,6 @@ class EventProducerResource(ApiResource):
         resp.status = falcon.HTTP_200
         resp.body = format_response_body(
             {'event_producer': event_producer.format()})
-
-    def _validate_req_body_on_put(self, body):
-        if 'name' in body.keys():
-            if not body['name']:
-                _producer_name_not_provided()
-
-        if 'pattern' in body.keys():
-            if not body['pattern']:
-                _producer_pattern_not_provided()
-
-        if 'durable' in body.keys():
-            if body['durable'] not in [True, False]:
-                _durable_must_be_bool()
-
-        if 'encrypted' in body.keys():
-            if body['encrypted'] not in [True, False]:
-                _encrypted_must_be_bool()
 
     @handle_api_exception(operation_name='Event Producer PUT')
     @falcon.before(get_validator('tenant'))
@@ -522,13 +482,13 @@ class HostsResource(ApiResource):
             try:
                 int(body['profile_id'])
             except (TypeError, ValueError):
-                _host_profile_id_invalid()
+                _profile_id_invalid()
 
     @handle_api_exception(operation_name='Hosts POST')
-    def on_post(self, req, resp, tenant_id):
-        body = load_body(req)
+    @falcon.before(get_validator('tenant'))
+    def on_post(self, req, resp, tenant_id, validated_body):
 
-        self._validate_req_body_on_post(body)
+        body = validated_body['host']
 
         #verify the tenant exists
         tenant = find_tenant(self.db, tenant_id=tenant_id)
@@ -564,7 +524,7 @@ class HostsResource(ApiResource):
             #verify the profile exists and belongs to the tenant
             profile = find_host_profile(tenant, profile_id=profile_id)
             if not profile:
-                _profile_not_found()
+                _profile_id_invalid()
 
         # Create the new host definition
         new_host = Host(
@@ -602,22 +562,11 @@ class HostResource(ApiResource):
         resp.status = falcon.HTTP_200
         resp.body = format_response_body({'host': host.format()})
 
-    def _validate_req_body_on_put(self, body):
-        if 'hostname' in body.keys():
-            if not body['hostname']:
-                _hostname_not_provided()
-
-        if 'profile_id' in body.keys() and body['profile_id']:
-            try:
-                int(body['profile_id'])
-            except (TypeError, ValueError):
-                _host_profile_id_invalid()
-
     @handle_api_exception(operation_name='Host PUT')
-    def on_put(self, req, resp, tenant_id, host_id):
-        body = load_body(req)
+    @falcon.before(get_validator('tenant'))
+    def on_put(self, req, resp, tenant_id, host_id, validated_body):
 
-        self._validate_req_body_on_put(body)
+        body = validated_body['host']
 
         #verify the tenant exists
         tenant = find_tenant(self.db, tenant_id=tenant_id)
@@ -656,7 +605,7 @@ class HostResource(ApiResource):
                 #verify the profile exists and belongs to the tenant
                 profile = find_host_profile(tenant, profile_id=host.profile)
                 if not profile:
-                    _profile_not_found()
+                    _profile_id_invalid()
 
         self.db.update('tenant', tenant.format_for_save())
 
@@ -716,14 +665,6 @@ class TokenResource(ApiResource):
         resp.status = falcon.HTTP_200
         resp.body = format_response_body({'token': tenant.token.format()})
 
-    def _validate_req_body_on_post(self, body):
-        #if invalidate_now is included in request,
-        # verify the value is True or False
-        if 'token' in body.keys() and 'invalidate_now' in body['token']:
-            invalidate_now = body['token']['invalidate_now']
-            if invalidate_now not in [True, False]:
-                _token_invalidate_now_malformed()
-
     def _validate_token_min_time_limit_reached(self, token):
         #get the token create time and the current time as datetime objects
         token_created = parse_isotime(token.last_changed)
@@ -737,13 +678,13 @@ class TokenResource(ApiResource):
         if hours_diff < MIN_TOKEN_TIME_LIMIT_HRS:
             _token_time_limit_not_reached()
 
-    @handle_api_exception(operation_name='Token POST')
-    def on_post(self, req, resp, tenant_id):
+        return True
 
-        body = dict()
-        if req.stream:
-            body = load_body(req)
-            self._validate_req_body_on_post(body)
+    @handle_api_exception(operation_name='Token POST')
+    @falcon.before(get_validator('tenant'))
+    def on_post(self, req, resp, tenant_id, validated_body):
+
+        body = validated_body['token']
 
         #verify the tenant exists
         tenant = find_tenant(self.db, tenant_id=tenant_id)
@@ -753,8 +694,7 @@ class TokenResource(ApiResource):
 
         invalidate_now = False
 
-        if 'token' in body.keys() and 'invalidate_now' in body['token']:
-            invalidate_now = body['token']['invalidate_now']
+        invalidate_now = body['invalidate_now']
 
         if invalidate_now:
             #immediately invalidate the token

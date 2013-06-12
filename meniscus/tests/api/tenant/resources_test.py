@@ -11,6 +11,7 @@ from meniscus.api.tenant.resources import HostResource
 from meniscus.api.tenant.resources import HostProfileResource
 from meniscus.api.tenant.resources import HostsResource
 from meniscus.api.tenant.resources import HostProfilesResource
+from meniscus.api.tenant.resources import MESSAGE_TOKEN
 from meniscus.api.tenant.resources import TenantResource
 from meniscus.api.tenant.resources import TokenResource
 from meniscus.api.tenant.resources import UserResource
@@ -42,17 +43,15 @@ def suite():
     test_suite.addTest(TestingEventProducersResourceOnPost())
 
     test_suite.addTest(TestingEventProducerResourceOnGet())
-    test_suite.addTest(WhenTestingEventProducerResourceOnPut())
-    test_suite.addTest(WhenTestingEventProducerResourceOnDelete())
+    test_suite.addTest(TestingEventProducerResourceOnPut())
+    test_suite.addTest(TestingEventProducerResourceOnDelete())
 
-    test_suite.addTest(WhenTestingHostsResourceValidation())
-    test_suite.addTest(WhenTestingHostsResourceOnGet())
-    test_suite.addTest(WhenTestingHostsResourceOnPost())
+    test_suite.addTest(TestingHostsResourceOnGet())
+    test_suite.addTest(TestingHostsResourceOnPost())
 
-    test_suite.addTest(WhenTestingHostResourceValidation())
-    test_suite.addTest(WhenTestingHostResourceOnGet())
-    test_suite.addTest(WhenTestingHostResourceOnPut())
-    test_suite.addTest(WhenTestingHostResourceOnDelete())
+    test_suite.addTest(TestingHostResourceOnGet())
+    test_suite.addTest(TestingHostResourceOnPut())
+    test_suite.addTest(TestingHostResourceOnDelete())
 
     test_suite.addTest(WhenTestingTokenResourceOnHead())
     test_suite.addTest(WhenTestingTokenResourceOnGet())
@@ -86,13 +85,20 @@ class TenantApiTestBase(testing.TestBase):
             EventProducer(self.producer_id, self.producer_name, 'syslog'),
             EventProducer(self.producer_id_2, self.producer_name_2, 'syslog')]
         self.host_id = 765
+        self.host_name = 'host1'
+        self.host_id_2 = 766
+        self.host_name_2 = 'host2'
         self.not_valid_host_id = 888
-        self.hosts = [Host(765, 'host1', ip_address_v4='192.168.1.1',
-                           profile_id=123),
-                      Host(766, 'host2', ip_address_v4='192.168.2.1',
-                           profile_id=456)]
+        self.host_1 = Host(self.host_id, self.host_name,
+                           ip_address_v4='192.168.1.1',
+                           profile_id=self.profile_id)
+        self.host_2 = Host(self.host_id_2, self.host_name_2,
+                           ip_address_v4='192.168.2.1',
+                           profile_id=self.profile_id_2)
+        self.hosts = [self.host_1, self.host_2]
         self.token_original = 'ffe7104e-8d93-47dc-a49a-8fb0d39e5192'
         self.token_previous = 'bbd6302e-8d93-47dc-a49a-8fb0d39e5192'
+        self.token_invalid = 'xxxyyy33-8d93-47dc-a49a-8fb0d39e5192'
         self.timestamp_original = "2013-03-19T18:16:48.411029Z"
         self.token = Token(self.token_original, self.token_previous,
                            self.timestamp_original)
@@ -144,6 +150,7 @@ class TestingTenantApiBase(unittest.TestCase):
                            profile_id=456)]
         self.token_original = 'ffe7104e-8d93-47dc-a49a-8fb0d39e5192'
         self.token_previous = 'bbd6302e-8d93-47dc-a49a-8fb0d39e5192'
+        self.token_invalid = 'xxxyyy33-8d93-47dc-a49a-8fb0d39e5192'
         self.timestamp_original = "2013-03-19T18:16:48.411029Z"
         self.token = Token(self.token_original, self.token_previous,
                            self.timestamp_original)
@@ -926,7 +933,7 @@ class TestingEventProducerResourceOnGet(TenantApiTestBase):
             self.assertEqual(producer_dict[key], parsed_producer[key])
 
 
-class WhenTestingEventProducerResourceOnPut(TenantApiTestBase):
+class TestingEventProducerResourceOnPut(TenantApiTestBase):
 
     def _set_resource(self):
         self.resource = EventProducerResource(self.db_handler)
@@ -1117,7 +1124,7 @@ class WhenTestingEventProducerResourceOnPut(TenantApiTestBase):
             self.assertEqual(falcon.HTTP_200, self.srmock.status)
 
 
-class WhenTestingEventProducerResourceOnDelete(TenantApiTestBase):
+class TestingEventProducerResourceOnDelete(TenantApiTestBase):
 
     def _set_resource(self):
         self.resource = EventProducerResource(self.db_handler)
@@ -1156,6 +1163,41 @@ class WhenTestingEventProducerResourceOnDelete(TenantApiTestBase):
             self.assertEqual(falcon.HTTP_200, self.srmock.status)
 
 
+class TestingHostsResourceOnGet(TenantApiTestBase):
+
+    def _set_resource(self):
+        self.resource = HostsResource(self.db_handler)
+        self.test_route = '/v1/tenant/{tenant_id}/hosts'
+        self.api.add_route(self.test_route, self.resource)
+
+    def test_return_404_for_tenant_not_found(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_not_found):
+            self.simulate_request(
+                self.test_route,
+                method='GET')
+            self.assertEqual(falcon.HTTP_404, self.srmock.status)
+
+    def test_should_return_200_on_get(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            self.simulate_request(
+                self.test_route,
+                method='GET')
+            self.assertEqual(falcon.HTTP_200, self.srmock.status)
+
+    def test_should_return_host_json(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            self.resource.on_get(self.req, self.resp, self.tenant_id)
+
+        parsed_body = jsonutils.loads(self.resp.body)
+
+        parsed_hosts = parsed_body['hosts']
+        for host in [h.format() for h in self.hosts]:
+            host in parsed_hosts
+
+
 class WhenTestingHostsResourceValidation(TestingTenantApiBase):
 
     def _set_resource(self):
@@ -1171,443 +1213,630 @@ class WhenTestingHostsResourceValidation(TestingTenantApiBase):
             self.resource._validate_req_body_on_post(body)
 
 
-class WhenTestingHostsResourceOnGet(TestingTenantApiBase):
+class TestingHostsResourceOnPost(TenantApiTestBase):
 
     def _set_resource(self):
         self.resource = HostsResource(self.db_handler)
+        self.test_route = '/v1/tenant/{tenant_id}/hosts'
+        self.api.add_route(self.test_route, self.resource)
 
-    def test_should_throw_exception_for_tenants_not_found(self):
+    def test_return_404_for_tenant_not_found(self):
         with patch('meniscus.api.tenant.resources.find_tenant',
                    self.tenant_not_found):
-            with self.assertRaises(falcon.HTTPError):
-                self.resource.on_get(self.req, self.resp, self.tenant_id)
+            self.simulate_request(
+                self.test_route,
+                method='POST',
+                headers={'content-type': 'application/json'},
+                body=jsonutils.dumps(
+                    {
+                        'host': {
+                            'hostname': 'newhost',
+                            'ip_address_v4': '127.0.0.1',
+                            'ip_address_v6': '',
+                            'profile_id': self.profile_id
+                        }
+                    }
+                )
+            )
+            self.assertEqual(falcon.HTTP_404, self.srmock.status)
 
-    def test_should_return_200(self):
+    def test_return_400_for_hostname_empty(self):
         with patch('meniscus.api.tenant.resources.find_tenant',
                    self.tenant_found):
-            self.resource.on_get(self.req, self.resp, self.tenant_id)
-        self.assertEquals(falcon.HTTP_200, self.resp.status)
+            self.simulate_request(
+                self.test_route,
+                method='POST',
+                headers={'content-type': 'application/json'},
+                body=jsonutils.dumps(
+                    {
+                        'host': {
+                            'hostname': '',
+                            'ip_address_v4': '127.0.0.1',
+                            'ip_address_v6': '',
+                            'profile_id': self.profile_id
+                        }
+                    }
+                )
+            )
+            self.assertEqual(falcon.HTTP_400, self.srmock.status)
+
+    def test_return_400_for_name_not_provided(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            self.simulate_request(
+                self.test_route,
+                method='POST',
+                headers={'content-type': 'application/json'},
+                body=jsonutils.dumps(
+                    {
+                        'host': {
+                            'ip_address_v4': '127.0.0.1',
+                            'ip_address_v6': '',
+                            'profile_id': self.profile_id
+                        }
+                    }
+                )
+            )
+            self.assertEqual(falcon.HTTP_400, self.srmock.status)
+
+    def test_return_400_for_host_already_exists(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            self.simulate_request(
+                self.test_route,
+                method='POST',
+                headers={'content-type': 'application/json'},
+                body=jsonutils.dumps(
+                    {
+                        'host': {
+                            'hostname': self.host_name,
+                            'ip_address_v4': '127.0.0.1',
+                            'ip_address_v6': '',
+                            'profile_id': self.profile_id
+                        }
+                    }
+                )
+            )
+            self.assertEqual(falcon.HTTP_400, self.srmock.status)
+
+    def test_return_400_for_invalid_profile(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            self.simulate_request(
+                self.test_route,
+                method='POST',
+                headers={'content-type': 'application/json'},
+                body=jsonutils.dumps(
+                    {
+                        'host': {
+                            'hostname': 'newhost',
+                            'ip_address_v4': '127.0.0.1',
+                            'ip_address_v6': '',
+                            'profile_id': self.not_valid_profile_id
+                        }
+                    }
+                )
+            )
+            self.assertEqual(falcon.HTTP_400, self.srmock.status)
+
+    def test_return_201_create_with_no_profile(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            self.simulate_request(
+                self.test_route,
+                method='POST',
+                headers={'content-type': 'application/json'},
+                body=jsonutils.dumps(
+                    {
+                        'host': {
+                            'hostname': 'newhost',
+                            'ip_address_v4': '127.0.0.1',
+                            'ip_address_v6': ''
+                        }
+                    }
+                )
+            )
+            self.assertEqual(falcon.HTTP_201, self.srmock.status)
+
+    def test_return_201_for_created(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            self.simulate_request(
+                self.test_route,
+                method='POST',
+                headers={'content-type': 'application/json'},
+                body=jsonutils.dumps(
+                    {
+                        'host': {
+                            'hostname': 'newhost',
+                            'ip_address_v4': '127.0.0.1',
+                            'ip_address_v6': '',
+                            'profile_id': self.profile_id
+                        }
+                    }
+                )
+            )
+            self.assertEqual(falcon.HTTP_201, self.srmock.status)
+
+
+class TestingHostResourceOnGet(TenantApiTestBase):
+
+    def _set_resource(self):
+        self.resource = HostResource(self.db_handler)
+        self.test_route = '/v1/tenant/{tenant_id}/hosts/{host_id}'
+        self.api.add_route(self.test_route, self.resource)
+
+    def test_return_404_for_tenant_not_found(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_not_found):
+            self.simulate_request(
+                self.test_route,
+                method='GET')
+            self.assertEqual(falcon.HTTP_404, self.srmock.status)
+
+    def test_return_404_for_host_not_found(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            self.simulate_request(
+                self.test_route.format(
+                    tenant_id=self.tenant_id,
+                    host_id=self.not_valid_host_id
+                ),
+                method='GET')
+            self.assertEqual(falcon.HTTP_404, self.srmock.status)
+
+    def test_should_return_200_on_get(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            self.simulate_request(
+                self.test_route.format(
+                    tenant_id=self.tenant_id,
+                    host_id=self.host_id
+                ),
+                method='GET')
+            self.assertEqual(falcon.HTTP_200, self.srmock.status)
 
     def test_should_return_host_json(self):
         with patch('meniscus.api.tenant.resources.find_tenant',
                    self.tenant_found):
-            self.resource.on_get(self.req, self.resp, self.tenant_id)
-
-        parsed_body = jsonutils.loads(self.resp.body)
-
-        self.assertTrue('hosts' in parsed_body.keys())
-        self.assertEqual(len(self.profiles), len(parsed_body['hosts']))
-
-        for profile in parsed_body['hosts']:
-            self.assertTrue('id' in profile.keys())
-            self.assertTrue('hostname' in profile.keys())
-            self.assertTrue('ip_address_v4' in profile.keys())
-            self.assertTrue('ip_address_v6' in profile.keys())
-            self.assertTrue('profile' in profile.keys())
-
-
-class WhenTestingHostsResourceOnPost(TestingTenantApiBase):
-
-    def _set_resource(self):
-        self.resource = HostsResource(self.db_handler)
-
-    def test_should_throw_exception_for_tenants_not_found(self):
-        self.stream.read.return_value = u'{ "hostname" : "host1" }'
-        with patch('meniscus.api.tenant.resources.find_tenant',
-                   self.tenant_not_found):
-            with self.assertRaises(falcon.HTTPError):
-                self.resource.on_post(self.req, self.resp, self.tenant_id)
-
-    def test_should_throw_exception_for_hostname_not_provided(self):
-        self.stream.read.return_value = u'{ "ip_address_v4": "192.168.1.1" }'
-        with patch('meniscus.api.tenant.resources.find_tenant',
-                   self.tenant_found):
-            with self.assertRaises(falcon.HTTPError):
-                self.resource.on_post(self.req, self.resp, self.tenant_id)
-
-    def test_should_throw_exception_for_hostname_empty(self):
-        self.stream.read.return_value = \
-            u'{ "hostname" : "", ' \
-            u'"ip_address_v4": "192.168.1.1" }'
-        with patch('meniscus.api.tenant.resources.find_tenant',
-                   self.tenant_found):
-            with self.assertRaises(falcon.HTTPError):
-                self.resource.on_post(self.req, self.resp, self.tenant_id)
-
-    def test_should_throw_exception_for_host_found(self):
-        self.stream.read.return_value = u'{ "hostname" : "host1" }'
-        with patch('meniscus.api.tenant.resources.find_tenant',
-                   self.tenant_found):
-            with self.assertRaises(falcon.HTTPError):
-                self.resource.on_post(self.req, self.resp, self.tenant_id)
-
-    def test_should_throw_exception_for_profile_not_found(self):
-        self.stream.read.return_value = \
-            u'{ "hostname" : "host77", ' \
-            u'"ip_address_v4": "192.168.1.1", "profile_id": 999 }'
-        with patch('meniscus.api.tenant.resources.find_tenant',
-                   self.tenant_found):
-            with self.assertRaises(falcon.HTTPError):
-                self.resource.on_post(self.req, self.resp, self.tenant_id)
-
-    def test_should_return_201_no_profile(self):
-        self.stream.read.return_value = \
-            u'{ "hostname" : "host77", ' \
-            u'"ip_address_v4": "192.168.1.1" }'
-        with patch('meniscus.api.tenant.resources.find_tenant',
-                   self.tenant_found):
-            self.resource.on_post(self.req, self.resp, self.tenant_id)
-        self.assertEquals(falcon.HTTP_201, self.resp.status)
-
-    def test_should_return_201(self):
-        self.stream.read.return_value = \
-            u'{ "hostname" : "host77", ' \
-            u'"ip_address_v4": "192.168.1.1", ' \
-            u'"ip_address_v6": "2001:0db8:85a3:0042:1000:8a2e:0370:7334", ' \
-            u'"profile_id": 123 }'
-        with patch('meniscus.api.tenant.resources.find_tenant',
-                   self.tenant_found):
-            self.resource.on_post(self.req, self.resp, self.tenant_id)
-        self.assertEquals(falcon.HTTP_201, self.resp.status)
-
-
-class WhenTestingHostResourceValidation(TestingTenantApiBase):
-
-    def _set_resource(self):
-        self.resource = HostResource(self.db_handler)
-
-    def test_should_throw_value_error_bad_profile_id(self):
-        body = {'profile_id': "bad_data"}
-        with self.assertRaises(falcon.HTTPError):
-            self.resource._validate_req_body_on_put(body)
-
-        body = {'profile_id': [1, 2]}
-        with self.assertRaises(falcon.HTTPError):
-            self.resource._validate_req_body_on_put(body)
-
-
-class WhenTestingHostResourceOnGet(TestingTenantApiBase):
-
-    def _set_resource(self):
-        self.resource = HostResource(self.db_handler)
-
-    def test_should_throw_exception_for_tenant_not_found(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
-                   self.tenant_not_found):
-            with self.assertRaises(falcon.HTTPError):
-                self.resource.on_get(self.req, self.resp, self.tenant_id,
-                                     self.host_id)
-
-    def test_should_throw_exception_for_profile_not_found(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
-                   self.tenant_found):
-            with self.assertRaises(falcon.HTTPError):
-                self.resource.on_get(self.req, self.resp, self.tenant_id,
-                                     self.not_valid_host_id)
-
-    def test_should_return_200(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
-                   self.tenant_found):
-            self.resource.on_get(self.req, self.resp, self.tenant_id,
-                                 self.host_id)
-        self.assertEquals(falcon.HTTP_200, self.resp.status)
-
-    def test_should_return_host_json(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
-                   self.tenant_found):
             self.resource.on_get(self.req, self.resp, self.tenant_id,
                                  self.host_id)
 
         parsed_body = jsonutils.loads(self.resp.body)
 
-        self.assertTrue('host'in parsed_body.keys())
-        self.assertTrue('id' in parsed_body['host'].keys())
-        self.assertTrue('hostname' in parsed_body['host'].keys())
-        self.assertTrue('ip_address_v4' in parsed_body['host'].keys())
-        self.assertTrue('ip_address_v6' in parsed_body['host'].keys())
-        self.assertTrue('profile' in parsed_body['host'].keys())
+        parsed_host = parsed_body['host']
+        host_dict = self.host_1.format()
+        for key in host_dict:
+            self.assertEquals(parsed_host[key], host_dict[key])
 
 
-class WhenTestingHostResourceOnPut(TestingTenantApiBase):
+class TestingHostResourceOnPut(TenantApiTestBase):
 
     def _set_resource(self):
         self.resource = HostResource(self.db_handler)
+        self.test_route = '/v1/tenant/{tenant_id}/hosts/{host_id}'
+        self.api.add_route(self.test_route, self.resource)
 
-    def test_should_throw_exception_for_tenant_not_found(self):
-        self.stream.read.return_value = u'{ "hostname" : "host1" }'
+    def test_return_404_for_tenant_not_found(self):
         with patch('meniscus.api.tenant.resources.find_tenant',
                    self.tenant_not_found):
-            with self.assertRaises(falcon.HTTPError):
-                self.resource.on_put(self.req, self.resp, self.tenant_id,
-                                     self.host_id)
+            self.simulate_request(
+                self.test_route,
+                method='PUT',
+                headers={'content-type': 'application/json'},
+                body=jsonutils.dumps(
+                    {
+                        'host': {
+                            'hostname': 'newhost',
+                            'ip_address_v4': '127.0.0.1',
+                            'ip_address_v6': '',
+                            'profile_id': self.profile_id
+                        }
+                    }
+                )
+            )
+            self.assertEqual(falcon.HTTP_404, self.srmock.status)
 
-    def test_should_throw_exception_for_hostname_empty(self):
-        self.stream.read.return_value = \
-            u'{ "hostname" : "", ' \
-            u'"ip_address_v4": "192.168.1.1" }'
+    def test_return_404_for_host_not_found(self):
         with patch('meniscus.api.tenant.resources.find_tenant',
                    self.tenant_found):
-            with self.assertRaises(falcon.HTTPError):
-                self.resource.on_put(self.req, self.resp, self.tenant_id,
-                                     self.not_valid_host_id)
+            self.simulate_request(
+                self.test_route.format(
+                    tenant_id=self.tenant_id,
+                    host_id=self.not_valid_host_id
+                ),
+                method='PUT',
+                headers={'content-type': 'application/json'},
+                body=jsonutils.dumps(
+                    {
+                        'host': {
+                            'hostname': self.host_name,
+                            'ip_address_v4': '127.0.0.1',
+                            'ip_address_v6': '',
+                            'profile_id': self.profile_id
+                        }
+                    }
+                )
+            )
+            self.assertEqual(falcon.HTTP_404, self.srmock.status)
 
-    def test_should_throw_exception_for_host_not_found(self):
-        self.stream.read.return_value = \
-            u'{ "hostname" : "host77", ' \
-            u'"ip_address_v4": "192.168.1.1", ' \
-            u'"ip_address_v6": "2001:0db8:85a3:0042:1000:8a2e:0370:7334", ' \
-            u'"profile_id": 123 }'
+    def test_return_400_for_hostname_empty(self):
         with patch('meniscus.api.tenant.resources.find_tenant',
                    self.tenant_found):
-            with self.assertRaises(falcon.HTTPError):
-                self.resource.on_put(self.req, self.resp, self.tenant_id,
-                                     self.not_valid_host_id)
+            self.simulate_request(
+                self.test_route.format(
+                    tenant_id=self.tenant_id,
+                    host_id=self.host_id
+                ),
+                method='PUT',
+                headers={'content-type': 'application/json'},
+                body=jsonutils.dumps(
+                    {
+                        'host': {
+                            'hostname': '',
+                            'ip_address_v4': '127.0.0.1',
+                            'ip_address_v6': '',
+                            'profile_id': self.profile_id
+                        }
+                    }
+                )
+            )
+            self.assertEqual(falcon.HTTP_400, self.srmock.status)
 
-    def test_should_throw_exception_for_host_duplicate_name(self):
-        self.stream.read.return_value = \
-            u'{ "hostname" : "host2", ' \
-            u'"ip_address_v4": "192.168.1.1", ' \
-            u'"ip_address_v6": "2001:0db8:85a3:0042:1000:8a2e:0370:7334", ' \
-            u'"profile_id": 123 }'
+    def test_return_400_for_hostname_not_provided(self):
         with patch('meniscus.api.tenant.resources.find_tenant',
                    self.tenant_found):
-            with self.assertRaises(falcon.HTTPError):
-                self.resource.on_put(self.req, self.resp, self.tenant_id,
-                                     self.host_id)
+            self.simulate_request(
+                self.test_route.format(
+                    tenant_id=self.tenant_id,
+                    host_id=self.host_id
+                ),
+                method='PUT',
+                headers={'content-type': 'application/json'},
+                body=jsonutils.dumps(
+                    {
+                        'host': {
+                            'ip_address_v4': '127.0.0.1',
+                            'ip_address_v6': '',
+                            'profile_id': self.profile_id
+                        }
+                    }
+                )
+            )
+            self.assertEqual(falcon.HTTP_400, self.srmock.status)
 
-    def test_should_throw_exception_for_invalid_profile(self):
-        self.stream.read.return_value = \
-            u'{ "hostname" : "host1", ' \
-            u'"ip_address_v4": "192.168.1.1", ' \
-            u'"ip_address_v6": "2001:0db8:85a3:0042:1000:8a2e:0370:7334", ' \
-            u'"profile_id": 999 }'
+    def test_return_400_for_change_hostname_name_already_exists(self):
         with patch('meniscus.api.tenant.resources.find_tenant',
                    self.tenant_found):
-            with self.assertRaises(falcon.HTTPError):
-                self.resource.on_put(self.req, self.resp, self.tenant_id,
-                                     self.host_id)
+            self.simulate_request(
+                self.test_route.format(
+                    tenant_id=self.tenant_id,
+                    host_id=self.host_id
+                ),
+                method='PUT',
+                headers={'content-type': 'application/json'},
+                body=jsonutils.dumps(
+                    {
+                        'host': {
+                            'hostname': self.host_name_2,
+                            'ip_address_v4': '127.0.0.1',
+                            'ip_address_v6': '',
+                            'profile_id': self.profile_id
+                        }
+                    }
+                )
+            )
+            self.assertEqual(falcon.HTTP_400, self.srmock.status)
 
-    def test_should_return_200(self):
-        self.stream.read.return_value = \
-            u'{ "hostname" : "host77", ' \
-            u'"ip_address_v4": "192.168.1.1", ' \
-            u'"ip_address_v6": "2001:0db8:85a3:0042:1000:8a2e:0370:7334", ' \
-            u'"profile_id": 123 }'
+    def test_return_400_for_invalid_profile(self):
         with patch('meniscus.api.tenant.resources.find_tenant',
                    self.tenant_found):
-            self.resource.on_put(self.req, self.resp, self.tenant_id,
-                                 self.host_id)
-        self.assertEquals(falcon.HTTP_200, self.resp.status)
+            self.simulate_request(
+                self.test_route.format(
+                    tenant_id=self.tenant_id,
+                    host_id=self.host_id
+                ),
+                method='PUT',
+                headers={'content-type': 'application/json'},
+                body=jsonutils.dumps(
+                    {
+                        'host': {
+                            'hostname': self.host_name,
+                            'ip_address_v4': '127.0.0.1',
+                            'ip_address_v6': '',
+                            'profile_id': self.not_valid_profile_id
+                        }
+                    }
+                )
+            )
+            self.assertEqual(falcon.HTTP_400, self.srmock.status)
 
-    def test_should_return_200_with_empty_profile(self):
-        self.stream.read.return_value = \
-            u'{ "hostname" : "host77", ' \
-            u'"ip_address_v4": "192.168.1.1", ' \
-            u'"ip_address_v6": "2001:0db8:85a3:0042:1000:8a2e:0370:7334", ' \
-            u'"profile_id": "" }'
+    def test_return_200_on_update_no_profile(self):
         with patch('meniscus.api.tenant.resources.find_tenant',
                    self.tenant_found):
-            self.resource.on_put(self.req, self.resp, self.tenant_id,
-                                 self.host_id)
-        self.assertEquals(falcon.HTTP_200, self.resp.status)
+            self.simulate_request(
+                self.test_route.format(
+                    tenant_id=self.tenant_id,
+                    host_id=self.host_id
+                ),
+                method='PUT',
+                headers={'content-type': 'application/json'},
+                body=jsonutils.dumps(
+                    {
+                        'host': {
+                            'hostname': self.host_name,
+                            'ip_address_v4': '127.0.0.1',
+                            'ip_address_v6': '',
+                            'profile_id': self.not_valid_profile_id
+                        }
+                    }
+                )
+            )
+            self.assertEqual(falcon.HTTP_400, self.srmock.status)
+
+    def test_return_200_on_update(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            self.simulate_request(
+                self.test_route.format(
+                    tenant_id=self.tenant_id,
+                    host_id=self.host_id
+                ),
+                method='PUT',
+                headers={'content-type': 'application/json'},
+                body=jsonutils.dumps(
+                    {
+                        'host': {
+                            'hostname': self.host_name,
+                            'ip_address_v4': '127.0.0.1',
+                            'ip_address_v6': '',
+                            'profile_id': self.not_valid_profile_id
+                        }
+                    }
+                )
+            )
+            self.assertEqual(falcon.HTTP_400, self.srmock.status)
 
 
-class WhenTestingHostResourceOnDelete(TestingTenantApiBase):
+class TestingHostResourceOnDelete(TenantApiTestBase):
 
     def _set_resource(self):
         self.resource = HostResource(self.db_handler)
+        self.test_route = '/v1/tenant/{tenant_id}/hosts/{host_id}'
+        self.api.add_route(self.test_route, self.resource)
 
-    def test_should_throw_exception_for_tenants_not_found(self):
+    def test_return_404_for_tenant_not_found(self):
         with patch('meniscus.api.tenant.resources.find_tenant',
                    self.tenant_not_found):
-            with self.assertRaises(falcon.HTTPError):
-                self.resource.on_delete(self.req, self.resp, self.tenant_id,
-                                        self.host_id)
+            self.simulate_request(
+                self.test_route,
+                method='DELETE')
+            self.assertEqual(falcon.HTTP_404, self.srmock.status)
 
-    def test_should_throw_exception_for_host_not_found(self):
+    def test_return_404_for_host_not_found(self):
         with patch('meniscus.api.tenant.resources.find_tenant',
                    self.tenant_found):
-            with self.assertRaises(falcon.HTTPError):
-                self.resource.on_delete(self.req, self.resp, self.tenant_id,
-                                        self.not_valid_host_id)
+            self.simulate_request(
+                self.test_route.format(
+                    tenant_id=self.tenant_id,
+                    host_id=self.not_valid_host_id
+                ),
+                method='DELETE')
+            self.assertEqual(falcon.HTTP_404, self.srmock.status)
 
-    def test_should_return_200(self):
+    def test_should_return_200_on_get(self):
         with patch('meniscus.api.tenant.resources.find_tenant',
                    self.tenant_found):
-            self.resource.on_delete(self.req, self.resp, self.tenant_id,
-                                    self.host_id)
-        self.assertEquals(falcon.HTTP_200, self.resp.status)
+            self.simulate_request(
+                self.test_route.format(
+                    tenant_id=self.tenant_id,
+                    host_id=self.host_id
+                ),
+                method='DELETE')
+            self.assertEqual(falcon.HTTP_200, self.srmock.status)
 
 
-class WhenTestingTokenResourceOnHead(TestingTenantApiBase):
+class WhenTestingTokenResourceOnHead(TenantApiTestBase):
 
     def _set_resource(self):
         self.resource = TokenResource(self.db_handler)
+        self.test_route = '/v1/tenant/{tenant_id}/token'
+        self.api.add_route(self.test_route, self.resource)
 
-    def test_should_throw_exception_for_tenant_not_found(self):
-        self.req.get_header.return_value = \
-            'ffe7104e-8d93-47dc-a49a-8fb0d39e5192'
+    def test_return_404_for_tenant_not_found(self):
         with patch('meniscus.api.tenant.resources.find_tenant',
                    self.tenant_not_found):
-            with self.assertRaises(falcon.HTTPError):
-                self.resource.on_head(self.req, self.resp, self.tenant_id)
+            self.simulate_request(
+                self.test_route,
+                method='HEAD',
+                headers={MESSAGE_TOKEN: self.token_original})
+            self.assertEqual(falcon.HTTP_404, self.srmock.status)
 
-    def test_should_call_tenant_not_found(self):
-        tenant_not_found_method = MagicMock(
-            side_effect=falcon.HTTPError(falcon.HTTP_404, "tenant_not_found"))
-        self.req.get_header.return_value = \
-            'ffe7104e-8d93-47dc-a49a-8fb0d39e5192'
-        with patch('meniscus.api.tenant.resources.find_tenant',
-                   self.tenant_not_found), \
-                patch('meniscus.api.tenant.resources._tenant_not_found',
-                      tenant_not_found_method):
-            with self.assertRaises(falcon.HTTPError):
-                self.resource.on_head(self.req, self.resp, self.tenant_id)
-            tenant_not_found_method.assert_called_once_with()
-
-    def test_should_throw_exception_for_tenant_not_found(self):
-        self.req.get_header.return_value = \
-            'zzz7104e-8d93-47dc-a49a-8fb0d39e5192'
+    def test_return_404_for_invalid_token(self):
         with patch('meniscus.api.tenant.resources.find_tenant',
                    self.tenant_found):
-            with self.assertRaises(falcon.HTTPError):
-                self.resource.on_head(self.req, self.resp, self.tenant_id)
+            self.simulate_request(
+                self.test_route,
+                method='HEAD',
+                headers={MESSAGE_TOKEN: self.token_invalid})
+            self.assertEqual(falcon.HTTP_404, self.srmock.status)
 
-    def test_should_call_message_token_is_invalid(self):
-        message_token_is_invalid_method = MagicMock(
-            side_effect=falcon.HTTPError(falcon.HTTP_400, "invalid token"))
-        self.req.get_header.return_value = \
-            'zzz7104e-8d93-47dc-a49a-8fb0d39e5192'
-        with patch('meniscus.api.tenant.resources.find_tenant',
-                   self.tenant_not_found), \
-                patch('meniscus.api.tenant.resources._tenant_not_found',
-                      message_token_is_invalid_method):
-            with self.assertRaises(falcon.HTTPError):
-                self.resource.on_head(self.req, self.resp, self.tenant_id)
-            message_token_is_invalid_method.assert_called_once_with()
-
-    def test_should_return_200_valid_token(self):
-        self.req.get_header.return_value = self.token_original
+    def test_return_200_valid_token(self):
         with patch('meniscus.api.tenant.resources.find_tenant',
                    self.tenant_found):
-            self.resource.on_head(self.req, self.resp, self.tenant_id)
-            self.assertEquals(self.resp.status, falcon.HTTP_200)
+            self.simulate_request(
+                self.test_route,
+                method='HEAD',
+                headers={MESSAGE_TOKEN: self.token_original})
+            self.assertEqual(falcon.HTTP_200, self.srmock.status)
 
     def test_should_return_200_previous_token(self):
-        self.req.get_header.return_value = self.token_previous
         with patch('meniscus.api.tenant.resources.find_tenant',
                    self.tenant_found):
-            self.resource.on_head(self.req, self.resp, self.tenant_id)
-            self.assertEquals(self.resp.status, falcon.HTTP_200)
+            self.simulate_request(
+                self.test_route,
+                method='HEAD',
+                headers={MESSAGE_TOKEN: self.token_previous})
+            self.assertEqual(falcon.HTTP_200, self.srmock.status)
 
 
-class WhenTestingTokenResourceOnGet(TestingTenantApiBase):
+class TestingTokenResourceOnGet(TenantApiTestBase):
 
     def _set_resource(self):
         self.resource = TokenResource(self.db_handler)
+        self.test_route = '/v1/tenant/{tenant_id}/token'
+        self.api.add_route(self.test_route, self.resource)
 
-    def test_should_throw_tenant_not_found(self):
+    def test_return_404_for_tenant_not_found(self):
         with patch('meniscus.api.tenant.resources.find_tenant',
                    self.tenant_not_found):
-            with self.assertRaises(falcon.HTTPError):
-                self.resource.on_get(self.req, self.resp, self.tenant_id)
+            self.simulate_request(
+                self.test_route,
+                method='GET',
+                headers={MESSAGE_TOKEN: self.token_original})
+            self.assertEqual(falcon.HTTP_404, self.srmock.status)
 
-    def test_should_return_200(self):
+    def test_should_return_200_on_get(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            self.simulate_request(
+                self.test_route.format(
+                    tenant_id=self.tenant_id
+                ),
+                method='GET')
+            self.assertEqual(falcon.HTTP_200, self.srmock.status)
+
+    def test_should_return_token_json(self):
         with patch('meniscus.api.tenant.resources.find_tenant',
                    self.tenant_found):
             self.resource.on_get(self.req, self.resp, self.tenant_id)
 
         parsed_body = jsonutils.loads(self.resp.body)
-        token_dict = parsed_body['token']
-        self.assertEquals(falcon.HTTP_200, self.resp.status)
-        self.assertTrue('valid'in token_dict.keys())
-        self.assertTrue('previous' in token_dict.keys())
-        self.assertTrue('last_changed' in token_dict.keys())
+        parsed_token = parsed_body['token']
+        token_dict = self.token.format()
+        for key in token_dict:
+            self.assertEqual(parsed_token[key], token_dict[key])
 
 
-class WhenTestingTokenResourceValidation(TestingTenantApiBase):
+class WhenTestingTokenResourceOnPost(TenantApiTestBase):
 
     def _set_resource(self):
         self.resource = TokenResource(self.db_handler)
+        self.test_route = '/v1/tenant/{tenant_id}/token'
+        self.api.add_route(self.test_route, self.resource)
 
-    def test_should_throw_exception_for_non_bool_value(self):
-        body = {'token': {'invalidate_now': 'True'}}
-        with(self.assertRaises(falcon.HTTPError)):
-            self.resource._validate_req_body_on_post(body)
+    def test_return_404_for_tenant_not_found(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_not_found):
+            self.simulate_request(
+                self.test_route,
+                method='POST',
+                headers={'content-type': 'application/json'},
+                body=jsonutils.dumps(
+                    {
+                        'token': {
+                            'invalidate_now': False
+                        }
+                    }
+                ))
+            self.assertEqual(falcon.HTTP_404, self.srmock.status)
 
-    def test_should_not_throw_exception_for_bool_value(self):
-        body = {'token': {'invalidate_now': True}}
-        self.resource._validate_req_body_on_post(body)
+    def test_return_400_for_invalidate_now_not_provided(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            self.simulate_request(
+                self.test_route,
+                method='POST',
+                headers={'content-type': 'application/json'},
+                body=jsonutils.dumps(
+                    {
+                        'token': {
+                        }
+                    }
+                ))
+        self.assertEqual(falcon.HTTP_400, self.srmock.status)
+
+    def test_return_400_for_invalidate_now_not_boolean(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            self.simulate_request(
+                self.test_route,
+                method='POST',
+                headers={'content-type': 'application/json'},
+                body=jsonutils.dumps(
+                    {
+                        'token': {
+                            'invalidate_now': "true"
+                        }
+                    }
+                ))
+        self.assertEqual(falcon.HTTP_400, self.srmock.status)
+
+    def test_return_203_for_invalidate_now(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            self.simulate_request(
+                self.test_route,
+                method='POST',
+                headers={'content-type': 'application/json'},
+                body=jsonutils.dumps(
+                    {
+                        'token': {
+                            'invalidate_now': True
+                        }
+                    }
+                ))
+        self.assertEqual(falcon.HTTP_203, self.srmock.status)
+        self.assertNotEqual(self.tenant.token.valid, self.token_original)
+        self.assertEqual(self.tenant.token.previous, None)
+        self.assertGreater(self.tenant.token.last_changed,
+                           self.timestamp_original)
+
+    def test_return_203_for_invalidate_now_false(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            self.simulate_request(
+                self.test_route,
+                method='POST',
+                headers={'content-type': 'application/json'},
+                body=jsonutils.dumps(
+                    {
+                        'token': {
+                            'invalidate_now': False
+                        }
+                    }
+                ))
+        self.assertEqual(falcon.HTTP_203, self.srmock.status)
+        self.assertNotEqual(self.tenant.token.valid, self.token_original)
+        self.assertEqual(self.tenant.token.previous, self.token_original)
+        self.assertGreater(self.tenant.token.last_changed,
+                           self.timestamp_original)
+
+
+class TestingTokenResourceValidation(TenantApiTestBase):
+
+    def _set_resource(self):
+        self.resource = TokenResource(self.db_handler)
 
     def test_iso_timestamp_format_should_throw_exception_for_time_limit(self):
         bad_time_format = "2013-03-19"
         new_token = Token('ffe7104e-8d93-47dc-a49a-8fb0d39e5192',
                           None, bad_time_format)
-        with(self.assertRaises(ValueError)):
-            self.resource._validate_token_min_time_limit_reached(new_token)
+        self.assertRaises(
+            ValueError,
+            self.resource._validate_token_min_time_limit_reached,
+            new_token)
 
-    def test_should_throw_exception_for_time_limit(self):
+    def test_should_throw_exception_for_time_limit_not_reached(self):
         new_token = Token()
-        with(self.assertRaises(falcon.HTTPError)):
-            self.resource._validate_token_min_time_limit_reached(new_token)
+        self.assertRaises(
+            falcon.HTTPError,
+            self.resource._validate_token_min_time_limit_reached,
+            new_token)
 
     def test_should_not_throw_exception_for_time_limit(self):
-        self.resource._validate_token_min_time_limit_reached(self.token)
-
-
-class WhenTestingTokenResourceOnPost(TestingTenantApiBase):
-
-    def _set_resource(self):
-        self.resource = TokenResource(self.db_handler)
-
-    def test_should_throw_exception_for_tenant_not_found_on_post(self):
-        self.req.stream = None
-
-        with patch('meniscus.api.tenant.resources.find_tenant',
-                   self.tenant_not_found):
-            with self.assertRaises(falcon.HTTPError):
-                self.resource.on_post(self.req, self.resp, self.tenant_id)
-
-    def test_should_invalidate_now(self):
-        self.req.stream = MagicMock(return_value=True)
-        self.req.stream.read.return_value = \
-            u'{"token": {"invalidate_now": true}}'
-
-        with patch('meniscus.api.tenant.resources.find_tenant',
-                   self.tenant_found):
-                self.resource.on_post(self.req, self.resp, self.tenant_id)
-        self.assertNotEqual(self.tenant.token.valid, self.token_original)
-        self.assertEqual(self.tenant.token.previous, None)
-        self.assertGreater(self.tenant.token.last_changed,
-                           self.timestamp_original)
-        self.assertEqual(falcon.HTTP_203, self.resp.status)
-
-    def test_should_invalidate_with_optional_body(self):
-        self.req.stream = None
-        self.req.stream = MagicMock(return_value=True)
-        self.req.stream.read.return_value = \
-            u'{"token": {"invalidate_now": false}}'
-
-        with patch('meniscus.api.tenant.resources.find_tenant',
-                   self.tenant_found):
-            self.resource.on_post(self.req, self.resp, self.tenant_id)
-        self.assertNotEqual(self.tenant.token.valid, self.token_original)
-        self.assertEqual(self.tenant.token.previous, self.token_original)
-        self.assertGreater(self.tenant.token.last_changed,
-                           self.timestamp_original)
-        self.assertEqual(falcon.HTTP_203, self.resp.status)
-
-    def test_should_invalidate(self):
-        self.req.stream = None
-
-        with patch('meniscus.api.tenant.resources.find_tenant',
-                   self.tenant_found):
-            self.resource.on_post(self.req, self.resp, self.tenant_id)
-        self.assertNotEqual(self.tenant.token.valid, self.token_original)
-        self.assertEqual(self.tenant.token.previous, self.token_original)
-        self.assertGreater(self.tenant.token.last_changed,
-                           self.timestamp_original)
-        self.assertEqual(falcon.HTTP_203, self.resp.status)
+        self.assertTrue(
+            self.resource._validate_token_min_time_limit_reached(self.token))
 
 
 if __name__ == '__main__':

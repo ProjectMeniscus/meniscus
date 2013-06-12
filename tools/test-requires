@@ -1,8 +1,8 @@
-mock>=1.0.0
+mock
 nose
 nosexcover
 testtools
-httpretty>=0.5.10
+httpretty
 tox
 ordereddict
 six

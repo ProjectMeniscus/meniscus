@@ -10,4 +10,5 @@ pyes
 jsonschema
 celery
 librabbitmq
-meniscus_portal
+pylognorm
+meniscus-portal

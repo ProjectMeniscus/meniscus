@@ -25,7 +25,7 @@
             "name": "profile-2",
             "event_producers": [ 12346 ]
         }],
-        "event_prodcuers": [{
+        "event_producers": [{
             "id": 12345,
             "name": "apache",
             "durable": true,

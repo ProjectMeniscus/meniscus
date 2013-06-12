@@ -10,4 +10,4 @@ pyes
 jsonschema
 celery
 librabbitmq
-meniscus_portal
+meniscus-portal

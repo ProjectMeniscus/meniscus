@@ -53,9 +53,9 @@ def suite():
     test_suite.addTest(TestingHostResourceOnPut())
     test_suite.addTest(TestingHostResourceOnDelete())
 
-    test_suite.addTest(WhenTestingTokenResourceOnHead())
-    test_suite.addTest(WhenTestingTokenResourceOnGet())
-    test_suite.addTest(WhenTestingTokenResourceOnPost())
+    test_suite.addTest(TestingTokenResourceOnHead())
+    test_suite.addTest(TestingTokenResourceOnGet())
+    test_suite.addTest(TestingTokenResourceOnPost())
 
     return test_suite
 
@@ -96,58 +96,6 @@ class TenantApiTestBase(testing.TestBase):
                            ip_address_v4='192.168.2.1',
                            profile_id=self.profile_id_2)
         self.hosts = [self.host_1, self.host_2]
-        self.token_original = 'ffe7104e-8d93-47dc-a49a-8fb0d39e5192'
-        self.token_previous = 'bbd6302e-8d93-47dc-a49a-8fb0d39e5192'
-        self.token_invalid = 'xxxyyy33-8d93-47dc-a49a-8fb0d39e5192'
-        self.timestamp_original = "2013-03-19T18:16:48.411029Z"
-        self.token = Token(self.token_original, self.token_previous,
-                           self.timestamp_original)
-        self.tenant_id = '1234'
-        self.tenant = Tenant(self.tenant_id, self.token,
-                             profiles=self.profiles,
-                             event_producers=self.producers,
-                             hosts=self.hosts)
-        self.tenant_not_found = MagicMock(return_value=None)
-        self.tenant_found = MagicMock(return_value=self.tenant)
-
-        self._set_resource()
-
-    def _set_resource(self):
-        pass
-
-
-class TestingTenantApiBase(unittest.TestCase):
-
-    def setUp(self):
-        self.validator = MagicMock()
-        self.db_handler = MagicMock()
-
-        self.stream = MagicMock()
-
-        self.req = MagicMock()
-        self.req.stream = self.stream
-        self.req.content_type = 'application/json'
-
-        self.resp = MagicMock()
-
-        self.profile_id = 123
-        self.not_valid_profile_id = 999
-        self.profiles = [HostProfile(123, 'profile1',
-                                     event_producer_ids=[432, 433]),
-                         HostProfile(456, 'profile2',
-                                     event_producer_ids=[432, 433])]
-
-        self.producer_id = 432
-        self.not_valid_producer_id = 777
-        self.producers = [EventProducer(432, 'producer1', 'syslog'),
-                          EventProducer(433, 'producer2', 'syslog')]
-
-        self.host_id = 765
-        self.not_valid_host_id = 888
-        self.hosts = [Host(765, 'host1', ip_address_v4='192.168.1.1',
-                           profile_id=123),
-                      Host(766, 'host2', ip_address_v4='192.168.2.1',
-                           profile_id=456)]
         self.token_original = 'ffe7104e-8d93-47dc-a49a-8fb0d39e5192'
         self.token_previous = 'bbd6302e-8d93-47dc-a49a-8fb0d39e5192'
         self.token_invalid = 'xxxyyy33-8d93-47dc-a49a-8fb0d39e5192'
@@ -1198,19 +1146,22 @@ class TestingHostsResourceOnGet(TenantApiTestBase):
             host in parsed_hosts
 
 
-class WhenTestingHostsResourceValidation(TestingTenantApiBase):
+class WhenTestingHostsResourceValidation(TenantApiTestBase):
 
     def _set_resource(self):
         self.resource = HostsResource(self.db_handler)
 
     def test_should_throw_value_error_bad_profile_id(self):
         body = {'hostname': 'host', 'profile_id': "bad_data"}
-        with self.assertRaises(falcon.HTTPError):
-            self.resource._validate_req_body_on_post(body)
+        self.assertRaises(
+            falcon.HTTPError,
+            self.resource._validate_req_body_on_post, body)
 
         body = {'hostname': 'host', 'profile_id': [1, 2]}
-        with self.assertRaises(falcon.HTTPError):
-            self.resource._validate_req_body_on_post(body)
+        self.assertRaises(
+            falcon.HTTPError,
+            self.resource._validate_req_body_on_post,
+            body)
 
 
 class TestingHostsResourceOnPost(TenantApiTestBase):
@@ -1636,7 +1587,7 @@ class TestingHostResourceOnDelete(TenantApiTestBase):
             self.assertEqual(falcon.HTTP_200, self.srmock.status)
 
 
-class WhenTestingTokenResourceOnHead(TenantApiTestBase):
+class TestingTokenResourceOnHead(TenantApiTestBase):
 
     def _set_resource(self):
         self.resource = TokenResource(self.db_handler)
@@ -1718,7 +1669,7 @@ class TestingTokenResourceOnGet(TenantApiTestBase):
             self.assertEqual(parsed_token[key], token_dict[key])
 
 
-class WhenTestingTokenResourceOnPost(TenantApiTestBase):
+class TestingTokenResourceOnPost(TenantApiTestBase):
 
     def _set_resource(self):
         self.resource = TokenResource(self.db_handler)

@@ -1,7 +1,7 @@
 import unittest
 
 from meniscus.api.normalization.normalizer import normalize_message
-from mock import MagicMock, patch
+
 
 class WhenTestingMessageNormalization(unittest.TestCase):
     def setUp(self):

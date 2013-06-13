@@ -6,22 +6,14 @@ from meniscus.api.correlation import correlator
 import meniscus.api.correlation.correlation_exceptions as errors
 from meniscus.api.tenant.resources import MESSAGE_TOKEN
 from meniscus.api.storage.persistence import persist_message
+from meniscus.api.validator_init import get_validator
 
 
 class PublishMessageResource(ApiResource):
 
-    def _validate_req_body_on_post(self, body):
-        """
-        This method validates the on_post request body
-        """
-        try:
-            correlator.validate_event_message_body(body)
-
-        except errors.MessageValidationError as ex:
-            abort(falcon.HTTP_400, ex.message)
-
     @handle_api_exception(operation_name='Publish Message POST')
-    def on_post(self, req, resp, tenant_id):
+    @falcon.before(get_validator('correlation'))
+    def on_post(self, req, resp, tenant_id, validated_body):
         """
         This method is passed log event data by a tenant. The request will
         have a message token and a tenant id which must be validated either
@@ -32,8 +24,7 @@ class PublishMessageResource(ApiResource):
         message_token = req.get_header(MESSAGE_TOKEN, required=True)
 
         #Validate the tenant's JSON event log data as valid JSON.
-        message = load_body(req)
-        self._validate_req_body_on_post(message)
+        message = validated_body['log_message']
 
         tenant_identification = correlator.TenantIdentification(
             tenant_id, message_token)

@@ -3,11 +3,14 @@ import unittest
 from mock import MagicMock
 from mock import patch
 import falcon
+import falcon.testing as testing
 
 import meniscus.api.correlation.correlation_exceptions as errors
 from meniscus.api.correlation.resources import correlator
 from meniscus.api.correlation.resources import PublishMessageResource
-from meniscus.data.model.tenant import Tenant
+from meniscus.api.tenant.resources import MESSAGE_TOKEN
+from meniscus.data.model import tenant
+from meniscus.openstack.common import jsonutils
 
 
 def suite():
@@ -16,166 +19,158 @@ def suite():
     return suite
 
 
-class WhenTestingPublishMessage(unittest.TestCase):
-    def setUp(self):
+class WhenTestingPublishMessage(testing.TestBase):
+    def before(self):
         self.resource = PublishMessageResource()
-        self.body = {
-            "host": "host",
-            "pname": "pname",
-            "time": "2013-03-19T18:16:48.411029Z"
+        self.tenant_id = '1234'
+        self.token = 'ffe7104e-8d93-47dc-a49a-8fb0d39e5192'
+        self.host_name = 'tohru'
+        self.producer_durable = 'durable'
+        self.producer_non_durable = 'non_durable'
+        self.pattern = "http://projectmeniscus.org/cee/profiles/base"
+        self.producers = [
+            tenant.EventProducer(1, self.producer_durable,
+                                 self.pattern, durable=True),
+            tenant.EventProducer(2, self.producer_non_durable, self.pattern)
+        ]
+        self.profiles = [tenant.HostProfile(1, 'myprofile', [1, 2])]
+        self.hosts = [tenant.Host(1, 'tohru', profile_id=1)]
+        self.bad_host_name = 'badhostname'
+
+        self.tenant = tenant.Tenant(
+            self.tenant_id, self.token, profiles=self.profiles,
+            hosts=self.hosts, event_producers=self.producers)
+        self.message = {
+            "log_message":  {
+                "profile": self.pattern,
+                "ver": "1",
+                "msgid": "-",
+                "pri": "46",
+                "pid": "-",
+                "host": self.host_name,
+                "pname": "rsyslogd",
+                "time": "2013-04-02T14:12:04.873490-05:00",
+                "msg": "start",
+                "native": {
+                    "origin": {
+                        "x-info": "http://www.rsyslog.com",
+                        "swVersion": "7.2.5",
+                        "x-pid": "12662",
+                        "software": "rsyslogd"
+                    }
+                }
+            }
         }
 
-        self.validate_body = MagicMock(
-            side_effect=errors.MessageValidationError)
         self.req = MagicMock()
         self.req.get_header.return_value = \
             'ffe7104e-8d93-47dc-a49a-8fb0d39e5192'
         self.resp = MagicMock()
-        self.tenant_id = '1234'
-        self.token = 'ffe7104e-8d93-47dc-a49a-8fb0d39e5192'
-        self.tenant = Tenant(self.tenant_id, self.token)
 
-    def test_validate_body_throws_validation_error(self):
-        with patch('meniscus.api.correlation.resources.correlator.'
-                   'validate_event_message_body', self.validate_body):
-            with self.assertRaises(falcon.HTTPError):
-                self.resource._validate_req_body_on_post(self.body)
+        self.test_route = '/v1/tenant/{tenant_id}/publish'
+        self.api.add_route(self.test_route, self.resource)
 
-    def test_throws_falcon_error_for_message_auth_error_on_post(self):
-        with patch('meniscus.api.correlation.resources.load_body',
-                   MagicMock(return_value=self.body)), \
-            patch.object(PublishMessageResource,
-                         '_validate_req_body_on_post', MagicMock()),\
-            patch.object(correlator.TenantIdentification,
-                         'get_validated_tenant',
-                         MagicMock(return_value=self.tenant)), \
+    def test_returns_400_for_no_message_token_header(self):
+        self.simulate_request(
+            self.test_route,
+            method='POST',
+            headers={
+                'content-type': 'application/json'
+            },
+            body=jsonutils.dumps(self.message))
+        self.assertEquals(falcon.HTTP_400, self.srmock.status)
+
+    def test_returns_401_for_MessageAuthenticationError(self):
+        with patch.object(correlator.TenantIdentification,
+                          'get_validated_tenant',
+                          MagicMock(return_value=self.tenant)), \
             patch('meniscus.api.correlation.resources.correlator.'
                   'add_correlation_info_to_message',
                   MagicMock(side_effect=errors.MessageAuthenticationError)):
-            with self.assertRaises(falcon.HTTPError):
-                self.resource.on_post(self.req, self.resp, self.tenant_id)
 
-    def test_throws_falcon_error_for_resource_not_found_error_on_post(self):
-        with patch('meniscus.api.correlation.resources.'
-                   'load_body', MagicMock(return_value=self.body)), \
-            patch.object(PublishMessageResource,
-                         '_validate_req_body_on_post', MagicMock()), \
-            patch.object(correlator.TenantIdentification,
-                         'get_validated_tenant',
-                         MagicMock(return_value=self.tenant)), \
+            self.simulate_request(
+                self.test_route,
+                method='POST',
+                headers={
+                    'content-type': 'application/json',
+                    MESSAGE_TOKEN: self.token
+                },
+                body=jsonutils.dumps(self.message))
+
+        self.assertEquals(falcon.HTTP_401, self.srmock.status)
+
+    def test_returns_404_for_ResourceNotFoundError(self):
+        with patch.object(correlator.TenantIdentification,
+                          'get_validated_tenant',
+                          MagicMock(return_value=self.tenant)), \
             patch('meniscus.api.correlation.resources.correlator.'
                   'add_correlation_info_to_message',
                   MagicMock(side_effect=errors.ResourceNotFoundError)):
-            with self.assertRaises(falcon.HTTPError):
-                self.resource.on_post(self.req, self.resp, self.tenant_id)
 
-    def test_throws_falcon_error_for_coordinator_comm_error_on_post(self):
-        with patch('meniscus.api.correlation.resources.'
-                   'load_body', MagicMock(return_value=self.body)), \
-            patch.object(PublishMessageResource,
-                         '_validate_req_body_on_post', MagicMock()), \
-            patch.object(correlator.TenantIdentification,
-                         'get_validated_tenant',
-                         MagicMock(return_value=self.tenant)), \
+            self.simulate_request(
+                self.test_route,
+                method='POST',
+                headers={
+                    'content-type': 'application/json',
+                    MESSAGE_TOKEN: self.token
+                },
+                body=jsonutils.dumps(self.message))
+
+        self.assertEquals(falcon.HTTP_404, self.srmock.status)
+
+    def test_returns_500_for_CoordinatorCommunicationError(self):
+        with patch.object(correlator.TenantIdentification,
+                          'get_validated_tenant',
+                          MagicMock(return_value=self.tenant)), \
             patch('meniscus.api.correlation.resources.correlator.'
                   'add_correlation_info_to_message',
                   MagicMock(side_effect=errors.CoordinatorCommunicationError)):
-            with self.assertRaises(falcon.HTTPError):
-                self.resource.on_post(self.req, self.resp, self.tenant_id)
 
-    def test_returns_204_for_non_durable_message_on_post(self):
-        message = {
-            "profile": "http://projectmeniscus.org/cee/profiles/base",
-            "ver": "1",
-            "msgid": "-",
-            "pri": "46",
-            "pid": "-",
-            "meniscus": {
-                "tenant": "5164b8f4-16fb-4376-9d29-8a6cbaa02fa9",
-                "correlation": {
-                    "host_id": "1",
-                    "durable": False,
-                    "ep_id": None,
-                    "pattern": None,
-                    "encrypted": False
-                }
-            },
-            "host": "tohru",
-            "pname": "rsyslogd",
-            "time": "2013-04-02T14:12:04.873490-05:00",
-            "msg": "start",
-            "native": {
-                "origin": {
-                    "x-info": "http://www.rsyslog.com",
-                    "swVersion": "7.2.5",
-                    "x-pid": "12662",
-                    "software": "rsyslogd"
-                }
-            }
-        }
+            self.simulate_request(
+                self.test_route,
+                method='POST',
+                headers={
+                    'content-type': 'application/json',
+                    MESSAGE_TOKEN: self.token
+                },
+                body=jsonutils.dumps(self.message))
 
-        with patch('meniscus.api.correlation.resources.'
-                   'load_body', MagicMock(return_value=self.body)), \
-            patch.object(PublishMessageResource,
-                         '_validate_req_body_on_post', MagicMock()), \
-            patch.object(correlator.TenantIdentification,
-                         'get_validated_tenant',
-                         MagicMock(return_value=self.tenant)), \
-            patch('meniscus.api.correlation.resources.correlator.'
-                  'add_correlation_info_to_message',
-                  MagicMock(return_value=message)),\
+        self.assertEquals(falcon.HTTP_500, self.srmock.status)
+
+    def test_returns_204_for_non_durable_message(self):
+        self.message['log_message']['pname'] = self.producer_non_durable
+        with patch.object(correlator.TenantIdentification,
+                          'get_validated_tenant',
+                          MagicMock(return_value=self.tenant)),\
             patch('meniscus.api.correlation.resources.persist_message',
                   MagicMock()):
-            self.resource.on_post(self.req, self.resp, self.tenant_id)
-            self.assertEquals(self.resp.status, falcon.HTTP_204)
+            self.simulate_request(
+                self.test_route,
+                method='POST',
+                headers={
+                    'content-type': 'application/json',
+                    MESSAGE_TOKEN: self.token
+                },
+                body=jsonutils.dumps(self.message))
+        self.assertEquals(falcon.HTTP_204, self.srmock.status)
 
-    def test_returns_202_for_durable_message_on_post(self):
-        message = {
-            "profile": "http://projectmeniscus.org/cee/profiles/base",
-            "ver": "1",
-            "msgid": "-",
-            "pri": "46",
-            "pid": "-",
-            "meniscus": {
-                "tenant": "5164b8f4-16fb-4376-9d29-8a6cbaa02fa9",
-                "correlation": {
-                    "host_id": "1",
-                    "durable": True,
-                    "ep_id": None,
-                    "pattern": None,
-                    "encrypted": False,
-                    "job_id": "5497b8f4-16fb-4376-9d29-8a6cbaa0223bc"
-                }
-            },
-            "host": "tohru",
-            "pname": "rsyslogd",
-            "time": "2013-04-02T14:12:04.873490-05:00",
-            "msg": "start",
-            "native": {
-                "origin": {
-                    "x-info": "http://www.rsyslog.com",
-                    "swVersion": "7.2.5",
-                    "x-pid": "12662",
-                    "software": "rsyslogd"
-                }
-            }
-        }
-        with patch('meniscus.api.correlation.resources.'
-                   'load_body', MagicMock(return_value=self.body)), \
-            patch.object(PublishMessageResource,
-                         '_validate_req_body_on_post', MagicMock()), \
-            patch.object(correlator.TenantIdentification,
-                         'get_validated_tenant',
-                         MagicMock(return_value=self.tenant)), \
-            patch('meniscus.api.correlation.resources.correlator.'
-                  'add_correlation_info_to_message',
-                  MagicMock(return_value=message)), \
+    def test_returns_202_for_non_durable_message(self):
+        self.message['log_message']['pname'] = self.producer_durable
+        with patch.object(correlator.TenantIdentification,
+                          'get_validated_tenant',
+                          MagicMock(return_value=self.tenant)), \
             patch('meniscus.api.correlation.resources.persist_message',
                   MagicMock()):
-            self.resource.on_post(self.req, self.resp, self.tenant_id)
-            self.assertEquals(self.resp.status, falcon.HTTP_202)
-            self.assertTrue("job_id" in self.resp.body)
-            self.assertTrue("job_status_uri" in self.resp.body)
+            self.simulate_request(
+                self.test_route,
+                method='POST',
+                headers={
+                    'content-type': 'application/json',
+                    MESSAGE_TOKEN: self.token
+                },
+                body=jsonutils.dumps(self.message))
+        self.assertEquals(falcon.HTTP_202, self.srmock.status)
+
 
 if __name__ == '__main__':
     unittest.main()

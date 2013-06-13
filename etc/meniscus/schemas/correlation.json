@@ -1,29 +1,58 @@
 {
     "id": "http://projectmeniscus.org/json/correlation#",
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "description": "Correlation API json-schema",
 
+    "description": "Correlation API json-schema",
     "type": "object",
     "additionalProperties": false,
 
     "properties": {
-        "host":  {
-            "type": "string"
-        },
-        "pname": {
-            "type": "string"
-        },
-        "time": {
-            "type": "string",
-            "format":"date-time"
-        },
-        "native": {
-            "additionalProperties": "#"
-        }
+        "log_message": {"$ref": "#/definitions/log_message"}
     },
-    "required": [
-        "host",
-        "pname",
-        "time"
-    ]
+
+    "oneOf": [{"required": ["log_message"]}],
+
+    "definitions": {
+
+        "log_message": {
+
+            "required": ["host", "pname", "time"],
+
+            "additionalProperties": false,
+
+            "properties": {
+                "host": {
+                    "type": "string"
+                },
+                "pname": {
+                    "type": "string"
+                },
+                "time": {
+                    "type": "string",
+                    "format": "date-time"
+                },
+                "native": {
+                    "type": "object"
+                },
+                "msg": {
+                    "type": "string"
+                },
+                "profile": {
+                    "type": "string"
+                },
+                "ver": {
+                    "type": "string"
+                },
+                "msgid": {
+                    "type": "string"
+                },
+                "pri": {
+                    "type": "string"
+                },
+                "pid": {
+                    "type": "string"
+                }
+            }
+        }
+    }
 }

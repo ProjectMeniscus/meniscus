@@ -33,7 +33,7 @@ case "$1" in
 		chown -R meniscus:adm /var/log/meniscus/
 		chmod 0750 /var/log/meniscus/
 		chown meniscus:meniscus -R /var/lib/meniscus/ /etc/meniscus
-		chmod 0700 /etc/meniscus/
+		chmod -R 0700 /etc/meniscus/
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

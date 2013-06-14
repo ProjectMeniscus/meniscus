@@ -1,5 +1,7 @@
 import unittest
 
+from mock import MagicMock, patch
+
 from meniscus.data.model.tenant import EventProducer
 from meniscus.data.model.tenant import HostProfile
 from meniscus.data.model.tenant import Host
@@ -19,7 +21,9 @@ def suite():
 class WhenTestingEventProducerObject(unittest.TestCase):
 
     def setUp(self):
-        self.event_producer = EventProducer('EVid',
+        with patch('meniscus.data.model.tenant.VALID_SINKS',
+                   ['elasticsearch', 'hdfs']):
+            self.event_producer = EventProducer('EVid',
                                             'mybillingsapp',
                                             'syslog',
                                             'true',
@@ -35,6 +39,7 @@ class WhenTestingEventProducerObject(unittest.TestCase):
         self.assertEqual(ep_dict['pattern'], 'syslog')
         self.assertEqual(ep_dict['durable'], 'true')
         self.assertEqual(ep_dict['encrypted'], 'false')
+        self.assertListEqual(ep_dict['sinks'], ['elasticsearch', 'hdfs'])
 
 
 class WhenTestingHostProfileObject(unittest.TestCase):

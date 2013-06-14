@@ -29,7 +29,8 @@
             "id": 12345,
             "name": "apache",
             "durable": true,
-            "encrypted": false
+            "encrypted": false,
+            "sink": "hdfs"
         },
         {
             "id": 12346,
@@ -68,7 +69,8 @@
         "id": 12345,
         "name": "apache",
         "durable": true,
-        "encrypted": false
+        "encrypted": false,
+        "sinks": ["elasticsearch"]
     }
 }
 

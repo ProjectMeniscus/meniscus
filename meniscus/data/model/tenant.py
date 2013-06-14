@@ -1,5 +1,6 @@
 from uuid import uuid4
 from meniscus.openstack.common.timeutils import isotime
+from meniscus.api.sinks import VALID_SINKS
 
 
 class EventProducer(object):
@@ -12,7 +13,13 @@ described.
 """
 
     def __init__(self, _id, name, pattern, durable=False,
-                 encrypted=False):
+                 encrypted=False, sinks=None):
+
+        if not sinks:
+            self.sinks = VALID_SINKS
+        else:
+            self.sinks = sinks
+
         self._id = _id
         self.name = name
         self.pattern = pattern
@@ -24,7 +31,8 @@ described.
 
     def format(self):
         return {'id': self._id, 'name': self.name, 'pattern': self.pattern,
-                'durable': self.durable, 'encrypted': self.encrypted}
+                'durable': self.durable, 'encrypted': self.encrypted,
+                'sinks': self.sinks}
 
 
 class HostProfile(object):

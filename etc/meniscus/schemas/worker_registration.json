@@ -1,57 +1,64 @@
 {
-    "id": "http://projectmeniscus.org/json/worker_registration#",
+    "id": "http://projectmeniscus.org/json/coordination#",
     "$schema": "http://json-schema.org/draft-04/schema#",
-    "description": "Worker Registration Schema",
+
+    "description": "Coordinator API Schema",
     "type": "object",
     "additionalProperties": false,
+
     "properties": {
-        "required": [
-            "hostname",
-            "callback",
-            "ip_address_v4",
-            "ip_address_v6",
-            "personality",
-            "status",
-            "system_info"
-        ],
-        "hostname": {
-            "type": "string"
-        },
-        "callback": {
-            "type": "string"
-        },
-        "ip_address_v4": {
-            "type": "string"
-        },
-        "ip_address_v6": {
-            "type": "string"
-        },
-        "personality": {
-            "enum": [
-                "coordinator",
-                "worker"
-            ]
-        },
-        "status": {
-            "enum": [
-                "new",
-                "online",
-                "offline",
-                "draining"
-            ]
-        },
-        "system_info": {
-            "$ref": "#/definitions/system_info"
-        }
+        "worker_registration": {"$ref": "#/definitions/worker_registration"}
     },
+
     "oneOf": [
-        {
-            "required": [
-                "system_info"
-            ]
-        }
+        {"required": ["worker_registration"]}
     ],
+
     "definitions": {
+
+        "worker_registration": {
+
+            "required": [
+                "hostname",
+                "ip_address_v4",
+                "ip_address_v6",
+                "personality",
+                "status",
+                "system_info"
+            ],
+
+            "additionalProperties": false,
+
+            "properties": {
+
+                "hostname": {
+                    "type": "string"
+                },
+                "ip_address_v4": {
+                    "type": "string"
+                },
+                "ip_address_v6": {
+                    "type": "string"
+                },
+                "personality": {
+                    "enum": [
+                        "coordinator",
+                        "worker"
+                    ]
+                },
+                "status": {
+                    "enum": [
+                        "new",
+                        "online",
+                        "offline",
+                        "draining"
+                    ]
+                },
+                "system_info": {
+                    "$ref": "#/definitions/system_info"
+                }
+            }
+        },
         "system_info": {
             "required": [
                 "os_type",
@@ -60,57 +67,65 @@
                 "cpu_cores"
             ],
             "additionalProperties": false,
-            "os_type": {
-                "type": "string"
-            },
-            "memory_mb": {
-                "type": "integer"
-            },
-            "architecture": {
-                "type": "string"
-            },
-            "cpu_cores": {
-                "type": "integer"
-            },
-            "disk_usage": {
-                "$ref": "#/definitions/disk_usage"
-            },
-            "load_average": {
-                "$ref": "#/definitions/load_average"
-            }
-        },
-        "disk_usage": {
-            "additionalProperties": "#/definitions/storage"
-        },
-        "storage": {
-            "required": [
-                "total",
-                "used"
-            ],
-            "additionalProperties": false,
-            "total": {
-                "type": "integer"
-            },
-            "used": {
-                "type": "integer"
+
+            "properties":{
+                "os_type": {
+                    "type": "string"
+                },
+                "memory_mb": {
+                    "type": "integer"
+                },
+                "architecture": {
+                    "type": "string"
+                },
+                "cpu_cores": {
+                    "type": "integer"
+                },
+                "disk_usage": {
+                    "$ref": "#/definitions/disk_usage"
+                },
+                "load_average": {
+                    "$ref": "#/definitions/load_average"
+                }
             }
         },
         "load_average": {
-            "1": {
-                "type": "integer"
-            },
-            "5": {
-                "type": "integer"
-            },
-            "15": {
-                "type": "integer"
-            },
-            "required": [
-                "1",
-                "5",
-                "15"
-            ],
-            "additionalProperties": false
+            "required": ["1","5","15"],
+            "additionalProperties": false,
+
+            "properties":{
+                "1": {
+                    "type": "number"
+                },
+                "5": {
+                    "type": "number"
+                },
+                "15": {
+                    "type": "number"
+                }
+            }
+        },
+        "disk_usage": {
+            "type": "array",
+            "items": { "$ref": "#/definitions/device" }
+        },
+        "device":{
+            "required": ["device", "total", "used"],
+            "additionalProperties": false,
+
+            "properties": {
+                "device": {
+                    "type": "string"
+                },
+                "total": {
+                    "type": "number"
+                },
+                "used": {
+                    "type": "number"
+                }
+            }
+
+
         }
     }
 }

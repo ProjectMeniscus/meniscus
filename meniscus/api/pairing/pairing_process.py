@@ -66,7 +66,7 @@ class PairingProcess(object):
             return False
 
         if resp.status_code == httplib.ACCEPTED:
-            body = resp.json()
+            body = resp.json()['worker_identity']
             config = WorkerConfiguration(
                 personality, body['personality_module'], body['worker_token'],
                 body['worker_id'], coordinator_uri)

@@ -1,8 +1,8 @@
 {
-    "id": "http://projectmeniscus.org/json/coordination#",
+    "id": "http://projectmeniscus.org/json/worker_registration#",
     "$schema": "http://json-schema.org/draft-04/schema#",
 
-    "description": "Coordinator API Schema",
+    "description": "worker_registration Schema",
     "type": "object",
     "additionalProperties": false,
 

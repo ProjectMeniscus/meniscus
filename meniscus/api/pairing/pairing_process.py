@@ -65,6 +65,8 @@ class PairingProcess(object):
                 'Pairing Process: error posting worker registration')
             return False
 
+        _LOG.debug('resp.status_code: {0}'.format(resp.status_code))
+
         if resp.status_code == httplib.ACCEPTED:
             body = resp.json()['worker_identity']
             config = WorkerConfiguration(

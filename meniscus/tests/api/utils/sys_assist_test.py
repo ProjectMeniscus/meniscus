@@ -94,18 +94,36 @@ class WhenTestingSysAssist(unittest.TestCase):
                 patch.object(sys_assist.subprocess, 'Popen', return_value=df):
             usage = sys_assist.get_disk_usage()
 
-        self.assertTrue('/dev/sda4' in usage)
-        self.assertTrue('total' in usage['/dev/sda4'])
-        self.assertEqual(usage['/dev/sda4']['total'], 7.8)
-        self.assertEqual(usage['/dev/sda4']['used'], 0.000156402587890625)
-        self.assertTrue('/dev/sda5' in usage)
-        self.assertEqual(usage['/dev/sda5']['total'], 24.0)
-        self.assertEqual(usage['/dev/sda5']['used'], 5.2)
-        self.assertTrue('/dev/sda6' in usage)
-        self.assertEqual(usage['/dev/sda6']['total'], 255.0)
-        self.assertEqual(usage['/dev/sda6']['used'], 0.423828125)
-        self.assertTrue('tmpfs' in usage)
-        self.assertTrue('udev' in usage)
+        sda4 = {
+            'device': '/dev/sda4',
+            'total': 7.8,
+            'used': 0.000156402587890625
+        }
+        self.assertTrue(sda4 in usage)
+        sda5 = {
+            'device': '/dev/sda5',
+            'total': 24.0,
+            'used': 5.2
+        }
+        self.assertTrue(sda5 in usage)
+        sda6 = {
+            'device': '/dev/sda6',
+            'total': 255.0,
+            'used': 0.423828125
+        }
+        self.assertTrue(sda6 in usage)
+        sda4 = {
+            'device': '/dev/sda4',
+            'total': 7.8,
+            'used': 0.000156402587890625
+        }
+        self.assertTrue(sda4 in usage)
+        sda4 = {
+            'device': '/dev/sda4',
+            'total': 7.8,
+            'used': 0.000156402587890625
+        }
+        self.assertTrue(sda4 in usage)
 
 
 if __name__ == '__main__':

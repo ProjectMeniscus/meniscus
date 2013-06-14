@@ -57,14 +57,16 @@ def get_disk_usage():
     if 'linux' in sys.platform:
         df_command = subprocess.Popen(["df", "-h"], stdout=subprocess.PIPE)
         df_output = df_command.communicate()[0]
-
+        disk_usage = list()
         for file_system in df_output.split("\n")[1:]:
             if 'none'not in file_system:
                 try:
                     name,  size, used, avail, use, mount = file_system.split()
-                    disk_usage[name] = {
+                    device = {
+                        'device': name,
                         'total': get_size_in_GB(size),
                         'used': get_size_in_GB(used)}
+                    disk_usage.append(device)
                 except ValueError:
                     pass
     return disk_usage

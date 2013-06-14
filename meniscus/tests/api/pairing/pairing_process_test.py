@@ -63,10 +63,13 @@ class WhenTestingPairingProcess(unittest.TestCase):
 
     def test_should_return_true_for_register_with_coordinator(self):
         self.resp.status_code = httplib.ACCEPTED
-        self.resp._content = \
-            '{"personality_module": "meniscus.personas.pairing.app", ' \
-            '"worker_token": "3F2504E0-4F89-11D3-9A0C-0305E82C3301", ' \
-            '"worker_id": "3F2504E0-4F89-11D3-9A0C-0305E82C3301"}'
+        self.resp._content = jsonutils.dumps({
+            'worker_identity': {
+                "personality_module": "meniscus.personas.pairing.app",
+                "worker_token": "3F2504E0-4F89-11D3-9A0C-0305E82C3301",
+                "worker_id": "3F2504E0-4F89-11D3-9A0C-0305E82C3301"
+            }
+        })
         auth_header = {'X-AUTH-TOKEN': self.api_secret}
         with patch('meniscus.api.pairing.pairing_process.'
                    'http_request', self.http_request):

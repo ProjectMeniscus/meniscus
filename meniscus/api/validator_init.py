@@ -1,5 +1,8 @@
+import os
+
 from oslo.config import cfg
 
+import meniscus
 from meniscus.validation import jsonv
 import meniscus.config as config
 from meniscus import env
@@ -13,9 +16,12 @@ _JSON_SCHEMA_GROUP = cfg.OptGroup(
     name='json_schema', title='Json Schema Options')
 config.get_config().register_group(_JSON_SCHEMA_GROUP)
 
+default_schema_path = '{0}etc/meniscus/schemas/'.format(
+    os.path.dirname(meniscus.__file__).rstrip('meniscus'))
+
 _JSON_SCHEMA = [
     cfg.StrOpt('schema_dir',
-               default="../etc/meniscus/schemas/",
+               default=default_schema_path,
                help="""directory holding json schema files"""
                )
 ]

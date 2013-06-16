@@ -1,6 +1,11 @@
 import json
 import falcon
 
+from meniscus import env
+
+
+_LOG = env.get_logger(__name__)
+
 
 def _load_json_body(stream):
     try:
@@ -34,12 +39,17 @@ def validation_hook(validator):
         if not (req.content_type
                 and req.content_type.lower() == 'application/json'):
 
+            _LOG.debug(
+                'Failed validation: {0}'.format('Unsupported Media Type'))
+
             raise falcon.HTTPError(falcon.HTTP_415, 'Unsupported Media Type')
 
         json_body = _load_json_body(req.stream)
         result = validator.validate(json_body)
 
         if not result.valid:
+            _LOG.debug(
+                'Failed validation: {0}'.format(result.error.message))
             raise falcon.HTTPError(falcon.HTTP_400, result.error.message)
 
         # Set a custom parameters on the request

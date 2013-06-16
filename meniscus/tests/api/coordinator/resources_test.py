@@ -26,13 +26,11 @@ class WhenTestingWorkerRegistrationOnPost(testing.TestBase):
         self.body_bad_personality = {'worker_registration':
                                      WorkerRegistration(
                                          'bad_personality').format()}
+
         self.body_bad = {'worker_registration': 'bad_registration'}
-        self.registration = jsonutils.dumps(
-            {'worker_registration':
-             WorkerRegistration('worker').format()})
         self.req = MagicMock()
         self.req.content_type = 'application/json'
-        self.req.stream.read.return_value = self.registration
+        self.req.stream.read.return_value = jsonutils.dumps(self.body)
         self.resp = MagicMock()
         self.test_route = '/v1/pairing'
         self.api.add_route(self.test_route, self.resource)

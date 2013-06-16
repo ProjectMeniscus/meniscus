@@ -50,7 +50,7 @@ def get_disk_usage():
             return float(disk_size.replace('M', '')) / 1024
         if 'K' in disk_size:
             return float(disk_size.replace('K', '')) / (1024 ** 2)
-        return None
+        return 0
 
     disk_usage = dict()
 

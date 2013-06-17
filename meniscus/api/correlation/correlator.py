@@ -47,6 +47,7 @@ def add_correlation_info_to_message(tenant, message):
 
     #initialize correlation dictionary with default values
     correlation_dict = {
+        'tenant_name': tenant.tenant_name,
         'host_id': host.get_id(),
         'ep_id': None,
         'pattern': None,

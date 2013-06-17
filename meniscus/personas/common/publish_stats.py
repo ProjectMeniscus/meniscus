@@ -132,7 +132,7 @@ class WorkerStatusPublisher(object):
         request_uri = "{0}/worker/{1}/status".format(
             config.coordinator_uri, config.worker_id)
 
-        status = {"worker_status": status}
+        status = {"status": status}
 
         try:
             resp = http_request(request_uri, token_header,

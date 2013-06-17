@@ -1,6 +1,7 @@
 import falcon
 from meniscus.api import ApiResource, handle_api_exception, load_body
 from meniscus.api.pairing.pairing_process import PairingProcess
+from meniscus.api.validator_init import get_validator
 
 
 class PairingConfigurationResource(ApiResource):
@@ -10,8 +11,9 @@ class PairingConfigurationResource(ApiResource):
     """
 
     @handle_api_exception(operation_name='PairingConfiguration POST')
-    def on_post(self, req, resp):
-        body = load_body(req)
+    @falcon.before(get_validator('pairing_configuration'))
+    def on_post(self, req, resp, validated_body):
+        body = validated_body['pairing_configuration']
 
         api_secret = body['api_secret']
         coordinator_uri = body['coordinator_uri']

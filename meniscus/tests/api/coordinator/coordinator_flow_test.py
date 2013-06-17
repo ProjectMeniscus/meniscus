@@ -3,7 +3,6 @@ import unittest
 
 import falcon
 from mock import MagicMock
-from mock import patch
 
 from meniscus.api.coordinator import coordinator_flow
 from meniscus.data.model.worker import SystemInfo

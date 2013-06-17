@@ -1,0 +1,100 @@
+{
+    "id": "http://projectmeniscus.org/json/worker_status#",
+    "$schema": "http://json-schema.org/draft-04/schema#",
+
+    "description": "Worker Status Schema",
+    "type": "object",
+    "additionalProperties": false,
+
+    "properties": {
+        "status": {"$ref": "#/definitions/status"},
+        "system_info": {"$ref": "#/definitions/system_info"},
+        "load_average": {"$ref": "#/definitions/load_average"},
+        "disk_usage": {"$ref": "#/definitions/disk_usage"}
+    },
+
+    "oneOf": [
+        {"required": ["system_info"]},
+        {"required": ["load_average"]},
+        {"required": ["disk_usage"]},
+        {"required": ["status"]}
+    ],
+
+    "definitions": {
+
+        "system_info": {
+            "required": [
+                "os_type",
+                "memory_mb",
+                "architecture",
+                "cpu_cores"
+            ],
+            "additionalProperties": false,
+
+            "properties":{
+                "os_type": {
+                    "type": "string"
+                },
+                "memory_mb": {
+                    "type": "integer"
+                },
+                "architecture": {
+                    "type": "string"
+                },
+                "cpu_cores": {
+                    "type": "integer"
+                },
+                "disk_usage": {
+                    "$ref": "#/definitions/disk_usage"
+                },
+                "load_average": {
+                    "$ref": "#/definitions/load_average"
+                }
+            }
+        },
+        "load_average": {
+            "required": ["1","5","15"],
+            "additionalProperties": false,
+
+            "properties":{
+                "1": {
+                    "type": "number"
+                },
+                "5": {
+                    "type": "number"
+                },
+                "15": {
+                    "type": "number"
+                }
+            }
+        },
+        "disk_usage": {
+            "type": "array",
+            "items": { "$ref": "#/definitions/device" }
+        },
+        "device":{
+            "required": ["device", "total", "used"],
+            "additionalProperties": false,
+
+            "properties": {
+                "device": {
+                    "type": "string"
+                },
+                "total": {
+                    "type": "number"
+                },
+                "used": {
+                    "type": "number"
+                }
+            }
+        },
+        "status": {
+            "enum": [
+                "new",
+                "online",
+                "offline",
+                "draining"
+            ]
+        }
+    }
+}

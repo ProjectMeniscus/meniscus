@@ -15,7 +15,7 @@ get_config().register_group(_COORDINATOR_GROUP)
 
 _COORDINATOR_CONSTANTS = [
     cfg.ListOpt('valid_route_list',
-                default=['online', 'draining'],
+                default=['new', 'online', 'draining'],
                 help="""default duration for monitoring failed workers"""
                 ),
     cfg.ListOpt('valid_status_list',
@@ -43,7 +43,7 @@ def validate_worker_registration_req_body(body):
     validate request body
     """
     try:
-        worker = Worker(**body['worker_registration'])
+        worker = Worker(**body)
 
         if worker.personality not in [p['personality']for p in PERSONALITIES]:
             error._personality_not_valid()

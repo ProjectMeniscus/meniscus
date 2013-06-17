@@ -21,13 +21,13 @@ def suite():
 class WhenTestingEventProducerObject(unittest.TestCase):
 
     def setUp(self):
-        with patch('meniscus.data.model.tenant.VALID_SINKS',
-                   ['elasticsearch', 'hdfs']):
+        with patch('meniscus.data.model.tenant.DEFAULT_SINK',
+                   ['elasticsearch']):
             self.event_producer = EventProducer('EVid',
-                                            'mybillingsapp',
-                                            'syslog',
-                                            'true',
-                                            'false')
+                                                'mybillingsapp',
+                                                'syslog',
+                                                'true',
+                                                'false')
 
     def test_event_producer_object_get_id(self):
         self.assertEqual(self.event_producer.get_id(), 'EVid')
@@ -39,7 +39,7 @@ class WhenTestingEventProducerObject(unittest.TestCase):
         self.assertEqual(ep_dict['pattern'], 'syslog')
         self.assertEqual(ep_dict['durable'], 'true')
         self.assertEqual(ep_dict['encrypted'], 'false')
-        self.assertListEqual(ep_dict['sinks'], ['elasticsearch', 'hdfs'])
+        self.assertListEqual(ep_dict['sinks'], ['elasticsearch'])
 
 
 class WhenTestingHostProfileObject(unittest.TestCase):

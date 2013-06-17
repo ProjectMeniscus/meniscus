@@ -27,3 +27,4 @@ except config.cfg.ConfigFilesNotFoundError as ex:
 conf = config.get_config()
 
 VALID_SINKS = conf.data_sinks.sinks
+DEFAULT_SINK = ['elasticsearch']

@@ -69,28 +69,19 @@ def run(cmd, cwd=None, env=None):
         env=env,
         close_fds=True)
 
-    while True:
+    done = False
+    while not done:
         line = proc.stdout.readline()
-        if not line:
-            break
-        print(line.rstrip('\n'))
+        if line:
+            print(line.rstrip('\n'))
+        else:
+            done = True
 
     if proc.returncode and proc.returncode != 0:
         print('Failed with return code: {}'.format(proc.returncode))
 
 
-def install_req(name, bctx, stage_hooks=None):
-    req = InstallRequirement.from_line(name, None)
-    found_req = bctx.pkg_index.find_requirement(req, False)
-    dl_target = path.join(bctx.files_dir, found_req.filename)
-
-    # stages
-    call_hook(name, 'download.before', stage_hooks, bctx=bctx, fetch_url=found_req.url)
-    download(found_req.url, dl_target)
-    call_hook(name, 'download.after', stage_hooks, bctx=bctx, archive=dl_target)
-
-    call_hook(name, 'unpack.before', stage_hooks, bctx=bctx, archive=dl_target)
-
+def unpack(name, bctx, stage_hooks, dl_target)
     if dl_target.endswith('.tar.gz') or dl_target.endswith('.tgz'):
         archive = tarfile.open(dl_target, mode='r|gz')
         build_location = path.join(bctx.build_dir, found_req.filename.rstrip('.tar.gz'))
@@ -102,6 +93,20 @@ def install_req(name, bctx, stage_hooks=None):
         raise Exception()
 
     archive.extractall(bctx.build_dir)
+    return build_location
+
+
+def install_req(name, bctx, stage_hooks=None):
+    req = InstallRequirement.from_line(name, None)
+    found_req = bctx.pkg_index.find_requirement(req, False)
+    dl_target = path.join(bctx.files_dir, found_req.filename)
+
+    call_hook(name, 'download.before', stage_hooks, bctx=bctx, fetch_url=found_req.url)
+    download(found_req.url, dl_target)
+    call_hook(name, 'download.after', stage_hooks, bctx=bctx, archive=dl_target)
+
+    call_hook(name, 'unpack.before', stage_hooks, bctx=bctx, archive=dl_target)
+    build_location = unpack(name, bctx, stage_hooks, dl_target)
     call_hook(name, 'unpack.after', stage_hooks, bctx=bctx, build_location=build_location)
 
     # stages
@@ -135,10 +140,11 @@ def read_requires(filename):
         raise Exception()
 
     for line in lines.split('\n'):
-        install_req(line, bctx, hooks)
+        if line and len(line) > 0:
+            install_req(line, bctx, hooks)
 
     print('Cleaning {}'.format(bctx.ctx_root))
-    #shutil.rmtree(bctx.ctx_root)
+    shutil.rmtree(bctx.ctx_root)
 
 
 def fix_pyev(bctx, build_location):
@@ -155,5 +161,3 @@ hooks = {
 
 if len(sys.argv) > 1:
     read_requires(sys.argv[1])
-#go('meniscus', hooks)
-

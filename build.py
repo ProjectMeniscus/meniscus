@@ -81,13 +81,13 @@ def run(cmd, cwd=None, env=None):
         print('Failed with return code: {}'.format(proc.returncode))
 
 
-def unpack(name, bctx, stage_hooks, dl_target)
+def unpack(name, bctx, stage_hooks, filename, dl_target):
     if dl_target.endswith('.tar.gz') or dl_target.endswith('.tgz'):
         archive = tarfile.open(dl_target, mode='r|gz')
-        build_location = path.join(bctx.build_dir, found_req.filename.rstrip('.tar.gz'))
+        build_location = path.join(bctx.build_dir, filename.rstrip('.tar.gz'))
     elif dl_target.endswith('.zip'):
         archive = zipfile.ZipFile(dl_target, mode='r')
-        build_location = path.join(bctx.build_dir, found_req.filename.rstrip('.zip'))
+        build_location = path.join(bctx.build_dir, filename.rstrip('.zip'))
     else:
         print('Unknown archive format: {}'.format(dl_target))
         raise Exception()
@@ -106,7 +106,7 @@ def install_req(name, bctx, stage_hooks=None):
     call_hook(name, 'download.after', stage_hooks, bctx=bctx, archive=dl_target)
 
     call_hook(name, 'unpack.before', stage_hooks, bctx=bctx, archive=dl_target)
-    build_location = unpack(name, bctx, stage_hooks, dl_target)
+    build_location = unpack(name, bctx, stage_hooks, found_req.filename, dl_target)
     call_hook(name, 'unpack.after', stage_hooks, bctx=bctx, build_location=build_location)
 
     # stages

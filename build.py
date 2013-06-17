@@ -124,24 +124,21 @@ def call_hook(name, stage, stage_hooks, **kwargs):
                 hook(kwargs)
 
 
-def go(root_pkg, hooks=None):
+def read_requires(filename):
     pkg_index = PackageFinder(
             find_links=[],
             index_urls=["http://pypi.python.org/simple/"])
     bctx = BuildContext(tempfile.mkdtemp(), pkg_index)
 
-    install_req(root_pkg, bctx, hooks)
-
-    print('Cleaning {}'.format(bctx.ctx_root))
-    #shutil.rmtree(bctx.ctx_root)
-
-
-def read_requires(filename):
     lines = open(filename, 'r').read()
     if not lines:
         raise Exception()
+
     for line in lines.split('\n'):
-        go(line)
+        install_req(line, bctx, hooks)
+
+    print('Cleaning {}'.format(bctx.ctx_root))
+    #shutil.rmtree(bctx.ctx_root)
 
 
 def fix_pyev(bctx, build_location):

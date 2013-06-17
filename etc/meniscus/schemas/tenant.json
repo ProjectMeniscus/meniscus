@@ -124,6 +124,14 @@
                 },
                 "encrypted": {
                     "type": "boolean"
+                },
+                "sinks": {
+                    "type": "array",
+                    "items": {
+                        "enum": ["elasticsearch", "hdfs"]
+                    },
+                    "minLength": 1,
+                    "uniqueItems": true
                 }
             }
         },

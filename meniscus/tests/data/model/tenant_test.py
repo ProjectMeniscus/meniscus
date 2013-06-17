@@ -21,7 +21,7 @@ def suite():
 class WhenTestingEventProducerObject(unittest.TestCase):
 
     def setUp(self):
-        with patch('meniscus.data.model.tenant.DEFAULT_SINK',
+        with patch('meniscus.data.model.tenant.DEFAULT_SINKS',
                    ['elasticsearch']):
             self.event_producer = EventProducer('EVid',
                                                 'mybillingsapp',

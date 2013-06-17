@@ -11,9 +11,13 @@ _DATA_SINKS_GROUP = cfg.OptGroup(name='data_sinks', title='Data Sink List')
 config.get_config().register_group(_DATA_SINKS_GROUP)
 
 _SINK = [
-    cfg.ListOpt('sinks',
-                default=['elasticsearch'],
+    cfg.ListOpt('valid_sinks',
+                default=['elasticsearch', 'hdfs'],
                 help="""valid data sinks list"""
+                ),
+    cfg.ListOpt('default_sinks',
+                default=['elasticsearch'],
+                help="""default data sinks list"""
                 )
 ]
 
@@ -26,5 +30,5 @@ except config.cfg.ConfigFilesNotFoundError as ex:
 
 conf = config.get_config()
 
-VALID_SINKS = conf.data_sinks.sinks
-DEFAULT_SINK = ['elasticsearch']
+VALID_SINKS = conf.data_sinks.valid_sinks
+DEFAULT_SINKS = conf.data_sinks.default_sinks

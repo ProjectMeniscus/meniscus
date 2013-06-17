@@ -103,6 +103,7 @@ class TenantApiTestBase(testing.TestBase):
         self.token = Token(self.token_original, self.token_previous,
                            self.timestamp_original)
         self.tenant_id = '1234'
+        self.tenant_name = 'TenantName'
         self.tenant = Tenant(self.tenant_id, self.token,
                              profiles=self.profiles,
                              event_producers=self.producers,
@@ -130,6 +131,17 @@ class TestingTenantResourceOnPost(TenantApiTestBase):
                 method='POST',
                 headers={'content-type': 'application/json'},
                 body=jsonutils.dumps({'tenant': {"tenant_id": ""}}))
+            self.assertEqual(falcon.HTTP_400, self.srmock.status)
+
+    def test_return_400_for_tenant_name_empty(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_not_found):
+            self.simulate_request(
+                self.test_route,
+                method='POST',
+                headers={'content-type': 'application/json'},
+                body=jsonutils.dumps({'tenant': {"tenant_id": "123",
+                                                 "tenant_name": ""}}))
             self.assertEqual(falcon.HTTP_400, self.srmock.status)
 
     def test_return_400_for_tenant_not_provided(self):

@@ -123,10 +123,12 @@ class WhenTestingCorrelationMessage(unittest.TestCase):
                            'bbd6302e-8d93-47dc-a49a-8fb0d39e5192',
                            "2013-03-19T18:16:48.411029Z")
         self.tenant_id = '1234'
+        self.tenant_name = 'TenantName'
         self.tenant = Tenant(self.tenant_id, self.token,
                              profiles=self.profiles,
                              event_producers=self.producers,
-                             hosts=self.hosts)
+                             hosts=self.hosts,
+                             tenant_name=self.tenant_name)
 
     def test_process_message_throws_exception_host_not_found(self):
         message = {
@@ -160,6 +162,8 @@ class WhenTestingCorrelationMessage(unittest.TestCase):
         meniscus_dict = message['meniscus']['correlation']
         self.assertTrue('host_id' in meniscus_dict.keys())
         self.assertEquals(meniscus_dict['host_id'], 765)
+        self.assertTrue('tenant_name' in meniscus_dict.keys())
+        self.assertEquals(meniscus_dict['tenant_name'], self.tenant_name)
         self.assertTrue('ep_id' in meniscus_dict.keys())
         self.assertEquals(meniscus_dict['ep_id'], 432)
         self.assertTrue('pattern' in meniscus_dict.keys())
@@ -190,6 +194,8 @@ class WhenTestingCorrelationMessage(unittest.TestCase):
         meniscus_dict = message['meniscus']['correlation']
         self.assertTrue('host_id' in meniscus_dict.keys())
         self.assertEquals(meniscus_dict['host_id'], 765)
+        self.assertTrue('tenant_name' in meniscus_dict.keys())
+        self.assertEquals(meniscus_dict['tenant_name'], self.tenant_name)
         self.assertTrue('ep_id' in meniscus_dict.keys())
         self.assertEquals(meniscus_dict['ep_id'], 433)
         self.assertTrue('pattern' in meniscus_dict.keys())
@@ -217,6 +223,8 @@ class WhenTestingCorrelationMessage(unittest.TestCase):
         meniscus_dict = message['meniscus']['correlation']
         self.assertTrue('host_id' in meniscus_dict.keys())
         self.assertEquals(meniscus_dict['host_id'], 765)
+        self.assertTrue('tenant_name' in meniscus_dict.keys())
+        self.assertEquals(meniscus_dict['tenant_name'], self.tenant_name)
         self.assertTrue('ep_id' in meniscus_dict.keys())
         self.assertEquals(meniscus_dict['ep_id'], None)
         self.assertTrue('pattern' in meniscus_dict.keys())

@@ -102,6 +102,8 @@ class TenantResource(ApiResource):
         body = validated_body['tenant']
         tenant_id = str(body['tenant_id'])
 
+        tenant_name = body.get('tenant_name', tenant_id)
+
         #validate that tenant does not already exists
         tenant = find_tenant(self.db, tenant_id=tenant_id)
         if tenant:
@@ -110,7 +112,7 @@ class TenantResource(ApiResource):
 
         #create new token for the tenant
         new_token = Token()
-        new_tenant = Tenant(tenant_id, new_token)
+        new_tenant = Tenant(tenant_id, new_token, tenant_name=tenant_name)
 
         self.db.put('tenant', new_tenant.format())
         self.db.create_sequence(new_tenant.tenant_id)

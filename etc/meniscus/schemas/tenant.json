@@ -42,6 +42,10 @@
                 	"type": "string",
                     "minLength": 1
                 },
+                "tenant_name": {
+                	"type": "string",
+                    "minLength": 1
+                },
                 "hosts": {
                     "type": "array",
                     "items": { "$ref": "#/definitions/host" }

@@ -35,7 +35,8 @@
                     "type": "string"
                 },
                 "ip_address_v4": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "ipv4"
                 },
                 "ip_address_v6": {
                     "type": "string"

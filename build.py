@@ -24,6 +24,11 @@ class BuildContext(object):
     def __init__(self, starting_dir, pkg_index, project_name):
         self.ctx_root = starting_dir
         self.etc = mkdir(path.join(self.ctx_root, 'etc'))
+        self.var = mkdir(path.join(self.ctx_root, 'var'))
+        self.var_lib = mkdir(path.join(self.var, 'lib'))
+        self.var_lib_project = mkdir(path.join(self.var, project_name))
+        self.var_log = mkdir(path.join(self.var, 'log'))
+        self.var_log_project = mkdir(path.join(self.var_log, project_name))
         self.init_d = mkdir(path.join(self.etc, 'init.d'))
         self.usr = mkdir(path.join(self.ctx_root, 'usr'))
         self.usr_share = mkdir(path.join(self.usr, 'share'))
@@ -194,6 +199,7 @@ def build(requirements_file, hooks, project_name, version):
     tarchive = tarfile.open(tar_fpath, 'w|gz')
     tarchive.add(bctx.usr, arcname='usr')
     tarchive.add(bctx.etc, arcname='etc')
+    tarchive.add(bctx.var, arcname='var')
     tarchive.close()
 
     # Copy the finished tafile

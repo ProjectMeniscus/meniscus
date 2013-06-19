@@ -42,6 +42,10 @@
                 	"type": "string",
                     "minLength": 1
                 },
+                "tenant_name": {
+                	"type": "string",
+                    "minLength": 1
+                },
                 "hosts": {
                     "type": "array",
                     "items": { "$ref": "#/definitions/host" }
@@ -124,6 +128,14 @@
                 },
                 "encrypted": {
                     "type": "boolean"
+                },
+                "sinks": {
+                    "type": "array",
+                    "items": {
+                        "enum": ["elasticsearch", "hdfs"]
+                    },
+                    "minLength": 1,
+                    "uniqueItems": true
                 }
             }
         },

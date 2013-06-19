@@ -1,5 +1,7 @@
 import unittest
 
+from mock import MagicMock, patch
+
 from meniscus.data.model.tenant import EventProducer
 from meniscus.data.model.tenant import HostProfile
 from meniscus.data.model.tenant import Host
@@ -19,11 +21,13 @@ def suite():
 class WhenTestingEventProducerObject(unittest.TestCase):
 
     def setUp(self):
-        self.event_producer = EventProducer('EVid',
-                                            'mybillingsapp',
-                                            'syslog',
-                                            'true',
-                                            'false')
+        with patch('meniscus.data.model.tenant.DEFAULT_SINKS',
+                   ['elasticsearch']):
+            self.event_producer = EventProducer('EVid',
+                                                'mybillingsapp',
+                                                'syslog',
+                                                'true',
+                                                'false')
 
     def test_event_producer_object_get_id(self):
         self.assertEqual(self.event_producer.get_id(), 'EVid')
@@ -35,6 +39,7 @@ class WhenTestingEventProducerObject(unittest.TestCase):
         self.assertEqual(ep_dict['pattern'], 'syslog')
         self.assertEqual(ep_dict['durable'], 'true')
         self.assertEqual(ep_dict['encrypted'], 'false')
+        self.assertListEqual(ep_dict['sinks'], ['elasticsearch'])
 
 
 class WhenTestingHostProfileObject(unittest.TestCase):
@@ -143,8 +148,9 @@ class WhenTestingTenantObject(unittest.TestCase):
         self.test_token = Token('89c38542-0c78-41f1-bcd2-5226189ccab9',
                                 '89c38542-0c78-41f1-bcd2-5226189ddab1',
                                 '2013-04-01T21:58:16.995031Z')
-        self.test_tenant_bare = Tenant('1022', self.test_token, [], [], [])
-        self.test_tenant = Tenant('1022', self.test_token, [], [], [], 'MDBid')
+        self.test_tenant_bare = Tenant('1022', self.test_token)
+        self.test_tenant = Tenant('1022', self.test_token, [], [], [], 'MDBid',
+                                  'TenantName')
 
     def test_tenant_get_id(self):
         self.assertEqual(self.test_tenant.get_id(), 'MDBid')
@@ -160,6 +166,7 @@ class WhenTestingTenantObject(unittest.TestCase):
     def test_tenant_format_for_save(self):
         tenant_dict = self.test_tenant.format_for_save()
         self.assertEqual(tenant_dict['tenant_id'], '1022')
+        self.assertEqual(tenant_dict['tenant_name'], 'TenantName')
         self.assertEqual(tenant_dict['hosts'], [])
         self.assertEqual(tenant_dict['profiles'], [])
         self.assertEqual(tenant_dict['event_producers'], [])

@@ -26,6 +26,7 @@ class WhenTestingFindMethods(unittest.TestCase):
 
         self.tenant = {
             "tenant_id": "12345",
+            "tenant_name": "TenantName",
             "_id": "507f1f77bcf86cd799439011",
             "hosts": [
                 {

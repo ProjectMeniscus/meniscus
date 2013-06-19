@@ -1,65 +1,27 @@
 {
-    "id": "http://projectmeniscus.org/json/worker_registration#",
+    "id": "http://projectmeniscus.org/json/worker_status#",
     "$schema": "http://json-schema.org/draft-04/schema#",
 
-    "description": "worker_registration Schema",
+    "description": "Worker Status Schema",
     "type": "object",
     "additionalProperties": false,
 
     "properties": {
-        "worker_registration": {"$ref": "#/definitions/worker_registration"}
+        "status": {"$ref": "#/definitions/status"},
+        "system_info": {"$ref": "#/definitions/system_info"},
+        "load_average": {"$ref": "#/definitions/load_average"},
+        "disk_usage": {"$ref": "#/definitions/disk_usage"}
     },
 
     "oneOf": [
-        {"required": ["worker_registration"]}
+        {"required": ["system_info"]},
+        {"required": ["load_average"]},
+        {"required": ["disk_usage"]},
+        {"required": ["status"]}
     ],
 
     "definitions": {
 
-        "worker_registration": {
-
-            "required": [
-                "hostname",
-                "ip_address_v4",
-                "ip_address_v6",
-                "personality",
-                "status",
-                "system_info"
-            ],
-
-            "additionalProperties": false,
-
-            "properties": {
-
-                "hostname": {
-                    "type": "string"
-                },
-                "ip_address_v4": {
-                    "type": "string",
-                    "format": "ipv4"
-                },
-                "ip_address_v6": {
-                    "type": "string"
-                },
-                "personality": {
-                    "enum": [
-                        "coordinator",
-                        "worker"
-                    ]
-                },
-                "status": {
-                    "enum": [
-                        "new",
-                        "online",
-                        "offline",
-                        "draining"
-                    ]
-                },
-                "system_info": {
-                    "$ref": "#/definitions/system_info"
-                }
-            }
-        },
         "system_info": {
             "required": [
                 "os_type",
@@ -125,8 +87,14 @@
                     "type": "number"
                 }
             }
-
-
+        },
+        "status": {
+            "enum": [
+                "new",
+                "online",
+                "offline",
+                "draining"
+            ]
         }
     }
 }

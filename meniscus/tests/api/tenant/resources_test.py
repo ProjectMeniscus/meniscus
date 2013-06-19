@@ -103,6 +103,7 @@ class TenantApiTestBase(testing.TestBase):
         self.token = Token(self.token_original, self.token_previous,
                            self.timestamp_original)
         self.tenant_id = '1234'
+        self.tenant_name = 'TenantName'
         self.tenant = Tenant(self.tenant_id, self.token,
                              profiles=self.profiles,
                              event_producers=self.producers,
@@ -130,6 +131,17 @@ class TestingTenantResourceOnPost(TenantApiTestBase):
                 method='POST',
                 headers={'content-type': 'application/json'},
                 body=jsonutils.dumps({'tenant': {"tenant_id": ""}}))
+            self.assertEqual(falcon.HTTP_400, self.srmock.status)
+
+    def test_return_400_for_tenant_name_empty(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_not_found):
+            self.simulate_request(
+                self.test_route,
+                method='POST',
+                headers={'content-type': 'application/json'},
+                body=jsonutils.dumps({'tenant': {"tenant_id": "123",
+                                                 "tenant_name": ""}}))
             self.assertEqual(falcon.HTTP_400, self.srmock.status)
 
     def test_return_400_for_tenant_not_provided(self):
@@ -789,6 +801,101 @@ class TestingEventProducersResourceOnPost(TenantApiTestBase):
             )
             self.assertEqual(falcon.HTTP_400, self.srmock.status)
 
+    def test_return_400_for_bad_type_sink(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            self.simulate_request(
+                self.test_route,
+                method='POST',
+                headers={'content-type': 'application/json'},
+                body=jsonutils.dumps(
+                    {
+                        'event_producer': {
+                            'name': 'producer55',
+                            'pattern': 'syslog',
+                            'sinks': 'true'
+                        }
+                    }
+                )
+            )
+            self.assertEqual(falcon.HTTP_400, self.srmock.status)
+
+    def test_return_400_for_unsupported_and_supported_sink(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            self.simulate_request(
+                self.test_route,
+                method='POST',
+                headers={'content-type': 'application/json'},
+                body=jsonutils.dumps(
+                    {
+                        'event_producer': {
+                            'name': 'producer55',
+                            'pattern': 'syslog',
+                            'sinks': ['mysql', 'elasticsearch']
+                        }
+                    }
+                )
+            )
+            self.assertEqual(falcon.HTTP_400, self.srmock.status)
+
+    def test_return_400_for_duplicate_supported_sink(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            self.simulate_request(
+                self.test_route,
+                method='POST',
+                headers={'content-type': 'application/json'},
+                body=jsonutils.dumps(
+                    {
+                        'event_producer': {
+                            'name': 'producer55',
+                            'pattern': 'syslog',
+                            'sinks': ['hdfs', 'hdfs']
+                        }
+                    }
+                )
+            )
+            self.assertEqual(falcon.HTTP_400, self.srmock.status)
+
+    def test_return_201_for_one_supported_sink(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            self.simulate_request(
+                self.test_route,
+                method='POST',
+                headers={'content-type': 'application/json'},
+                body=jsonutils.dumps(
+                    {
+                        'event_producer': {
+                            'name': 'producer55',
+                            'pattern': 'syslog',
+                            'sinks': ['elasticsearch']
+                        }
+                    }
+                )
+            )
+            self.assertEqual(falcon.HTTP_201, self.srmock.status)
+
+    def test_return_201_for_multiple_supported_sink(self):
+        with patch('meniscus.api.tenant.resources.find_tenant',
+                   self.tenant_found):
+            self.simulate_request(
+                self.test_route,
+                method='POST',
+                headers={'content-type': 'application/json'},
+                body=jsonutils.dumps(
+                    {
+                        'event_producer': {
+                            'name': 'producer55',
+                            'pattern': 'syslog',
+                            'sinks': ["elasticsearch", "hdfs"]
+                        }
+                    }
+                )
+            )
+            self.assertEqual(falcon.HTTP_201, self.srmock.status)
+
     def test_return_201_without_optional_fields(self):
         with patch('meniscus.api.tenant.resources.find_tenant',
                    self.tenant_found):
@@ -820,7 +927,8 @@ class TestingEventProducersResourceOnPost(TenantApiTestBase):
                             'name': 'producer55',
                             'pattern': 'syslog',
                             'durable': True,
-                            'encrypted': False
+                            'encrypted': False,
+                            'sinks': ['elasticsearch']
                         }
                     }
                 )

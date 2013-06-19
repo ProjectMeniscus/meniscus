@@ -1,7 +1,5 @@
 import unittest
 
-from datetime import datetime
-
 from meniscus.data.model.worker import SystemInfo
 from meniscus.data.model.worker import Worker
 from meniscus.data.model.worker import WorkerConfiguration
@@ -14,7 +12,6 @@ def suite():
     suite.addTest(WhenTestingWorkerRegistrationObject())
     suite.addTest(WhenTestingSystemInfoObject())
     suite.addTest(WhenTestingWorkerConfigurationObject())
-    suite.addTest(WhenTestingWatchlistItem())
 
 
 class WhenTestingWorkerObject(unittest.TestCase):

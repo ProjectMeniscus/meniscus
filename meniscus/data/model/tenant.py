@@ -1,5 +1,6 @@
 from uuid import uuid4
 from meniscus.openstack.common.timeutils import isotime
+from meniscus.api.sinks import DEFAULT_SINKS
 
 
 class EventProducer(object):
@@ -12,7 +13,13 @@ described.
 """
 
     def __init__(self, _id, name, pattern, durable=False,
-                 encrypted=False):
+                 encrypted=False, sinks=None):
+
+        if not sinks:
+            self.sinks = DEFAULT_SINKS
+        else:
+            self.sinks = sinks
+
         self._id = _id
         self.name = name
         self.pattern = pattern
@@ -24,7 +31,8 @@ described.
 
     def format(self):
         return {'id': self._id, 'name': self.name, 'pattern': self.pattern,
-                'durable': self.durable, 'encrypted': self.encrypted}
+                'durable': self.durable, 'encrypted': self.encrypted,
+                'sinks': self.sinks}
 
 
 class HostProfile(object):
@@ -118,20 +126,34 @@ Tenants are users of the environments being monitored for
 application events.
 """
 
-    def __init__(self, tenant_id, token, hosts=list(), profiles=list(),
-                 event_producers=list(),  _id=None):
+    def __init__(self, tenant_id, token, hosts=None, profiles=None,
+                 event_producers=None,  _id=None, tenant_name=None):
+        if hosts is None:
+            hosts = list()
+
+        if profiles is None:
+            profiles = list()
+
+        if event_producers is None:
+            event_producers = list()
+
+        if tenant_name is None:
+            tenant_name = tenant_id
+
         self._id = _id
         self.tenant_id = str(tenant_id)
         self.token = token
         self.hosts = hosts
         self.profiles = profiles
         self.event_producers = event_producers
+        self.tenant_name = tenant_name
 
     def get_id(self):
         return self._id
 
     def format(self):
         return {'tenant_id': self.tenant_id,
+                'tenant_name': self.tenant_name,
                 'hosts': [h.format() for h in self.hosts],
                 'profiles': [p.format() for p in self.profiles],
                 'event_producers':

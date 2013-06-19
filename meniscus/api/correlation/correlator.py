@@ -47,11 +47,13 @@ def add_correlation_info_to_message(tenant, message):
 
     #initialize correlation dictionary with default values
     correlation_dict = {
+        'tenant_name': tenant.tenant_name,
         'host_id': host.get_id(),
         'ep_id': None,
         'pattern': None,
         'durable': False,
         'encrypted': False,
+        'sinks': None
     }
 
     producer = find_event_producer_for_host(
@@ -63,7 +65,8 @@ def add_correlation_info_to_message(tenant, message):
             'ep_id': producer.get_id(),
             'pattern': producer.pattern,
             'durable': producer.durable,
-            'encrypted': producer.encrypted
+            'encrypted': producer.encrypted,
+            'sinks': producer.sinks
         })
 
         #todo(sgonzales) persist message and create job

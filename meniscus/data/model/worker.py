@@ -1,8 +1,6 @@
 import platform
 import uuid
 
-from datetime import datetime
-
 import meniscus.api.utils.sys_assist as sys_assist
 
 

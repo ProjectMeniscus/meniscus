@@ -11,12 +11,13 @@
             "memory_mb": "1024",
             "architecture": "",
             "cpu_cores": "4",
-            "disk_usage": {
-                "/dev/sda1": {
+            "disk_usage": [
+                {
+                    "device": "/dev/sda1",
                     "total": 313764528,
                     "used": 112512436
                 }
-            },
+            ],
             "load_average": {
                 "1": 0.24755859375,
                 "5": 1.0751953125,

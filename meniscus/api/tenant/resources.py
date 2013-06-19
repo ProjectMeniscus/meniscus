@@ -1,10 +1,11 @@
+
 import falcon
 
 from meniscus.api import abort
 from meniscus.api import ApiResource
 from meniscus.api import format_response_body
 from meniscus.api import handle_api_exception
-from meniscus.api import load_body
+
 from meniscus.data.model.util import find_event_producer
 from meniscus.data.model.util import find_host
 from meniscus.data.model.util import find_host_profile
@@ -101,6 +102,8 @@ class TenantResource(ApiResource):
         body = validated_body['tenant']
         tenant_id = str(body['tenant_id'])
 
+        tenant_name = body.get('tenant_name', tenant_id)
+
         #validate that tenant does not already exists
         tenant = find_tenant(self.db, tenant_id=tenant_id)
         if tenant:
@@ -109,7 +112,7 @@ class TenantResource(ApiResource):
 
         #create new token for the tenant
         new_token = Token()
-        new_tenant = Tenant(tenant_id, new_token)
+        new_tenant = Tenant(tenant_id, new_token, tenant_name=tenant_name)
 
         self.db.put('tenant', new_tenant.format())
         self.db.create_sequence(new_tenant.tenant_id)
@@ -341,6 +344,11 @@ class EventProducersResource(ApiResource):
         else:
             event_producer_encrypted = False
 
+        if 'sinks' in body.keys():
+            event_producer_sinks = body['sinks']
+        else:
+            event_producer_sinks = list('elastic_search')
+
         # Check if the tenant already has an event producer with this name
         producer = find_event_producer(tenant,
                                        producer_name=event_producer_name)
@@ -355,7 +363,8 @@ class EventProducersResource(ApiResource):
             event_producer_name,
             event_producer_pattern,
             event_producer_durable,
-            event_producer_encrypted)
+            event_producer_encrypted,
+            event_producer_sinks)
 
         tenant.event_producers.append(new_event_producer)
         self.db.update('tenant', tenant.format_for_save())

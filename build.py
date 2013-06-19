@@ -21,10 +21,12 @@ PYTHONPATH = 'PYTHONPATH'
 
 class BuildContext(object):
 
-    def __init__(self, starting_dir, pkg_index):
+    def __init__(self, starting_dir, pkg_index, project_name):
         self.ctx_root = starting_dir
+        self.usr = mkdir(path.join(self.ctx_root, 'usr'))
+        self.usr_share = mkdir(path.join(self.usr, 'share'))
         self.build_dir = mkdir(path.join(self.ctx_root, 'build'))
-        self.dist_dir = mkdir(path.join(self.ctx_root, 'dist'))
+        self.dist_dir = mkdir(path.join(self.usr_share, project_name))
         self.home_dir = mkdir(path.join(self.dist_dir, 'lib'))
         self.python_dist = mkdir(path.join(self.home_dir, 'python'))
         self.files_dir = mkdir(path.join(self.ctx_root, 'files'))
@@ -79,6 +81,7 @@ def run(cmd, cwd=None, env=None):
 
     if proc.returncode and proc.returncode != 0:
         print('Failed with return code: {}'.format(proc.returncode))
+        sys.exit(1)
 
 
 def unpack(name, bctx, stage_hooks, filename, dl_target):
@@ -101,6 +104,7 @@ def install_req(name, bctx, stage_hooks=None):
     found_req = bctx.pkg_index.find_requirement(req, False)
     dl_target = path.join(bctx.files_dir, found_req.filename)
 
+    # stages
     call_hook(name, 'download.before', stage_hooks, bctx=bctx, fetch_url=found_req.url)
     download(found_req.url, dl_target)
     call_hook(name, 'download.after', stage_hooks, bctx=bctx, archive=dl_target)
@@ -109,9 +113,8 @@ def install_req(name, bctx, stage_hooks=None):
     build_location = unpack(name, bctx, stage_hooks, found_req.filename, dl_target)
     call_hook(name, 'unpack.after', stage_hooks, bctx=bctx, build_location=build_location)
 
-    # stages
     call_hook(name, 'build.before', stage_hooks, bctx=bctx, build_location=build_location)
-    run_python(bctx, 'python setup.py build --build-base={}'.format(build_location), build_location)
+    run_python(bctx, 'python setup.py build'.format(build_location), build_location)
     call_hook(name, 'build.after', stage_hooks, bctx=bctx, build_location=build_location)
 
     call_hook(name, 'install.before', stage_hooks, bctx=bctx, build_location=build_location)
@@ -129,12 +132,7 @@ def call_hook(name, stage, stage_hooks, **kwargs):
                 hook(kwargs)
 
 
-def read_requires(filename):
-    pkg_index = PackageFinder(
-            find_links=[],
-            index_urls=["http://pypi.python.org/simple/"])
-    bctx = BuildContext(tempfile.mkdtemp(), pkg_index)
-
+def read_requires(filename, bctx, pkg_index, hooks):
     lines = open(filename, 'r').read()
     if not lines:
         raise Exception()
@@ -143,8 +141,25 @@ def read_requires(filename):
         if line and len(line) > 0:
             install_req(line, bctx, hooks)
 
+
+def build(requirements_file, hooks, project_name, version):
+    pkg_index = PackageFinder(
+        find_links=[],
+        index_urls=["http://pypi.python.org/simple/"])
+    bctx = BuildContext(tempfile.mkdtemp(), pkg_index, project_name)
+    read_requires(requirements_file, bctx, pkg_index, hooks)
+
+    run_python(bctx, 'python setup.py build')
+    run_python(bctx, 'python setup.py install --home={}'.format(bctx.dist_dir))
+
     print('Cleaning {}'.format(bctx.ctx_root))
-    shutil.rmtree(bctx.ctx_root)
+
+    #shutil.rmtree(bctx.ctx_root)
+    tar_filename = '{}_{}.tar.gz'.format(project_name, version)
+    tar_fpath = path.join(bctx.ctx_root, tar_filename)
+    tarchive = tarfile.open(tar_fpath, 'w|gz')
+    tarchive.add(bctx.usr, arcname='usr')
+    tarchive.close()
 
 
 def fix_pyev(bctx, build_location):
@@ -159,5 +174,9 @@ hooks = {
     }
 }
 
-if len(sys.argv) > 1:
-    read_requires(sys.argv[1])
+requirements_file = 'tools/pip-requires'
+
+if len(sys.argv) != 3:
+    print('usage: build.py <project-name> <project-version>')
+
+build(requirements_file, hooks, sys.argv[1], sys.argv[2])

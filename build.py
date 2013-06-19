@@ -58,7 +58,7 @@ def run_python(bctx, cmd, cwd=None):
         current_path = env[PYTHONPATH]
         env[PYTHONPATH] = '{}{}{}'.format(
             current_path,
-            os.path_sep,
+            os.pathsep,
             bctx.python_dist)
     else:
         env[PYTHONPATH] = bctx.python_dist

@@ -222,7 +222,7 @@ def build(requirements_file, hooks, project_name, version):
 
     # Clean the build dir
     print('Cleaning {}'.format(bctx.ctx_root))
-    #shutil.rmtree(bctx.ctx_root)
+    shutil.rmtree(bctx.ctx_root)
 
 
 def fix_pyev(bctx, build_location):

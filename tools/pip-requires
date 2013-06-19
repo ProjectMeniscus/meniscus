@@ -12,3 +12,5 @@ celery
 librabbitmq
 pylognorm
 meniscus-portal
+pastedeploy
+python-keystoneclient

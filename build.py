@@ -23,7 +23,8 @@ class BuildContext(object):
 
     def __init__(self, starting_dir, pkg_index, project_name):
         self.ctx_root = starting_dir
-        self.etc = path.join(self.ctx_root, 'etc')
+        self.etc = mkdir(path.join(self.ctx_root, 'etc'))
+        self.init_d = mkdir(path.join(self.etc, 'init.d'))
         self.usr = mkdir(path.join(self.ctx_root, 'usr'))
         self.usr_share = mkdir(path.join(self.usr, 'share'))
         self.build_dir = mkdir(path.join(self.ctx_root, 'build'))
@@ -133,6 +134,8 @@ def call_hook(name, stage, stage_hooks, **kwargs):
 
 def read_requires(filename, bctx, pkg_index, hooks):
     lines = open(filename, 'r').read()
+
+    ## TODO: Handle this exception better
     if not lines:
         raise Exception()
 
@@ -141,30 +144,64 @@ def read_requires(filename, bctx, pkg_index, hooks):
             install_req(line, bctx, hooks)
 
 
+def copytree(src, dst, symlinks=False):
+    names = os.listdir(src)
+    if not os.path.exists(dst):
+        os.makedirs(dst)
+
+    for name in names:
+        srcname = os.path.join(src, name)
+        dstname = os.path.join(dst, name)
+
+        if symlinks and os.path.islink(srcname):
+            linkto = os.readlink(srcname)
+            os.symlink(linkto, dstname)
+        elif os.path.isdir(srcname):
+            copytree(srcname, dstname, symlinks)
+        else:
+            shutil.copy2(srcname, dstname)
+
+
 def build(requirements_file, hooks, project_name, version):
+    # Pip package finder is used to locate dependencies for downloading
     pkg_index = PackageFinder(
         find_links=[],
         index_urls=["http://pypi.python.org/simple/"])
+
+    # Build context holds all of the directories and state information
     bctx = BuildContext(tempfile.mkdtemp(), pkg_index, project_name)
+
+    # Build the project requirements and install them
     read_requires(requirements_file, bctx, pkg_index, hooks)
 
+    # Build root after requirements are finished
     run_python(bctx, 'python setup.py build')
     run_python(bctx, 'python setup.py install --home={}'.format(bctx.dist_dir))
 
-    print('Copying etc')
+    # Copy all of the important files into their intended destinations
     local_etc = path.join('.', 'etc')
-    shutil.copytree(local_etc, bctx.etc)
+    copytree(local_etc, bctx.etc)
 
-    print('Cleaning {}'.format(bctx.ctx_root))
+    init_script_name = '{}.init'.format(project_name)
+    init_script_path = path.join(path.join('.', 'pkg'), init_script_name)
+    shutil.copyfile(init_script_path, path.join(bctx.init_d, project_name))
 
-    #shutil.rmtree(bctx.ctx_root)
+    # Let's build a tarfile
     tar_filename = '{}_{}.tar.gz'.format(project_name, version)
     tar_fpath = path.join(bctx.ctx_root, tar_filename)
+
+    # Open the
     tarchive = tarfile.open(tar_fpath, 'w|gz')
     tarchive.add(bctx.usr, arcname='usr')
     tarchive.add(bctx.etc, arcname='etc')
     tarchive.close()
+
+    # Copy the finished tafile
     shutil.copyfile(tar_fpath, path.join('.', tar_filename))
+
+    # Clean the build dir
+    print('Cleaning {}'.format(bctx.ctx_root))
+    shutil.rmtree(bctx.ctx_root)
 
 def fix_pyev(bctx, build_location):
     os.chmod(
@@ -186,3 +223,5 @@ if len(sys.argv) != 2:
 version = read('VERSION')[0]
 
 build(requirements_file, hooks, sys.argv[1], version)
+
+

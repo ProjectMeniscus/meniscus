@@ -87,7 +87,8 @@ def run(cmd, cwd=None, env=None):
 def unpack(name, bctx, stage_hooks, filename, dl_target):
     if dl_target.endswith('.tar.gz') or dl_target.endswith('.tgz'):
         archive = tarfile.open(dl_target, mode='r|gz')
-        build_location = path.join(bctx.build_dir, filename.rstrip('.tar.gz'))
+        build_location = path.join(
+            bctx.build_dir, filename.rstrip('.tar.gz'))
     elif dl_target.endswith('.zip'):
         archive = zipfile.ZipFile(dl_target, mode='r')
         build_location = path.join(bctx.build_dir, filename.rstrip('.zip'))
@@ -105,21 +106,36 @@ def install_req(name, bctx, stage_hooks=None):
     dl_target = path.join(bctx.files_dir, found_req.filename)
 
     # stages
-    call_hook(name, 'download.before', stage_hooks, bctx=bctx, fetch_url=found_req.url)
+    call_hook(name, 'download.before',
+              stage_hooks, bctx=bctx, fetch_url=found_req.url)
     download(found_req.url, dl_target)
-    call_hook(name, 'download.after', stage_hooks, bctx=bctx, archive=dl_target)
+    call_hook(name, 'download.after',
+              stage_hooks, bctx=bctx, archive=dl_target)
 
-    call_hook(name, 'unpack.before', stage_hooks, bctx=bctx, archive=dl_target)
-    build_location = unpack(name, bctx, stage_hooks, found_req.filename, dl_target)
-    call_hook(name, 'unpack.after', stage_hooks, bctx=bctx, build_location=build_location)
+    call_hook(name, 'unpack.before',
+              stage_hooks, bctx=bctx, archive=dl_target)
+    build_location = unpack(
+        name, bctx, stage_hooks, found_req.filename, dl_target)
+    call_hook(name, 'unpack.after',
+              stage_hooks, bctx=bctx, build_location=build_location)
 
-    call_hook(name, 'build.before', stage_hooks, bctx=bctx, build_location=build_location)
-    run_python(bctx, 'python setup.py build'.format(build_location), build_location)
-    call_hook(name, 'build.after', stage_hooks, bctx=bctx, build_location=build_location)
+    call_hook(name, 'build.before',
+              stage_hooks, bctx=bctx, build_location=build_location)
+    run_python(
+        bctx,
+        'python setup.py build'.format(build_location),
+        build_location)
+    call_hook(name, 'build.after',
+              stage_hooks, bctx=bctx, build_location=build_location)
 
-    call_hook(name, 'install.before', stage_hooks, bctx=bctx, build_location=build_location)
-    run_python(bctx, 'python setup.py install --home={}'.format(bctx.dist_dir), build_location)
-    call_hook(name, 'install.after', stage_hooks, bctx=bctx, build_location=build_location)
+    call_hook(name, 'install.before',
+              stage_hooks, bctx=bctx, build_location=build_location)
+    run_python(
+        bctx,
+        'python setup.py install --home={}'.format(bctx.dist_dir),
+        build_location)
+    call_hook(name, 'install.after',
+              stage_hooks, bctx=bctx, build_location=build_location)
 
 
 def call_hook(name, stage, stage_hooks, **kwargs):
@@ -176,7 +192,8 @@ def build(requirements_file, hooks, project_name, version):
 
     # Build root after requirements are finished
     run_python(bctx, 'python setup.py build')
-    run_python(bctx, 'python setup.py install --home={}'.format(bctx.dist_dir))
+    run_python(bctx, 'python setup.py install --home={}'.format(
+        bctx.dist_dir))
 
     # Copy all of the important files into their intended destinations
     local_etc = path.join('.', 'etc')
@@ -215,8 +232,8 @@ def fix_pyev(bctx, build_location):
 
 
 hooks = {
-    'pyev' : {
-        'unpack.after' : fix_pyev
+    'pyev': {
+        'unpack.after': fix_pyev
     }
 }
 
@@ -228,5 +245,3 @@ if len(sys.argv) != 2:
 version = read('VERSION')[0]
 
 build(requirements_file, hooks, sys.argv[1], version)
-
-

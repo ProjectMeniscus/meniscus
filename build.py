@@ -182,6 +182,9 @@ def build(requirements_file, hooks, project_name, version):
     local_etc = path.join('.', 'etc')
     copytree(local_etc, bctx.etc)
 
+    uwsgi_ini = path.join('.', 'uwsgi.ini')
+    copytree(local_etc, path.join(bctx.etc, 'uwsgi.ini'))
+
     init_script_name = '{}.init'.format(project_name)
     init_script_path = path.join(path.join('.', 'pkg'), init_script_name)
     shutil.copyfile(init_script_path, path.join(bctx.init_d, project_name))

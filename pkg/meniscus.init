@@ -6,9 +6,9 @@
 # Default-Start:     2 3 4 5
 # Default-Stop:      0 1 6
 # Short-Description: Project Meniscus node daemon.
-# Description:       Project Meniscus is a Python based system for event collection, transit and 
-#                    processing in the large. It's primary use case is for large-scale Cloud 
-#                    logging, but can be used in many other scenarios including usage reporting 
+# Description:       Project Meniscus is a Python based system for event collection, transit and
+#                    processing in the large. It's primary use case is for large-scale Cloud
+#                    logging, but can be used in many other scenarios including usage reporting
 #                    and API tracing.
 ### END INIT INFO
 
@@ -18,7 +18,7 @@
 PATH=/sbin:/usr/sbin:/bin:/usr/bin
 DESC="Project Meniscus node deaemon"           # Introduce a short description here
 NAME=meniscus                                  # Introduce the short server's name here
-DAEMON=/usr/local/bin/uwsgi                    # Introduce the server's location here
+DAEMON=/usr/share/meniscus/bin/uwsgi           # Introduce the server's location here
 DAEMON_ARGS="--ini /etc/meniscus/uwsgi.ini"    # Arguments to run the daemon with
 PIDFILE=/var/run/$NAME.pid
 SCRIPTNAME=/etc/init.d/$NAME

@@ -30,6 +30,8 @@ case "$1" in
 		adduser --quiet --system --home /var/lib/meniscus --ingroup meniscus --no-create-home --shell /bin/false meniscus
 		fi
 
+		chmod 0755 /etc/init.d/meniscus
+
 		mkdir /var/log/meniscus
 		chown -R meniscus:adm /var/log/meniscus/
 		chmod 0750 /var/log/meniscus/

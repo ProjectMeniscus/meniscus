@@ -33,6 +33,11 @@ class BuildContext(object):
         self.pkg_index = pkg_index
 
 
+def read(relative):
+    contents = open(relative, 'r').read()
+    return [l for l in contents.split('\n') if l != '']
+
+
 def mkdir(location):
     if not path.exists(location):
         os.mkdir(location)
@@ -160,7 +165,7 @@ def build(requirements_file, hooks, project_name, version):
     tarchive = tarfile.open(tar_fpath, 'w|gz')
     tarchive.add(bctx.usr, arcname='usr')
     tarchive.close()
-
+    shutil.copyfile(tar_fpath, path.join('.', tar_filename))
 
 def fix_pyev(bctx, build_location):
     os.chmod(
@@ -176,7 +181,9 @@ hooks = {
 
 requirements_file = 'tools/pip-requires'
 
-if len(sys.argv) != 3:
-    print('usage: build.py <project-name> <project-version>')
+if len(sys.argv) != 2:
+    print('usage: build.py <project-name>')
 
-build(requirements_file, hooks, sys.argv[1], sys.argv[2])
+version = read('VERSION')[0]
+
+build(requirements_file, hooks, sys.argv[1], version)

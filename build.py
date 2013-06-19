@@ -54,14 +54,7 @@ def download(url, dl_location):
 
 def run_python(bctx, cmd, cwd=None):
     env = os.environ.copy()
-    if PYTHONPATH in env:
-        current_path = env[PYTHONPATH]
-        env[PYTHONPATH] = '{}{}{}'.format(
-            current_path,
-            os.pathsep,
-            bctx.python_dist)
-    else:
-        env[PYTHONPATH] = bctx.python_dist
+    env[PYTHONPATH] = bctx.python_dist
     run(cmd, cwd, env)
 
 

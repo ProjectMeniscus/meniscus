@@ -23,6 +23,7 @@ class BuildContext(object):
 
     def __init__(self, starting_dir, pkg_index, project_name):
         self.ctx_root = starting_dir
+        self.etc = path.join(self.ctx_root, 'etc')
         self.usr = mkdir(path.join(self.ctx_root, 'usr'))
         self.usr_share = mkdir(path.join(self.usr, 'share'))
         self.build_dir = mkdir(path.join(self.ctx_root, 'build'))
@@ -157,6 +158,10 @@ def build(requirements_file, hooks, project_name, version):
     run_python(bctx, 'python setup.py build')
     run_python(bctx, 'python setup.py install --home={}'.format(bctx.dist_dir))
 
+    print('Copying etc')
+    local_etc = path.join('.', 'etc')
+    shutil.copytree(local_etc, bctx.etc)
+
     print('Cleaning {}'.format(bctx.ctx_root))
 
     #shutil.rmtree(bctx.ctx_root)
@@ -164,6 +169,7 @@ def build(requirements_file, hooks, project_name, version):
     tar_fpath = path.join(bctx.ctx_root, tar_filename)
     tarchive = tarfile.open(tar_fpath, 'w|gz')
     tarchive.add(bctx.usr, arcname='usr')
+    tarchive.add(bctx.etc, arcname='etc')
     tarchive.close()
     shutil.copyfile(tar_fpath, path.join('.', tar_filename))
 

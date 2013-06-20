@@ -11,9 +11,10 @@ def read(relative):
     contents = open(relative, 'r').read()
     return [l for l in contents.split('\n') if l != '']
 
+
 setup(
     name='meniscus',
-    version='0.1',
+    version=read('VERSION')[0],
     description='',
     author='Project Meniscus',
     author_email='',

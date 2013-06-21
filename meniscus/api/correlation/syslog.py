@@ -2,7 +2,7 @@ from portal.input.usyslog import SyslogMessageHandler
 
 from meniscus.api.correlation import correlator
 import meniscus.api.correlation.correlation_exceptions as errors
-from meniscus.api.storage.persistence import persist_message
+from meniscus.sinks.default import persist_message
 from meniscus import env
 
 
@@ -33,7 +33,7 @@ class MessageHandler(SyslogMessageHandler):
 
         try:
             #pass persist_message call to queue
-            persist_message.delay(cee_message)
+            persist_message(cee_message)
         except Exception as ex:
             _LOG.exception('unable to place persist_message task on queue')
 

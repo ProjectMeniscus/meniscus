@@ -41,7 +41,7 @@ except config.cfg.ConfigFilesNotFoundError as ex:
 conf = config.get_config()
 
 
-hdfs = PyWebHdfsClient(conf.hdfs.hostname. conf.hdfs.port, conf.hdfs.user_name)
+hdfs = PyWebHdfsClient(conf.hdfs.hostname, conf.hdfs.port, conf.hdfs.user_name)
 base_directory = conf.hdfs.basedirectory
 
 

@@ -42,7 +42,7 @@ conf = config.get_config()
 
 
 hdfs = PyWebHdfsClient(conf.hdfs.hostname, conf.hdfs.port, conf.hdfs.user_name)
-base_directory = conf.hdfs.basedirectory
+base_directory = conf.hdfs.base_directory
 
 
 @celery.task(acks_late=True, max_retries=None,

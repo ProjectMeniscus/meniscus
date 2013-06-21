@@ -127,7 +127,9 @@ class UserResource(ApiResource):
 
     @handle_api_exception(operation_name='UserResource GET')
     def on_get(self, req, resp, tenant_id):
-        tenant = find_tenant(self.db, tenant_id=tenant_id)
+        tenant = find_tenant(self.db,
+                             tenant_id=tenant_id,
+                             create_on_missing=True)
 
         if not tenant:
             _tenant_not_found()

@@ -189,6 +189,16 @@ class TestingUserResourceOnGet(TenantApiTestBase):
                 method='GET')
             self.assertEqual(falcon.HTTP_404, self.srmock.status)
 
+    def test_return_201_if_tenant_not_found_create_it(self):
+        self.ds_handler_no_tenant = MagicMock()
+        self.ds_handler_no_tenant.put = MagicMock()
+        self.ds_handler_no_tenant.find_one.side_effect = [None, self.tenant]
+        with patch('meniscus.api.tenant.resources.find_tenant'):
+            self.simulate_request(
+                self.test_route,
+                method='GET')
+            self.assertEqual(falcon.HTTP_200, self.srmock.status)
+
     def test_return_200_with_tenant_json(self):
         with patch('meniscus.api.tenant.resources.find_tenant',
                    self.tenant_found):

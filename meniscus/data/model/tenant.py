@@ -55,7 +55,7 @@ associated, unique name for lookup.
     def format(self):
         return {'id': self._id,
                 'name': self.name,
-                'event_producers': self.event_producers}
+                'event_producer_ids': self.event_producers}
 
 
 class Host(object):
@@ -81,7 +81,7 @@ environment.
                 'hostname': self.hostname,
                 'ip_address_v4': self.ip_address_v4,
                 'ip_address_v6': self.ip_address_v6,
-                'profile': self.profile}
+                'profile_id': self.profile}
 
 
 class Token(object):

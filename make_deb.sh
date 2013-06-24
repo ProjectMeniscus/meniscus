@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# This tells the build process to not ez_install pyev
+NO_PYEV=true
+
 PROJECT_NAME="meniscus"
 PROJECT_VERSION="$(cat VERSION)"
 

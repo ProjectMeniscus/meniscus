@@ -142,7 +142,7 @@ class WhenTestingPublishMessage(testing.TestBase):
         with patch.object(correlator.TenantIdentification,
                           'get_validated_tenant',
                           MagicMock(return_value=self.tenant)),\
-            patch('meniscus.api.correlation.resources.persist_message',
+            patch('meniscus.api.correlation.resources.sinks.persist_message',
                   MagicMock()):
             self.simulate_request(
                 self.test_route,
@@ -159,7 +159,7 @@ class WhenTestingPublishMessage(testing.TestBase):
         with patch.object(correlator.TenantIdentification,
                           'get_validated_tenant',
                           MagicMock(return_value=self.tenant)), \
-            patch('meniscus.api.correlation.resources.persist_message',
+            patch('meniscus.api.correlation.resources.sinks.persist_message',
                   MagicMock()):
             self.simulate_request(
                 self.test_route,

@@ -15,11 +15,11 @@ _SINK = [
     cfg.ListOpt('valid_sinks',
                 default=['elasticsearch', 'hdfs'],
                 help="""valid data sinks list"""
-    ),
+                ),
     cfg.ListOpt('default_sinks',
                 default=['elasticsearch'],
                 help="""default data sinks list"""
-    )
+                )
 ]
 
 config.get_config().register_opts(_SINK, group=_DATA_SINKS_GROUP)
@@ -33,6 +33,7 @@ conf = config.get_config()
 
 VALID_SINKS = conf.data_sinks.valid_sinks
 DEFAULT_SINKS = conf.data_sinks.default_sinks
+
 
 def persist_message(message):
 

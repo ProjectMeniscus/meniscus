@@ -430,7 +430,7 @@ class EventProducerResource(ApiResource):
                               duplicate_producer.get_id()))
             event_producer.name = body['name']
 
-        if 'pattern' in body():
+        if 'pattern' in body:
             event_producer.pattern = str(body['pattern'])
 
         if 'durable' in body:
@@ -441,7 +441,6 @@ class EventProducerResource(ApiResource):
 
         if 'sinks' in body:
             event_producer.sinks = body['sinks']
-
 
         self.db.update('tenant', tenant.format_for_save())
 

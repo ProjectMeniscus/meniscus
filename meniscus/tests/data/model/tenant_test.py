@@ -60,7 +60,7 @@ class WhenTestingHostProfileObject(unittest.TestCase):
         hp_dict = self.host_profile.format()
         self.assertEqual(hp_dict['id'], 'HPid')
         self.assertEqual(hp_dict['name'], 'appservers-1')
-        self.assertEqual(hp_dict['event_producers'], [1, 2])
+        self.assertEqual(hp_dict['event_producer_ids'], [1, 2])
 
 
 class WhenTestingHostObject(unittest.TestCase):
@@ -77,7 +77,7 @@ class WhenTestingHostObject(unittest.TestCase):
         self.assertEqual(host_dict['hostname'], 'WebNode1')
         self.assertEqual(host_dict['ip_address_v4'], '192.168.1.1')
         self.assertEqual(host_dict['ip_address_v6'], '::1')
-        self.assertEqual(host_dict['profile'], '3')
+        self.assertEqual(host_dict['profile_id'], '3')
 
     def test_host_object_minimal_parameters(self):
         self.assertEqual(self.empty_host._id, 'Hid')

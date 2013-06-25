@@ -14,7 +14,7 @@ from meniscus.api.tenant.resources import TenantResource
 from meniscus.api.tenant.resources import TokenResource
 from meniscus.api.version.resources import VersionResource
 
-from meniscus.api.datastore_init import db_handler
+from meniscus.data.datastore import COORDINATOR_DB, datasource_handler
 
 from meniscus import env
 from meniscus.openstack.common import log
@@ -27,21 +27,21 @@ _LOG = env.get_logger(__name__)
 versions = VersionResource()
 
 #Coordinator Resources
-
-worker_registration = WorkerRegistrationResource(db_handler())
-workers_status = WorkersStatusResource(db_handler())
-worker_status = WorkerStatusResource(db_handler())
+db_handler = datasource_handler(COORDINATOR_DB)
+worker_registration = WorkerRegistrationResource(db_handler)
+workers_status = WorkersStatusResource(db_handler)
+worker_status = WorkerStatusResource(db_handler)
 
 #Tenant Resources
-tenant = TenantResource(db_handler())
-user = UserResource(db_handler())
-profiles = HostProfilesResource(db_handler())
-profile = HostProfileResource(db_handler())
-event_producers = EventProducersResource(db_handler())
-event_producer = EventProducerResource(db_handler())
-hosts = HostsResource(db_handler())
-host = HostResource(db_handler())
-token = TokenResource(db_handler())
+tenant = TenantResource(db_handler)
+user = UserResource(db_handler)
+profiles = HostProfilesResource(db_handler)
+profile = HostProfileResource(db_handler)
+event_producers = EventProducersResource(db_handler)
+event_producer = EventProducerResource(db_handler)
+hosts = HostsResource(db_handler)
+host = HostResource(db_handler)
+token = TokenResource(db_handler)
 
 # Create API
 application = api = falcon.API()

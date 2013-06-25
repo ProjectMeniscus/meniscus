@@ -1,13 +1,12 @@
-import pyes
-from pyes.connection_http import update_connection_pool
 import uuid
 
-from meniscus.config import get_config
-from meniscus.data.handler import (
-    DatabaseHandlerError, DatasourceHandler, register_handler,
-    STATUS_CONNECTED, STATUS_CLOSED
-)
+import pyes
+from pyes.connection_http import update_connection_pool
 from oslo.config import cfg
+
+from meniscus.config import get_config
+from meniscus.data.datastore.handler import (
+    DatabaseHandlerError, DatasourceHandler, STATUS_CONNECTED, STATUS_CLOSED)
 
 
 def format_terms(terms):
@@ -48,13 +47,13 @@ _ES_OPTIONS = [
 get_config().register_opts(_ES_OPTIONS, group=_es_group)
 
 
-class PyesDatasourceHandler(DatasourceHandler):
+class NamedDatasourceHandler(DatasourceHandler):
 
     def __init__(self, conf):
-        self.es_servers = conf.elasticsearch.es_servers
-        self.index = conf.elasticsearch.index
-        self.username = None
-        self.password = None
+        self.es_servers = conf.servers
+        self.index = conf.index
+        self.username = conf.username
+        self.password = conf.password
 
     def _check_connection(self):
         if self.status != STATUS_CONNECTED:
@@ -118,8 +117,3 @@ class PyesDatasourceHandler(DatasourceHandler):
 
         self.connection.delete_by_query(
             [self.index], [object_name], format_search(query_filter))
-
-
-def register_elasticsearch():
-    """Registers this handler and makes it available for use"""
-    register_handler('elasticsearch', PyesDatasourceHandler)

@@ -1,6 +1,10 @@
 from oslo.config import cfg
 from meniscus.config import get_config
 
+COORDINATOR_DB = 'coordinator_db'
+DEFAULT_SINK = 'default_sink'
+SHORT_TERM_SINK = 'short_term_sink'
+
 # Handler configuration options
 datasource_group = cfg.OptGroup(name='datasource',
                                 title='Datasource Configuration Options')
@@ -96,14 +100,4 @@ class DatasourceHandler():
         raise NotImplementedError
 
 
-# Handler registration
-_DATASOURCE_HANDLERS = DatasourceHandlerManager()
 
-
-def datasource_handler(conf):
-    handler_def = _DATASOURCE_HANDLERS.get(conf.datasource.handler_name)
-    return handler_def(conf)
-
-
-def register_handler(handler_name, handler_def):
-    _DATASOURCE_HANDLERS.register(handler_name, handler_def)

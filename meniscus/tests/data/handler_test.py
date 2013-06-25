@@ -1,6 +1,6 @@
 import unittest
 
-from meniscus.data.handler import register_handler
+from meniscus.data.datastore.handler import register_handler
 
 
 def suite():

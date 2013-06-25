@@ -3,8 +3,7 @@ import os
 
 from meniscus.config import init_config, get_config
 
-from meniscus.data import adapters
-from meniscus.data.handler import datasource_handler
+from meniscus.data.datastore import datasource_handler
 
 from meniscus.data.adapters.elasticsearch import format_search
 

@@ -14,8 +14,7 @@ from meniscus.api.tenant.resources import UserResource
 from meniscus.api.tenant.resources import TenantResource
 from meniscus.api.tenant.resources import TokenResource
 from meniscus.api.version.resources import VersionResource
-
-from meniscus.api.datastore_init import db_handler
+from meniscus.data.datastore import COORDINATOR_DB, datasource_handler
 from meniscus import env
 
 
@@ -27,7 +26,7 @@ def start_up():
     versions = VersionResource()
 
     #Datastore adapter/session manager
-    datastore = db_handler()
+    datastore = datasource_handler(COORDINATOR_DB)
 
     #Coordinator Resources
     worker_registration = WorkerRegistrationResource(datastore)

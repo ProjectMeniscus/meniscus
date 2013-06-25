@@ -2,8 +2,8 @@ from pymongo import MongoClient
 
 from oslo.config import cfg
 from meniscus.config import get_config
-from meniscus.data.handler import (
-    DatabaseHandlerError, DatasourceHandler, register_handler,
+from meniscus.data.datastore.handler import (
+    DatabaseHandlerError, DatasourceHandler,
     STATUS_CONNECTED, STATUS_CLOSED
 )
 
@@ -41,13 +41,13 @@ get_config().register_opts(_MONGODB_OPTIONS, group=_mongodb_group)
 
 
 ## TODO: (JHop) Document this damn thing --> pymongo.errors.OperationFailure.
-class MongoDatasourceHandler(DatasourceHandler):
+class NamedDatasourceHandler(DatasourceHandler):
 
     def __init__(self, conf):
-        self.mongo_servers = conf.mongodb.mongo_servers
-        self.database_name = conf.mongodb.database
-        self.username = conf.mongodb.username
-        self.password = conf.mongodb.password
+        self.mongo_servers = conf.servers
+        self.database_name = conf.database
+        self.username = conf.username
+        self.password = conf.password
 
     def _check_connection(self):
         if self.status != STATUS_CONNECTED:
@@ -116,8 +116,3 @@ class MongoDatasourceHandler(DatasourceHandler):
         if query_filter is None:
             query_filter = dict()
         self.database[object_name].remove(query_filter, True)
-
-
-def register_mongodb():
-    """Registers this handler and makes it available for use"""
-    register_handler('mongodb', MongoDatasourceHandler)

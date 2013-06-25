@@ -1,27 +1,7 @@
-from oslo.config import cfg
-from meniscus.config import get_config
 
-# Handler configuration options
-datasource_group = cfg.OptGroup(name='datasource',
-                                title='Datasource Configuration Options')
-get_config().register_group(datasource_group)
-
-HANDLER_OPTIONS = [
-    cfg.StrOpt('handler_name',
-               default='memory',
-               help="""Sets the name of the handler to load for
-                       datasource interactions. e.g. mongodb
-                    """
-               ),
-    cfg.BoolOpt('verbose',
-                default=False,
-                help="""Sets whether or not the datasource handlers
-                        should be verbose in their logging output.
-                    """
-                )
-]
-
-get_config().register_opts(HANDLER_OPTIONS, group=datasource_group)
+COORDINATOR_DB = 'coordinator_db'
+DEFAULT_SINK = 'default_sink'
+SHORT_TERM_SINK = 'short_term_sink'
 
 # Connection status values
 STATUS_NEW = 'NEW'
@@ -94,16 +74,3 @@ class DatasourceHandler():
         if query_filter is None:
             query_filter = dict()
         raise NotImplementedError
-
-
-# Handler registration
-_DATASOURCE_HANDLERS = DatasourceHandlerManager()
-
-
-def datasource_handler(conf):
-    handler_def = _DATASOURCE_HANDLERS.get(conf.datasource.handler_name)
-    return handler_def(conf)
-
-
-def register_handler(handler_name, handler_def):
-    _DATASOURCE_HANDLERS.register(handler_name, handler_def)

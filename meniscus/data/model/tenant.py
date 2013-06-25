@@ -1,6 +1,6 @@
 from uuid import uuid4
 from meniscus.openstack.common.timeutils import isotime
-from meniscus.sinks import DEFAULT_SINKS
+from meniscus.sinks import DEFAULT_SINK
 
 
 class EventProducer(object):
@@ -16,7 +16,7 @@ described.
                  encrypted=False, sinks=None):
 
         if not sinks:
-            self.sinks = DEFAULT_SINKS
+            self.sinks = [DEFAULT_SINK]
         else:
             self.sinks = sinks
 

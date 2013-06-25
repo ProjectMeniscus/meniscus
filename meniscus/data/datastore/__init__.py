@@ -176,6 +176,8 @@ _DATASOURCE_HANDLERS.register(SHORT_TERM_SINK, short_term_sink_handler)
 
 
 def datasource_handler(handler_name):
-    return _DATASOURCE_HANDLERS.get(handler_name)
+    handler =  _DATASOURCE_HANDLERS.get(handler_name)
+    handler.connect()
+    return handler
 
 

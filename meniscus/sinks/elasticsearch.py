@@ -1,10 +1,12 @@
-from meniscus.api.datastore_init import db_handler
-from meniscus.queue import celery
+from meniscus.data.datastore import datasource_handler, DEFAULT_SINK
 from meniscus import env
+from meniscus.queue import celery
+
 
 
 _LOG = env.get_logger(__name__)
 
+db_handler = datasource_handler(DEFAULT_SINK)
 
 @celery.task(acks_late=True, max_retries=None,
              ignore_result=True, serializer="json")

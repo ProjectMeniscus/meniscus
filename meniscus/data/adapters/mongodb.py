@@ -3,7 +3,7 @@ from pymongo import MongoClient
 from oslo.config import cfg
 from meniscus.config import get_config
 from meniscus.data.datastore.handler import (
-    DatabaseHandlerError, DatasourceHandler, register_handler,
+    DatabaseHandlerError, DatasourceHandler,
     STATUS_CONNECTED, STATUS_CLOSED
 )
 

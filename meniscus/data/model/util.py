@@ -5,16 +5,28 @@ from meniscus.data.model.tenant import Tenant
 from meniscus.data.model.tenant import Token
 
 
-def find_tenant(ds_handler, tenant_id):
+def find_tenant(ds_handler, tenant_id, create_on_missing=False):
     """
     Retrieves a dictionary describing a tenant object and its Hosts, Profiles,
     and eventProducers and maps them to a tenant object
     """
-
     # get the tenant dictionary form the data source
     tenant_dict = ds_handler.find_one('tenant', {'tenant_id': tenant_id})
 
     if tenant_dict:
+        tenant = load_tenant_from_dict(tenant_dict)
+        return tenant
+
+    if create_on_missing:
+        #create new token for the tenant
+        new_token = Token()
+        new_tenant = Tenant(tenant_id, new_token)
+
+        ds_handler.put('tenant', new_tenant.format())
+        ds_handler.create_sequence(new_tenant.tenant_id)
+
+        tenant_dict = ds_handler.find_one('tenant', {'tenant_id': tenant_id})
+
         tenant = load_tenant_from_dict(tenant_dict)
         return tenant
 
@@ -45,8 +57,9 @@ def load_tenant_from_dict(tenant_dict):
         _id = tenant_dict['_id']
 
     #Create the parent tenant object
-    tenant = Tenant(tenant_dict['tenant_id'], token, hosts, profiles,
-                    event_producers, _id)
+    tenant = Tenant(tenant_dict['tenant_id'], token, hosts=hosts,
+                    profiles=profiles, event_producers=event_producers,
+                    _id=_id, tenant_name=tenant_dict['tenant_name'])
 
     #return tenant object
     return tenant

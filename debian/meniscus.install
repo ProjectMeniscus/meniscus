@@ -1,3 +1,0 @@
-etc/meniscus/meniscus.conf etc/meniscus
-uwsgi.ini etc/meniscus
-etc/meniscus/schemas/* etc/meniscus/schemas

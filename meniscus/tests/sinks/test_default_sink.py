@@ -25,12 +25,11 @@ class WhenTestingStoragePersistence(unittest.TestCase):
                 }
             }
         }
-        self.sink = MagicMock()
-        self.sink.attach_mock(MagicMock(), 'put')
-        self.db_handler = MagicMock(return_value=self.sink)
+
+        self.db_handler = MagicMock()
 
     def test_persist_message_calls_db_put(self):
-        with patch('meniscus.sinks.elasticsearch.db_handler',
+        with patch('meniscus.sinks.default_sink._db_handler',
                    self.db_handler):
             persist_message(self.message)
-            self.sink.put.assert_called_once_with('logs', self.message)
+            self.db_handler.put.assert_called_once_with('logs', self.message)

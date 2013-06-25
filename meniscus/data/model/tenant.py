@@ -1,6 +1,6 @@
 from uuid import uuid4
 from meniscus.openstack.common.timeutils import isotime
-from meniscus.api.sinks import DEFAULT_SINKS
+from meniscus.sinks import DEFAULT_SINKS
 
 
 class EventProducer(object):

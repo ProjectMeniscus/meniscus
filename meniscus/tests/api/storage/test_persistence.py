@@ -2,7 +2,7 @@ import unittest
 
 from mock import MagicMock, patch
 
-from meniscus.sinks.default import persist_message
+from meniscus.sinks.elasticsearch import persist_message
 
 
 class WhenTestingStoragePersistence(unittest.TestCase):

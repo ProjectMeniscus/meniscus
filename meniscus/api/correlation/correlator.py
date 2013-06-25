@@ -75,7 +75,6 @@ def add_correlation_info_to_message(tenant, message):
             correlation_dict.update({'job_id': durable_job_id})
 
     message.update({
-        "profile": "http://projectmeniscus.org/cee/profiles/base",
         "meniscus": {
             "tenant": tenant.tenant_id,
             "correlation": correlation_dict

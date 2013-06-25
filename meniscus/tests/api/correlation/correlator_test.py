@@ -154,9 +154,6 @@ class WhenTestingCorrelationMessage(unittest.TestCase):
         self.assertTrue('host' in message.keys())
         self.assertTrue('pname' in message.keys())
         self.assertTrue('time' in message.keys())
-        self.assertTrue('profile' in message.keys())
-        self.assertEquals(
-            message['profile'], "http://projectmeniscus.org/cee/profiles/base")
         self.assertTrue('meniscus' in message.keys())
         self.assertTrue('correlation' in message['meniscus'].keys())
         meniscus_dict = message['meniscus']['correlation']
@@ -186,9 +183,6 @@ class WhenTestingCorrelationMessage(unittest.TestCase):
         self.assertTrue('host' in message.keys())
         self.assertTrue('pname' in message.keys())
         self.assertTrue('time' in message.keys())
-        self.assertTrue('profile' in message.keys())
-        self.assertEquals(
-            message['profile'], "http://projectmeniscus.org/cee/profiles/base")
         self.assertTrue('meniscus' in message.keys())
         self.assertTrue('correlation' in message['meniscus'].keys())
         meniscus_dict = message['meniscus']['correlation']
@@ -215,9 +209,6 @@ class WhenTestingCorrelationMessage(unittest.TestCase):
         self.assertTrue('host' in message.keys())
         self.assertTrue('pname' in message.keys())
         self.assertTrue('time' in message.keys())
-        self.assertTrue('profile' in message.keys())
-        self.assertEquals(
-            message['profile'], "http://projectmeniscus.org/cee/profiles/base")
         self.assertTrue('meniscus' in message.keys())
         self.assertTrue('correlation' in message['meniscus'].keys())
         meniscus_dict = message['meniscus']['correlation']

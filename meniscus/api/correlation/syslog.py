@@ -2,8 +2,8 @@ from portal.input.usyslog import SyslogMessageHandler
 
 from meniscus.api.correlation import correlator
 import meniscus.api.correlation.correlation_exceptions as errors
-from meniscus.api.storage.persistence import persist_message
 from meniscus import env
+from meniscus import sinks
 
 
 _LOG = env.get_logger(__name__)
@@ -32,8 +32,8 @@ class MessageHandler(SyslogMessageHandler):
         cee_message = _correlate_syslog_message(syslog_message)
 
         try:
-            #pass persist_message call to queue
-            persist_message.delay(cee_message)
+            #send the message to data sinks
+            sinks.persist_message(cee_message)
         except Exception as ex:
             _LOG.exception('unable to place persist_message task on queue')
 

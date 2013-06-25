@@ -34,14 +34,14 @@ class WhenTestingFindMethods(unittest.TestCase):
                     "hostname": "ws-n01",
                     "ip_address_v4": "127.0.0.1",
                     "ip_address_v6": "::1",
-                    "profile": 122
+                    "profile_id": 122
                 }
             ],
             "profiles": [
                 {
                     "id": 122,
                     "name": "test",
-                    "event_producers": [
+                    "event_producer_ids": [
                         123,
                         124
                     ]
@@ -53,14 +53,16 @@ class WhenTestingFindMethods(unittest.TestCase):
                     "name": "apache",
                     "pattern": "apache2.cee",
                     "durable": False,
-                    "encrypted": False
+                    "encrypted": False,
+                    "sinks": ["elasticsearch"]
                 },
                 {
                     "id": 124,
                     "name": "system.auth",
                     "pattern": "auth_log.cee",
                     "durable": False,
-                    "encrypted": False
+                    "encrypted": False,
+                    "sinks": ["elasticsearch", "hdfs"]
                 }
             ],
             "token": {

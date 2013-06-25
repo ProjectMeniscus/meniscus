@@ -3,6 +3,7 @@ from oslo.config import cfg
 
 import meniscus.config as config
 from meniscus import env
+from meniscus.sinks import elasticsearch
 
 
 _LOG = env.get_logger(__name__)
@@ -32,3 +33,10 @@ conf = config.get_config()
 
 VALID_SINKS = conf.data_sinks.valid_sinks
 DEFAULT_SINKS = conf.data_sinks.default_sinks
+
+
+def persist_message(message):
+
+    sinks = message['meniscus']['correlation']['sinks']
+    if 'elasticsearch' in sinks:
+        elasticsearch.persist_message.delay(message)

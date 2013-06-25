@@ -37,15 +37,17 @@ def load_tenant_from_dict(tenant_dict):
     #Create a list of Host objects from the dictionary
     hosts = [Host(
         h['id'], h['hostname'], h['ip_address_v4'],
-        h['ip_address_v6'], h['profile']) for h in tenant_dict['hosts']]
+        h['ip_address_v6'], h['profile_id']) for h in tenant_dict['hosts']]
 
     #Create a list of Profile objects from the dictionary
-    profiles = [HostProfile(p['id'], p['name'], p['event_producers'])
+    profiles = [HostProfile(p['id'], p['name'], p['event_producer_ids'])
                 for p in tenant_dict['profiles']]
 
     #Create a list of EventProducer objects from the dictionary
     event_producers = [EventProducer(
-        e['id'], e['name'], e['pattern'], e['durable'], e['encrypted'])
+        e['id'], e['name'], e['pattern'],
+        e['durable'], e['encrypted'], e['sinks'])
+
         for e in tenant_dict['event_producers']]
 
     token = load_token_from_dict(tenant_dict['token'])

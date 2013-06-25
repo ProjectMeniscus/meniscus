@@ -5,7 +5,7 @@ from meniscus.api import (abort, ApiResource, format_response_body,
 from meniscus.api.correlation import correlator
 import meniscus.api.correlation.correlation_exceptions as errors
 from meniscus.api.tenant.resources import MESSAGE_TOKEN
-from meniscus.api.storage.persistence import persist_message
+from meniscus import sinks
 from meniscus.api.validator_init import get_validator
 
 
@@ -41,7 +41,7 @@ class PublishMessageResource(ApiResource):
         except errors.CoordinatorCommunicationError:
             abort(falcon.HTTP_500)
 
-        persist_message(message)
+        sinks.persist_message(message)
 
         #if message is durable, return durable job info
         if message['meniscus']['correlation']['durable']:

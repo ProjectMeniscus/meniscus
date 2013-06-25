@@ -430,14 +430,17 @@ class EventProducerResource(ApiResource):
                               duplicate_producer.get_id()))
             event_producer.name = body['name']
 
-        if 'pattern' in body.keys():
+        if 'pattern' in body:
             event_producer.pattern = str(body['pattern'])
 
-        if 'durable' in body.keys():
+        if 'durable' in body:
             event_producer.durable = body['durable']
 
-        if 'encrypted' in body.keys():
+        if 'encrypted' in body:
             event_producer.encrypted = body['encrypted']
+
+        if 'sinks' in body:
+            event_producer.sinks = body['sinks']
 
         self.db.update('tenant', tenant.format_for_save())
 

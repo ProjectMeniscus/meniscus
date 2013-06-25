@@ -74,6 +74,3 @@ class DatasourceHandler():
         if query_filter is None:
             query_filter = dict()
         raise NotImplementedError
-
-
-

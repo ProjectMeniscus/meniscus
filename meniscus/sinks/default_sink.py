@@ -3,10 +3,10 @@ from meniscus import env
 from meniscus.queue import celery
 
 
-
 _LOG = env.get_logger(__name__)
 
 _db_handler = datasource_handler(DEFAULT_SINK)
+
 
 @celery.task(acks_late=True, max_retries=None,
              ignore_result=True, serializer="json")

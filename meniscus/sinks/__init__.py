@@ -17,9 +17,9 @@ _SINK = [
                 help="""valid data sinks list"""
                 ),
     cfg.StrOpt('default_sink',
-                default='elasticsearch',
-                help="""default data sinks list"""
-                )
+               default='elasticsearch',
+               help="""default data sinks list"""
+               )
 ]
 
 config.get_config().register_opts(_SINK, group=_DATA_SINKS_GROUP)

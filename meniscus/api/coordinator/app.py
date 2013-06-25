@@ -13,9 +13,7 @@ from meniscus.api.tenant.resources import UserResource
 from meniscus.api.tenant.resources import TenantResource
 from meniscus.api.tenant.resources import TokenResource
 from meniscus.api.version.resources import VersionResource
-
 from meniscus.data.datastore import COORDINATOR_DB, datasource_handler
-
 from meniscus import env
 from meniscus.openstack.common import log
 

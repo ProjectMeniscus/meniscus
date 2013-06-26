@@ -3,7 +3,6 @@ from oslo.config import cfg
 
 import meniscus.config as config
 from meniscus import env
-from meniscus.sinks import default_sink
 
 
 _LOG = env.get_logger(__name__)
@@ -33,9 +32,4 @@ conf = config.get_config()
 
 VALID_SINKS = conf.data_sinks.valid_sinks
 DEFAULT_SINK = conf.data_sinks.default_sink
-
-
-def persist_message(message):
-    sinks = message['meniscus']['correlation']['sinks']
-    if DEFAULT_SINK in sinks:
-        default_sink.persist_message.delay(message)
+SECONDARY_SINKS = [sink for sink in VALID_SINKS if sink != DEFAULT_SINK]

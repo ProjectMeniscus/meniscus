@@ -6,7 +6,8 @@ from portal.input.usyslog import SyslogMessageHead
 
 import meniscus.api.correlation.correlation_exceptions as errors
 from meniscus.api.correlation import syslog
-from meniscus.api.correlation.syslog import correlator
+with patch('meniscus.data.datastore.datasource_handler', MagicMock()):
+    from meniscus.api.correlation.syslog import correlator
 
 
 def suite():
@@ -102,7 +103,7 @@ class WhenTestingSyslogHandler(unittest.TestCase):
 
         with patch('meniscus.api.correlation.syslog._correlate_syslog_message',
                    correlate_function),\
-            patch('meniscus.api.correlation.syslog.sinks.persist_message',
+            patch('meniscus.api.correlation.syslog.dispatch.persist_message',
                   persist_message_func):
 
             self.syslog_handler.message_complete(self.message_part_3)

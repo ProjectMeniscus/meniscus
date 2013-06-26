@@ -32,6 +32,7 @@ def start_up():
     #syslog correlation endpoint
     server = SyslogServer(
         ("0.0.0.0", 5140), syslog.MessageHandler())
+    server.start()
     Process(target=start_io).start()
 
     Process(target=celery.worker_main).start()

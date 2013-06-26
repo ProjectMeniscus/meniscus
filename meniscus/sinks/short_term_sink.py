@@ -11,7 +11,7 @@ _db_handler = datasource_handler(SHORT_TERM_SINK)
 @celery.task(acks_late=True, max_retries=None,
              ignore_result=True, serializer="json")
 def persist_message(message):
-    """Takes a message and persists it to the default datastore."""
+    """Takes a message and persists it to the short term datastore."""
     try:
         sink = _db_handler
         sink.put('logs', message)

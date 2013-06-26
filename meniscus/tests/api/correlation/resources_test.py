@@ -6,7 +6,8 @@ import falcon
 import falcon.testing as testing
 
 import meniscus.api.correlation.correlation_exceptions as errors
-from meniscus.api.correlation.resources import correlator
+with patch('meniscus.data.datastore.datasource_handler', MagicMock()):
+    from meniscus.api.correlation.resources import correlator
 from meniscus.api.correlation.resources import PublishMessageResource
 from meniscus.api.tenant.resources import MESSAGE_TOKEN
 from meniscus.data.model import tenant
@@ -42,7 +43,6 @@ class WhenTestingPublishMessage(testing.TestBase):
             hosts=self.hosts, event_producers=self.producers)
         self.message = {
             "log_message":  {
-                "profile": self.pattern,
                 "ver": "1",
                 "msgid": "-",
                 "pri": "46",
@@ -142,7 +142,8 @@ class WhenTestingPublishMessage(testing.TestBase):
         with patch.object(correlator.TenantIdentification,
                           'get_validated_tenant',
                           MagicMock(return_value=self.tenant)),\
-            patch('meniscus.api.correlation.resources.sinks.persist_message',
+            patch('meniscus.api.correlation.resources.'
+                  'dispatch.persist_message',
                   MagicMock()):
             self.simulate_request(
                 self.test_route,
@@ -159,7 +160,8 @@ class WhenTestingPublishMessage(testing.TestBase):
         with patch.object(correlator.TenantIdentification,
                           'get_validated_tenant',
                           MagicMock(return_value=self.tenant)), \
-            patch('meniscus.api.correlation.resources.sinks.persist_message',
+            patch('meniscus.api.correlation.resources.'
+                  'dispatch.persist_message',
                   MagicMock()):
             self.simulate_request(
                 self.test_route,

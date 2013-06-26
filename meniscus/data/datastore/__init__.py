@@ -172,7 +172,7 @@ _DATASOURCE_HANDLERS.register(DEFAULT_SINK, default_sink_handler)
 #create short_term_sink handler
 short_term_sink_module = import_module(
     'meniscus.data.adapters.{0}'.format(conf.short_term_sink.adapter_name))
-short_term_sink_handler = default_sink_module.NamedDatasourceHandler(
+short_term_sink_handler = short_term_sink_module.NamedDatasourceHandler(
     conf.short_term_sink)
 _DATASOURCE_HANDLERS.register(SHORT_TERM_SINK, short_term_sink_handler)
 

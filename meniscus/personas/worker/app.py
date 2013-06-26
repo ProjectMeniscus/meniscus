@@ -2,7 +2,7 @@ from multiprocessing import Process
 
 import falcon
 
-from portal.server import SyslogServer
+from portal.server import SyslogServer, start_io
 
 from meniscus.api.correlation.resources import PublishMessageResource
 from meniscus.api.version.resources import VersionResource
@@ -32,7 +32,7 @@ def start_up():
     #syslog correlation endpoint
     server = SyslogServer(
         ("0.0.0.0", 5140), syslog.MessageHandler())
-    Process(target=server.start).start()
+    Process(target=start_io).start()
 
     Process(target=celery.worker_main).start()
     return application

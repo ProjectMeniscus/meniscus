@@ -53,7 +53,8 @@ def add_correlation_info_to_message(tenant, message):
         'pattern': None,
         'durable': False,
         'encrypted': False,
-        'sinks': None
+        'sinks': list(),
+        "destinations": dict()
     }
 
     producer = find_event_producer_for_host(
@@ -61,12 +62,22 @@ def add_correlation_info_to_message(tenant, message):
 
     #if a valid producer was found, update values
     if producer:
+
+        #configure sink dispatch
+        destinations = dict()
+        for sink in producer.sinks:
+            destinations[sink] = {
+                'lock_id': None,
+                'lock_time': None
+            }
+
         correlation_dict.update({
             'ep_id': producer.get_id(),
             'pattern': producer.pattern,
             'durable': producer.durable,
             'encrypted': producer.encrypted,
-            'sinks': producer.sinks
+            'sinks': producer.sinks,
+            "destinations": destinations
         })
 
         #todo(sgonzales) persist message and create job

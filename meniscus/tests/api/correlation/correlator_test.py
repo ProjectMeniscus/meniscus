@@ -13,7 +13,7 @@ from meniscus.data.model.tenant import HostProfile
 from meniscus.data.model.tenant import Tenant
 from meniscus.data.model.tenant import Token
 from meniscus.data.model.worker import WorkerConfiguration
-
+from meniscus.sinks import VALID_SINKS
 
 def suite():
     suite = unittest.TestSuite()
@@ -113,7 +113,8 @@ class WhenTestingCorrelationMessage(unittest.TestCase):
             HostProfile(456, 'profile2', event_producer_ids=[432, 433])
         ]
         self.producers = [
-            EventProducer(432, 'producer1', 'syslog', durable=True),
+            EventProducer(432, 'producer1', 'syslog', durable=True,
+                          sinks=VALID_SINKS),
             EventProducer(433, 'producer2', 'syslog', durable=False)
         ]
         self.hosts = [
@@ -129,6 +130,10 @@ class WhenTestingCorrelationMessage(unittest.TestCase):
                              event_producers=self.producers,
                              hosts=self.hosts,
                              tenant_name=self.tenant_name)
+        self.destination = {
+            'lock_id': None,
+            'lock_time': None
+        }
 
     def test_process_message_throws_exception_host_not_found(self):
         message = {
@@ -169,6 +174,10 @@ class WhenTestingCorrelationMessage(unittest.TestCase):
         self.assertTrue('durable' in meniscus_dict.keys())
         self.assertTrue('encrypted' in meniscus_dict.keys())
         self.assertTrue(meniscus_dict['durable'])
+        for sink in VALID_SINKS:
+            self.assertEqual(
+                meniscus_dict['destinations'][sink],
+                self.destination)
 
     def test_process_message_not_durable(self):
         message = {
@@ -195,6 +204,10 @@ class WhenTestingCorrelationMessage(unittest.TestCase):
         self.assertTrue('pattern' in meniscus_dict.keys())
         self.assertEquals(meniscus_dict['pattern'], 'syslog')
         self.assertFalse('job_id' in meniscus_dict.keys())
+        for sink in VALID_SINKS:
+            self.assertEqual(
+                meniscus_dict['destinations'][sink],
+                self.destination)
 
     def test_process_message_default(self):
         message = {
@@ -221,6 +234,7 @@ class WhenTestingCorrelationMessage(unittest.TestCase):
         self.assertTrue('pattern' in meniscus_dict.keys())
         self.assertEquals(meniscus_dict['pattern'], None)
         self.assertFalse('job_id' in meniscus_dict.keys())
+
 
 
 class WhenTestingTenantIdentification(unittest.TestCase):

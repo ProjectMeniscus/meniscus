@@ -112,6 +112,27 @@ class NamedDatasourceHandler(DatasourceHandler):
 
         self.database[object_name].save(document)
 
+    def set_field(self, object_name, field, value, query_filter = None):
+        '''
+        Updates the given field with a new value for all documents that match
+        the query filter
+
+        :param object_name: represents the mongo collection
+        :param field: the field to update (or create)
+        nested field are accessed with a '.' { 'name.middle': 'middlename' }
+        :param value: the new value for the field
+        :param query_filter: represents field/value to query by
+
+        '''
+        if query_filter is None:
+            query_filter = dict()
+        self._check_connection()
+
+        set_statement = { "$set": {field: value}}
+
+        self.database[object_name].update(
+            query_filter, set_statement, multi=True)
+
     def delete(self, object_name, query_filter=None, limit_one=False):
         if query_filter is None:
             query_filter = dict()

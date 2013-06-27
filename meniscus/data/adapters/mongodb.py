@@ -112,7 +112,7 @@ class NamedDatasourceHandler(DatasourceHandler):
 
         self.database[object_name].save(document)
 
-    def set_field(self, object_name, field, value, query_filter = None):
+    def set_field(self, object_name, field, value, query_filter=None):
         '''
         Updates the given field with a new value for all documents that match
         the query filter
@@ -128,7 +128,7 @@ class NamedDatasourceHandler(DatasourceHandler):
             query_filter = dict()
         self._check_connection()
 
-        set_statement = { "$set": {field: value}}
+        set_statement = {"$set": {field: value}}
 
         self.database[object_name].update(
             query_filter, set_statement, multi=True)

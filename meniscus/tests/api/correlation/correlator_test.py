@@ -15,6 +15,7 @@ from meniscus.data.model.tenant import Token
 from meniscus.data.model.worker import WorkerConfiguration
 from meniscus.sinks import VALID_SINKS
 
+
 def suite():
     suite = unittest.TestSuite()
     suite.addTest(WhenTestingMessageBodyValidation())
@@ -204,10 +205,6 @@ class WhenTestingCorrelationMessage(unittest.TestCase):
         self.assertTrue('pattern' in meniscus_dict.keys())
         self.assertEquals(meniscus_dict['pattern'], 'syslog')
         self.assertFalse('job_id' in meniscus_dict.keys())
-        for sink in VALID_SINKS:
-            self.assertEqual(
-                meniscus_dict['destinations'][sink],
-                self.destination)
 
     def test_process_message_default(self):
         message = {
@@ -234,7 +231,6 @@ class WhenTestingCorrelationMessage(unittest.TestCase):
         self.assertTrue('pattern' in meniscus_dict.keys())
         self.assertEquals(meniscus_dict['pattern'], None)
         self.assertFalse('job_id' in meniscus_dict.keys())
-
 
 
 class WhenTestingTenantIdentification(unittest.TestCase):

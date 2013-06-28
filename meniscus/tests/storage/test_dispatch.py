@@ -3,7 +3,8 @@ import unittest
 from mock import MagicMock, patch
 with patch('meniscus.data.datastore.datasource_handler', MagicMock()):
     from meniscus.sinks import (
-        dispatch, DEFAULT_SINK, VALID_SINKS, SECONDARY_SINKS)
+        DEFAULT_SINK, VALID_SINKS, SECONDARY_SINKS)
+    from meniscus.storage import dispatch
 
 
 class WhenTestingStoragePersistence(unittest.TestCase):
@@ -42,29 +43,29 @@ class WhenTestingStoragePersistence(unittest.TestCase):
         self.default_persist = MagicMock()
         self.secondary_persist = MagicMock()
 
-    def test_message_sent_to_default_sink_only(self):
+    def test_message_sent_to_default_store_only(self):
         self.message['meniscus']['correlation']['sinks'] = [DEFAULT_SINK]
-        with patch('meniscus.sinks.dispatch.'
-                   'default_sink.persist_message.delay',
+        with patch('meniscus.storage.dispatch.'
+                   'default_store.persist_message.delay',
                    self.default_persist):
             dispatch.persist_message(self.message)
             self.default_persist.assert_called_once_with(self.message)
 
     def test_message_sent_to_secondary_sink_only(self):
         self.message['meniscus']['correlation']['sinks'] = SECONDARY_SINKS
-        with patch('meniscus.sinks.dispatch.'
-                   'short_term_sink.persist_message.delay',
+        with patch('meniscus.storage.dispatch.'
+                   'short_term_store.persist_message.delay',
                    self.secondary_persist):
             dispatch.persist_message(self.message)
             self.secondary_persist.assert_called_once_with(self.message)
 
-    def test_message_sent_to_default_and_short_term_sinks(self):
+    def test_message_sent_to_default_and_secondary_sinks(self):
         self.message['meniscus']['correlation']['sinks'] = VALID_SINKS
-        with patch('meniscus.sinks.dispatch.'
-                   'default_sink.persist_message.delay',
+        with patch('meniscus.storage.dispatch.'
+                   'default_store.persist_message.delay',
                    self.default_persist), \
-            patch('meniscus.sinks.dispatch.'
-                  'short_term_sink.persist_message.delay',
+            patch('meniscus.storage.dispatch.'
+                  'short_term_store.persist_message.delay',
                   self.secondary_persist):
             dispatch.persist_message(self.message)
             self.default_persist.assert_called_once_with(self.message)

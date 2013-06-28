@@ -132,8 +132,8 @@ class WhenTestingCorrelationMessage(unittest.TestCase):
                              hosts=self.hosts,
                              tenant_name=self.tenant_name)
         self.destination = {
-            'lock_id': None,
-            'lock_time': None
+            'transaction_id': None,
+            'transaction_time': None
         }
 
     def test_process_message_throws_exception_host_not_found(self):

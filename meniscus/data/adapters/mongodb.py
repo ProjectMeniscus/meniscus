@@ -1,43 +1,9 @@
 from pymongo import MongoClient
 
-from oslo.config import cfg
-from meniscus.config import get_config
 from meniscus.data.datastore.handler import (
     DatabaseHandlerError, DatasourceHandler,
     STATUS_CONNECTED, STATUS_CLOSED
 )
-
-
-# MongoDB configuration options
-_mongodb_group = cfg.OptGroup(name='mongodb', title='MongoDB Options')
-get_config().register_group(_mongodb_group)
-
-_MONGODB_OPTIONS = [
-    cfg.ListOpt('mongo_servers',
-                default=['localhost:27017'],
-                help="""MongoDB servers to connect to."""
-                ),
-    cfg.StrOpt('database',
-               default='test',
-               help="""MongoDB database to use."""
-               ),
-    cfg.StrOpt('username',
-               default='',
-               help="""MongoDB username to use when authenticating.
-                       If this value is left unset, then authentication
-                       against the MongoDB will not be utilized.""",
-               secret=True
-               ),
-    cfg.StrOpt('password',
-               default='',
-               help="""MongoDB password to use when authenticating.
-                       If this value is left unset, then authentication
-                       against the MongoDB will not be utilized.""",
-               secret=True
-               )
-]
-
-get_config().register_opts(_MONGODB_OPTIONS, group=_mongodb_group)
 
 
 ## TODO: (JHop) Document this damn thing --> pymongo.errors.OperationFailure.
@@ -82,11 +48,13 @@ class NamedDatasourceHandler(DatasourceHandler):
         return self.database['counters'].find_and_modify(
             {'name': sequence_name}, {'$inc': {'seq': 1}})['seq']
 
-    def find(self, object_name, query_filter=None):
+    def find(self, object_name, query_filter=None, projection=None):
         if query_filter is None:
             query_filter = dict()
+        if projection is None:
+            projection = dict()
         self._check_connection()
-        return self.database[object_name].find(query_filter)
+        return self.database[object_name].find(query_filter, projection)
 
     def find_one(self, object_name, query_filter=None):
         if query_filter is None:
@@ -112,14 +80,32 @@ class NamedDatasourceHandler(DatasourceHandler):
 
         self.database[object_name].save(document)
 
-    def set_field(self, object_name, field, value, query_filter=None):
+    def set_field(self, object_name, update_fields, query_filter=None):
         '''
         Updates the given field with a new value for all documents that match
         the query filter
 
         :param object_name: represents the mongo collection
-        :param field: the field to update (or create)
-        nested field are accessed with a '.' { 'name.middle': 'middlename' }
+        :param update_fields: dict of fields to update and their new values
+        :param query_filter: represents field/value to query by
+
+        '''
+        if query_filter is None:
+            query_filter = dict()
+        self._check_connection()
+
+        set_statement = {"$set": update_fields}
+
+        self.database[object_name].update(
+            query_filter, set_statement, multi=True)
+
+    def remove_field(self, object_name, update_fields, query_filter=None):
+        '''
+        Updates the given field with a new value for all documents that match
+        the query filter
+
+        :param object_name: represents the mongo collection
+        :param update_fields: dict of fields to remove from the collection
         :param value: the new value for the field
         :param query_filter: represents field/value to query by
 
@@ -128,7 +114,7 @@ class NamedDatasourceHandler(DatasourceHandler):
             query_filter = dict()
         self._check_connection()
 
-        set_statement = {"$set": {field: value}}
+        set_statement = {"$unset": update_fields}
 
         self.database[object_name].update(
             query_filter, set_statement, multi=True)

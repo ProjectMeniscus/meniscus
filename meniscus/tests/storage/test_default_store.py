@@ -2,7 +2,7 @@ import unittest
 
 from mock import MagicMock, patch
 with patch('meniscus.data.datastore.datasource_handler', MagicMock()):
-    from meniscus.sinks.default_sink import persist_message
+    from meniscus.storage.default_store import persist_message
 
 
 class WhenTestingStoragePersistence(unittest.TestCase):
@@ -29,7 +29,7 @@ class WhenTestingStoragePersistence(unittest.TestCase):
         self.db_handler = MagicMock()
 
     def test_persist_message_calls_db_put(self):
-        with patch('meniscus.sinks.default_sink._db_handler',
+        with patch('meniscus.storage.default_store._db_handler',
                    self.db_handler):
             persist_message(self.message)
             self.db_handler.put.assert_called_once_with('logs', self.message)

@@ -69,8 +69,8 @@ def add_correlation_info_to_message(tenant, message):
         destinations = dict()
         for sink in producer.sinks:
             destinations[sink] = {
-                'lock_id': None,
-                'lock_time': None
+                'transaction_id': None,
+                'transaction_time': None
             }
 
         correlation_dict.update({

@@ -3,7 +3,7 @@ from portal.input.usyslog import SyslogMessageHandler
 from meniscus.api.correlation import correlator
 import meniscus.api.correlation.correlation_exceptions as errors
 from meniscus import env
-from meniscus.sinks import dispatch
+from meniscus.storage import dispatch
 
 
 _LOG = env.get_logger(__name__)

@@ -174,6 +174,7 @@ class WhenTestingCorrelationMessage(unittest.TestCase):
         self.assertTrue('job_id' in meniscus_dict.keys())
         self.assertTrue('durable' in meniscus_dict.keys())
         self.assertTrue('encrypted' in meniscus_dict.keys())
+        self.assertTrue('correlation_timestamp' in meniscus_dict.keys())
         self.assertTrue(meniscus_dict['durable'])
         for sink in VALID_SINKS:
             self.assertEqual(
@@ -202,6 +203,7 @@ class WhenTestingCorrelationMessage(unittest.TestCase):
         self.assertEquals(meniscus_dict['tenant_name'], self.tenant_name)
         self.assertTrue('ep_id' in meniscus_dict.keys())
         self.assertEquals(meniscus_dict['ep_id'], 433)
+        self.assertTrue('correlation_timestamp' in meniscus_dict.keys())
         self.assertTrue('pattern' in meniscus_dict.keys())
         self.assertEquals(meniscus_dict['pattern'], 'syslog')
         self.assertFalse('job_id' in meniscus_dict.keys())
@@ -228,6 +230,7 @@ class WhenTestingCorrelationMessage(unittest.TestCase):
         self.assertEquals(meniscus_dict['tenant_name'], self.tenant_name)
         self.assertTrue('ep_id' in meniscus_dict.keys())
         self.assertEquals(meniscus_dict['ep_id'], None)
+        self.assertTrue('correlation_timestamp' in meniscus_dict.keys())
         self.assertTrue('pattern' in meniscus_dict.keys())
         self.assertEquals(meniscus_dict['pattern'], None)
         self.assertFalse('job_id' in meniscus_dict.keys())

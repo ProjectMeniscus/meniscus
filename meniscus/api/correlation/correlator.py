@@ -4,6 +4,7 @@ from uuid import uuid4
 import requests
 
 import meniscus.api.correlation.correlation_exceptions as errors
+from meniscus.openstack.common import timeutils
 from meniscus.api.tenant.resources import MESSAGE_TOKEN
 from meniscus.api.utils.request import http_request
 from meniscus.data.cache_handler import ConfigCache
@@ -53,6 +54,7 @@ def add_correlation_info_to_message(tenant, message):
         'pattern': None,
         'durable': False,
         'encrypted': False,
+        'correlation_timestamp': timeutils.utcnow(),
         'sinks': list(),
         "destinations": dict()
     }

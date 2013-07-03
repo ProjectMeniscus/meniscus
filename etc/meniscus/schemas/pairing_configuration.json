@@ -39,7 +39,8 @@
                 "personality": {
                     "enum": [
                         "coordinator",
-                        "worker"
+                        "worker",
+                        "dispatcher"
                     ]
                 }
             }

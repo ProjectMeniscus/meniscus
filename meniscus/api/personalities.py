@@ -8,7 +8,14 @@ PERSONALITIES = [
         'personality': 'coordinator',
         'downstream': '',
         'alternate': ''
-    }]
+    },
+    {
+        'personality': 'dispatcher',
+        'downstream': '',
+        'alternate': ''
+    }
+]
 
 COORDINATOR = 'coordinator'
 WORKER = 'worker'
+DISPATCHER = 'dispatcher'

@@ -29,24 +29,6 @@ def format_search(positive_terms=None, negative_terms=None):
     return {'bool': query}
 
 
-# Elasticsearch configuration options
-_es_group = cfg.OptGroup(name='elasticsearch', title='ElasticSearch Options')
-get_config().register_group(_es_group)
-
-_ES_OPTIONS = [
-    cfg.ListOpt('es_servers',
-                default=['localhost:9200'],
-                help="""ES servers to connect to."""
-                ),
-    cfg.StrOpt('index',
-               default='test',
-               help="""ES index  to use."""
-               )
-]
-
-get_config().register_opts(_ES_OPTIONS, group=_es_group)
-
-
 class NamedDatasourceHandler(DatasourceHandler):
 
     def __init__(self, conf):

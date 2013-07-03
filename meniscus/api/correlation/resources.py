@@ -6,7 +6,7 @@ from meniscus.api.correlation import correlator
 import meniscus.api.correlation.correlation_exceptions as errors
 from meniscus.api.tenant.resources import MESSAGE_TOKEN
 from meniscus.api.validator_init import get_validator
-from meniscus.sinks import dispatch
+from meniscus.storage import dispatch
 
 
 class PublishMessageResource(ApiResource):

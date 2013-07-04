@@ -1,8 +1,4 @@
 
-COORDINATOR_DB = 'coordinator_db'
-DEFAULT_SINK = 'default_sink'
-SHORT_TERM_SINK = 'short_term_sink'
-
 # Connection status values
 STATUS_NEW = 'NEW'
 STATUS_CONNECTED = 'CONNECTED'

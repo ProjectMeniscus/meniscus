@@ -55,7 +55,7 @@ def add_correlation_info_to_message(tenant, message):
         'durable': False,
         'encrypted': False,
         'correlation_timestamp': timeutils.utcnow(),
-        '@timestamp': timeutils.utcnow(), 
+        '@timestamp': timeutils.utcnow(),
         'sinks': list(),
         "destinations": dict()
     }

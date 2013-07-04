@@ -1,9 +1,9 @@
 import time
 
-from meniscus.data.datastore import datasource_handler, SHORT_TERM_SINK
+from meniscus.data.datastore import datasource_handler, SHORT_TERM_STORE
 from meniscus.queue import celery
 
-_db_handler = datasource_handler(SHORT_TERM_SINK)
+_db_handler = datasource_handler(SHORT_TERM_STORE)
 
 
 class Transaction(object):

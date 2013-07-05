@@ -4,7 +4,7 @@ from meniscus.api.version.resources import VersionResource
 from meniscus.api.pairing.resources import PairingConfigurationResource
 from meniscus.api.coordinator.resources import WorkerRegistrationResource
 from meniscus.api.status.resources import WorkerStatusResource
-from meniscus.api.datastore_init import db_handler
+from meniscus.data.datastore import COORDINATOR_DB, datasource_handler
 from meniscus import env
 
 _LOG = env.get_logger(__name__)
@@ -18,11 +18,14 @@ def start_up():
     persona effectively allows the new worker to pair with itself.
     """
 
+    #Datastore adapter/session manager
+    datastore = datasource_handler(COORDINATOR_DB)
+
     # Resources
     versions = VersionResource()
     configuration = PairingConfigurationResource()
-    worker_registration = WorkerRegistrationResource(db_handler())
-    worker_status = WorkerStatusResource(db_handler())
+    worker_registration = WorkerRegistrationResource(datastore)
+    worker_status = WorkerStatusResource(datastore)
 
     # Routing
     application = api = falcon.API()

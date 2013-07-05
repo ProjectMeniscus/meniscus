@@ -1,5 +1,4 @@
 import falcon
-import meniscus.config as config
 
 from meniscus.api.coordinator.resources import WorkerRegistrationResource
 from meniscus.api.status.resources import WorkerStatusResource

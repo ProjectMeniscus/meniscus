@@ -21,24 +21,28 @@ set -e
 case "$1" in
     configure)
 	    . /usr/share/debconf/confmodule
-	    if ! getent group meniscus > /dev/null 2>&1
-	    then
-	    addgroup --quiet --system meniscus > /dev/null
+
+	    if ! (getent group meniscus) > /dev/null 2>&1; then
+	        addgroup --quiet --system meniscus > /dev/null
 		fi
-		if ! getent passwd meniscus > /dev/null 2>&1
-		then
-		adduser --quiet --system --home /var/lib/meniscus --ingroup meniscus --no-create-home --shell /bin/false meniscus
+
+		if ! (getent passwd meniscus) > /dev/null 2>&1; then
+		    adduser --quiet --system --home /var/lib/meniscus --ingroup meniscus --no-create-home --shell /bin/false meniscus
 		fi
 
 		chmod 0755 /etc/init.d/meniscus
 
-		mkdir /var/log/meniscus
-		chown -R meniscus:adm /var/log/meniscus/
-		chmod 0750 /var/log/meniscus/
+		if [ ! -d /var/log/meniscus ]; then
+            mkdir /var/log/meniscus
+            chown -R meniscus:adm /var/log/meniscus/
+            chmod 0750 /var/log/meniscus/
+        fi
 
-		mkdir /var/lib/meniscus
-		chown meniscus:meniscus -R /var/lib/meniscus/ /etc/meniscus
-		chmod -R 0700 /etc/meniscus/
+        if [ ! -d /var/lib/meniscus ]; then
+            mkdir /var/lib/meniscus
+            chown meniscus:meniscus -R /var/lib/meniscus/ /etc/meniscus
+            chmod -R 0700 /etc/meniscus/
+        fi
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

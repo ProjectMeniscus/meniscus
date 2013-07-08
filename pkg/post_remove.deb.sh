@@ -21,20 +21,23 @@ set -e
 
 case "$1" in
 	purge)
-	echo "Purging meniscus..." >&2
-	if (getent passwd meniscus) > /dev/null 2>&1; then
-		userdel meniscus || true
-	fi
+        echo "Purging meniscus..." >&2
+        if (getent passwd meniscus) > /dev/null 2>&1; then
+            userdel meniscus || true
+        fi
 
-	if (getent group meniscus) > /dev/null 2>&1; then
-		groupdel meniscus || true
-	fi
+        if (getent group meniscus) > /dev/null 2>&1; then
+            groupdel meniscus || true
+        fi
 
-	[ -e /var/lib/meniscus ] && rm -rf /var/lib/meniscus
-	[ -e /var/log/meniscus ] && rm -rf /var/log/meniscus
+        [ -e /var/lib/meniscus ] && rm -rf /var/lib/meniscus
+        [ -e /var/log/meniscus ] && rm -rf /var/log/meniscus
+        [ -e /usr/share/meniscus ] && rm -rf /usr/share/meniscus
+        [ -e /etc/meniscus ] && rm -rf /etc/meniscus
 	;;
 
     remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
+        [ -e /usr/share/meniscus ] && rm -rf /usr/share/meniscus
     ;;
 
     *)

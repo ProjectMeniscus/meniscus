@@ -1,6 +1,6 @@
 import unittest
 
-from meniscus.normalization.normalizer import normalize_message
+from meniscus.normalization.normalizer import *
 
 
 class WhenTestingMessageNormalization(unittest.TestCase):
@@ -11,6 +11,7 @@ class WhenTestingMessageNormalization(unittest.TestCase):
             "timestamp": "2013-04-05T15:51:18.607457-05:00",
             "hostname": "tohru",
             "priority": "30",
+            "pattern": "wpa_supplicant",
             "version": "1",
             "messageid": "-",
             "msg": "wlan0: leased 10.6.173.172 for 3600 seconds\n",
@@ -25,4 +26,5 @@ class WhenTestingMessageNormalization(unittest.TestCase):
         }
 
     def test_normalize_message(self):
+        self.assertTrue(should_normalize(self.message))
         normalize_message(self.message)

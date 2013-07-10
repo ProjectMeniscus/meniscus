@@ -13,7 +13,7 @@ def should_normalize(message):
     should_normalize = ('pattern' in message and
                         message['pattern'] != 'syslog')
     can_normalize = ('msg' in message and
-                     type(message['msg']) == 'str')
+                     type(message['msg']) == str)
     return should_normalize and can_normalize
 
 

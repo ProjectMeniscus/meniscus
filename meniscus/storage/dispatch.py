@@ -1,7 +1,10 @@
 from meniscus.storage import default_store, short_term_store
 from meniscus.sinks import DEFAULT_SINK, SECONDARY_SINKS
 
+from meniscus.queue import celery
 
+
+@celery.task
 def persist_message(message):
     message_sinks = message['meniscus']['correlation']['sinks']
 

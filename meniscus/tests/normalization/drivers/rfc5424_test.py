@@ -1,7 +1,7 @@
 from datetime import datetime
 import unittest
 
-from meniscus.api.normalization.drivers.rfc5424 import *
+from meniscus.normalization.drivers.rfc5424 import *
 
 
 def suite():

@@ -88,7 +88,7 @@ class WhenTestingSyslogHandler(unittest.TestCase):
             }
         }
         correlate_function = MagicMock(return_value=correlated_message)
-        persist_message_func = MagicMock()
+        normalizer_func = MagicMock()
 
         self.syslog_handler.message_head(self.syslog_message_head)
         self.syslog_handler.message_part(self.message_part_1)
@@ -103,13 +103,12 @@ class WhenTestingSyslogHandler(unittest.TestCase):
 
         with patch('meniscus.api.correlation.syslog._correlate_syslog_message',
                    correlate_function),\
-            patch('meniscus.api.correlation.syslog.dispatch.persist_message',
-                  persist_message_func):
+            patch('meniscus.api.correlation.syslog.normalize_message',
+                  normalizer_func):
 
             self.syslog_handler.message_complete(self.message_part_3)
             correlate_function.assert_called_once_with(syslog_message)
-            persist_message_func.assert_called_once_with(
-                correlated_message)
+            normalizer_func.apply_async.assert_called_once()
             self.assertIs(self.syslog_handler.msg_head, None)
             self.assertIs(self.syslog_handler.msg, b'')
 

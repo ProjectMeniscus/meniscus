@@ -1,6 +1,6 @@
 import unittest
 
-from meniscus.api.normalization.normalizer import normalize_message
+from meniscus.normalization.normalizer import normalize_message
 
 
 class WhenTestingMessageNormalization(unittest.TestCase):
@@ -13,7 +13,7 @@ class WhenTestingMessageNormalization(unittest.TestCase):
             "priority": "30",
             "version": "1",
             "messageid": "-",
-            "message": "wlan0: leased 10.6.173.172 for 3600 seconds\n",
+            "msg": "wlan0: leased 10.6.173.172 for 3600 seconds\n",
             "sd": {
                 "origin": {
                     "software": "rsyslogd",

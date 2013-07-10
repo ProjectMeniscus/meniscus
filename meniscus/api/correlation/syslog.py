@@ -4,7 +4,7 @@ from meniscus.api.correlation import correlator
 import meniscus.api.correlation.correlation_exceptions as errors
 from meniscus import env
 from meniscus.storage import dispatch
-
+from meniscus.normalization.normalizer import normalize_message
 
 _LOG = env.get_logger(__name__)
 
@@ -32,8 +32,10 @@ class MessageHandler(SyslogMessageHandler):
         cee_message = _correlate_syslog_message(syslog_message)
 
         try:
-            #send the message to data sinks
-            dispatch.persist_message(cee_message)
+            #send the message to normalization then to the data dispatch
+            normalize_message.apply_async(
+                (cee_message,),
+                link=dispatch.persist_message.subtask())
         except Exception as ex:
             _LOG.exception('unable to place persist_message task on queue')
 

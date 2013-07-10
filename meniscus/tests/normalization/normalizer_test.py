@@ -1,16 +1,20 @@
 import unittest
 
-from meniscus.normalization.normalizer import normalize_message
+from mock import MagicMock, patch
+from meniscus.normalization.normalizer import should_normalize
 
 
-class WhenTestingMessageNormalization(unittest.TestCase):
+class WhenNormalizingMessages(unittest.TestCase):
+
     def setUp(self):
-        self.message = {
+        self.bad_message = dict()
+        self.good_message = {
             "processid": "3071",
             "appname": "dhcpcd",
             "timestamp": "2013-04-05T15:51:18.607457-05:00",
             "hostname": "tohru",
             "priority": "30",
+            "pattern": "wpa_supplicant",
             "version": "1",
             "messageid": "-",
             "msg": "wlan0: leased 10.6.173.172 for 3600 seconds\n",
@@ -23,6 +27,9 @@ class WhenTestingMessageNormalization(unittest.TestCase):
                 }
             }
         }
+        self.loaded_rules = ['wpa_supplicant']
 
     def test_normalize_message(self):
-        normalize_message(self.message)
+        target = 'meniscus.normalization.normalizer.loaded_normalizer_rules'
+        with patch(target, self.loaded_rules):
+            self.assertTrue(should_normalize(self.good_message))

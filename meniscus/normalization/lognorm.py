@@ -1,3 +1,5 @@
+import os
+
 from meniscus import config
 from meniscus import env
 from meniscus.queue import celery
@@ -14,9 +16,9 @@ _NORMALIZATION_GROUP = cfg.OptGroup(
 config.get_config().register_group(_NORMALIZATION_GROUP)
 
 _NORMALIZATION = [
-    cfg.StrOpt('rules_file',
+    cfg.StrOpt('rules_dir',
                default=None,
-               help="""file to load rules from"""
+               help="""directory to load rules from"""
                )
 ]
 
@@ -29,17 +31,23 @@ except config.cfg.ConfigFilesNotFoundError as ex:
     _LOG.exception(ex.message)
 
 
-def get_normalizer():
-    normalization_conf = config.get_config().liblognorm
+def get_normalizer(conf=config.get_config()):
+    """This returns both a normalizer as well as a list of loaded rules"""
+    normalization_conf = conf.liblognorm
     normalizer = LogNormalizer()
+    loaded_rules = list()
+    if normalization_conf.rules_dir:
+        loaded_rules = load_rules(normalizer, normalization_conf.rules_dir)
+    return (normalizer, loaded_rules)
 
-    # So until 0.3.7 of liblognorm is out in the wild, we're going to have
-    # to do things this way for a little while longer. I'll build out
-    # stubs to handle runtime rule loading. Since normalizers are pretty
-    # memory efficient, we should have no problem creating a few per
-    # process
-    if normalization_conf.rules_file:
-        _LOG.info('Loading normalization rules from: {}'.format(
-            normalization_conf.rules_file))
-        normalizer.load_rules(normalization_conf.rules_file)
-    return normalizer
+
+def load_rules(normalizer, path):
+    loaded = list()
+    if not os.path.isdir(path):
+        raise IOError(
+            'Unable to load rules. {} is not a directory'.format(path))
+    for possible_rule in os.listdir(path):
+        if possible_rule.endswith('.db'):
+            normalizer.load_rules(os.path.join(path, possible_rule))
+            loaded.append(possible_rule.rstrip('.db'))
+    return loaded

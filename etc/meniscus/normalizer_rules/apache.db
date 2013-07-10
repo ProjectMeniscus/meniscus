@@ -1,0 +1,1 @@
+rule=:%remote_host:ipv4% %a:word% %b:word% [%timestamp:char-to:]%] "%method:word% %uri:word% %http_version:char-to:"%" %status_code:word% %bytes:word% %url:quoted-string% %user_agent:quoted-string%

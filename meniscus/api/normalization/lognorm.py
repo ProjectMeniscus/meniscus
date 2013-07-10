@@ -33,6 +33,11 @@ def get_normalizer():
     normalization_conf = config.get_config().liblognorm
     normalizer = LogNormalizer()
 
+    # So until 0.3.7 of liblognorm is out in the wild, we're going to have
+    # to do things this way for a little while longer. I'll build out
+    # stubs to handle runtime rule loading. Since normalizers are pretty
+    # memory efficient, we should have no problem creating a few per
+    # process
     if normalization_conf.rules_file:
         _LOG.info('Loading normalization rules from: {}'.format(
             normalization_conf.rules_file))

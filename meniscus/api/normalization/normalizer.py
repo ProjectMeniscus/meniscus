@@ -12,7 +12,7 @@ normalizer = get_normalizer()
 @celery.task(acks_late=True, max_retries=None, serializer="json")
 def normalize_message(message):
     """Takes a message and normalizes it."""
-    if message['message'] and type(message['message']) == 'string':
-        message['message'] = json.loads(
-            normalizer.normalize(message['message']))
+    if message['msg'] and type(message['msg']) == 'string':
+        message['msg'] = json.loads(
+            normalizer.normalize(message['msg']))
     return message

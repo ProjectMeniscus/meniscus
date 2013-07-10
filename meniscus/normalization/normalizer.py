@@ -1,5 +1,5 @@
 from meniscus.queue import celery
-from meniscus.api.normalization.lognorm import get_normalizer
+from meniscus.normalization.lognorm import get_normalizer
 from meniscus import env
 import json
 

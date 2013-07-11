@@ -349,7 +349,7 @@ class EventProducersResource(ApiResource):
         if 'sinks' in body.keys():
             event_producer_sinks = body['sinks']
         else:
-            event_producer_sinks = list('elastic_search')
+            event_producer_sinks = None
 
         # Check if the tenant already has an event producer with this name
         producer = find_event_producer(tenant,

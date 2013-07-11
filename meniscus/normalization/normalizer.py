@@ -22,5 +22,5 @@ def should_normalize(message):
 def normalize_message(message):
     """Takes a message and normalizes it."""
     message['msg'] = json.loads(
-        normalizer.normalize(message['msg']).as_json())
+        _normalizer.normalize(message['msg']).as_json())
     return message

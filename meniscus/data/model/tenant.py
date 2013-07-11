@@ -16,7 +16,7 @@ described.
                  encrypted=False, sinks=None):
 
         if not sinks:
-            self.sinks = [DEFAULT_SINK]
+            self.sinks = [DEFAULT_SINK,]
         else:
             self.sinks = sinks
 

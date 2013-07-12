@@ -119,7 +119,7 @@ default_sink_options = [
                 help="""hostanme:port for db servers
                     """
                 ),
-    cfg.StrOpt('bulk_size',
+    cfg.IntOpt('bulk_size',
                default='0',
                help="""Amount of records to transmit in bulk
                     """

@@ -36,6 +36,7 @@ class NamedDatasourceHandler(DatasourceHandler):
         self.index = conf.index
         self.username = conf.username
         self.password = conf.password
+        self.bulk_size = conf.bulk_size
 
     def _check_connection(self):
         if self.status != STATUS_CONNECTED:
@@ -44,7 +45,10 @@ class NamedDatasourceHandler(DatasourceHandler):
 
     def connect(self):
         update_connection_pool(125)
-        self.connection = pyes.ES(self.es_servers)
+        bulk_size = None
+        if self.bulk_size > 0:
+            bulk_size = self.bulk_size
+        self.connection = pyes.ES(self.es_servers, bulk_size=bulk_size)
 
         if self.username and self.password:
             #Todo:{JHopper)Add Authentication

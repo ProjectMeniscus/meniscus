@@ -14,8 +14,7 @@ def should_normalize(message):
     should_normalize = (
         message['meniscus']['correlation']['pattern'] in
         loaded_normalizer_rules)
-    can_normalize = ('msg' in message and
-                     isinstance(message['msg'], str))
+    can_normalize = ('msg' in message)
     return should_normalize and can_normalize
 
 

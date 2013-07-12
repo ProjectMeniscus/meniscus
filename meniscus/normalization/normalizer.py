@@ -11,10 +11,11 @@ _normalizer, loaded_normalizer_rules = get_normalizer()
 def should_normalize(message):
     """Returns true only if the pattern is in the loaded rules
     list and there is a string msg in the message dictionary"""
-    should_normalize = ('pattern' in message and
-                        message['pattern'] in loaded_normalizer_rules)
+    should_normalize = (
+        message['meniscus']['correlation']['pattern'] in
+        loaded_normalizer_rules)
     can_normalize = ('msg' in message and
-                     type(message['msg']) == str)
+                     isinstance(message['msg'], str))
     return should_normalize and can_normalize
 
 

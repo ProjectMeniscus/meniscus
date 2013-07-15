@@ -2,7 +2,6 @@
     "id": "http://projectmeniscus.org/json/tenant#",
     "$schema": "http://json-schema.org/draft-04/schema#",
     "description": "Tenant API schema",
-
     "type": "object",
     "additionalProperties": false,
 

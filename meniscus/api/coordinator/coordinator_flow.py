@@ -2,7 +2,6 @@
 from oslo.config import cfg
 
 from meniscus.api.coordinator import coordinator_errors as error
-from meniscus.api.personalities import PERSONALITIES
 from meniscus.config import get_config
 from meniscus.config import init_config
 from meniscus.data.model.worker import Worker
@@ -35,20 +34,6 @@ VALID_ROUTE_LIST = conf.coordinator_settings.valid_route_list
 VALID_STATUS_LIST = conf.coordinator_settings.valid_status_list
 
 LOG = env.get_logger(__name__)
-
-
-# worker registration resource
-def validate_worker_registration_req_body(body):
-    """
-    validate request body
-    """
-    try:
-        worker = Worker(**body)
-
-        if worker.personality not in [p['personality']for p in PERSONALITIES]:
-            error._personality_not_valid()
-    except (KeyError, ValueError, TypeError):
-        error._registration_not_valid()
 
 
 def add_worker(db, new_worker_object):

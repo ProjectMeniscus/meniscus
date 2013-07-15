@@ -7,6 +7,7 @@ from mock import MagicMock, patch
 from meniscus.api.status.resources import WorkerStatusResource
 from meniscus.api.status.resources import WorkersStatusResource
 from meniscus.data.model.worker import Worker
+from meniscus.data.model.worker import SystemInfo
 from meniscus.data.model.worker import WorkerRegistration
 from meniscus.openstack.common import jsonutils
 
@@ -20,61 +21,24 @@ def suite():
 
 class WhenTestingWorkerUpdateOnPut(testing.TestBase):
     def before(self):
-        self.body_status = {'status': 'online'}
-        self.bad_status = {'status': 'not_a_real_status'}
-        self.body_disk = {
-            "disk_usage": [
-                {
-                    "device": "/dev/sda1",
-                    "total": 313764528,
-                    "used": 112512436
-                }
-            ]
-        }
-        self.disk_bad_val = {
-            "disk_usage": [
-                {
-                    "device": "/dev/sda1",
-                    "total": "313764528",
-                    "used": 112512436
-                }
-            ]
-        }
-        self.disk_bad_keys = {
-            "disk_usage": [
-                {
-                    "bad_key": "/dev/sda1",
-                    "total": 313764528,
-                    "used": 112512436
-                }
-            ]
-        }
-        self.body_load_ave = {
-            "load_average": {
-                "1": 0.24755859375,
-                "5": 1.0751953125,
-                "15": 0.9365234375
-            }
-        }
-        self.bad_load_ave_val = {
-            "load_average": {
-                "1": "0.1234",
-                "5": 1.0751953125,
-                "15": 0.9365234375
-            }
-        }
-        self.bad_load_ave_keys = {
-            "load_average": {
-                "bad_key": "0.1234",
-                "5": 1.0751953125,
-                "15": 0.9365234375
+        self.status = 'online'
+        self.system_info = SystemInfo().format()
+        self.worker_status = {
+            'worker_status': {
+                'system_info': self.system_info,
+                'status': self.status
             }
         }
 
-        self.body_bad = {'not_good': 'bad_status'}
-        self.status = jsonutils.dumps(self.body_status)
-        self.disk = jsonutils.dumps(self.body_disk)
-        self.load = jsonutils.dumps(self.body_load_ave)
+        self.bad_status = 'bad_status'
+        self.bad_system_info = SystemInfo()
+        self.bad_worker_status = {
+            'worker_status': {
+                'system_info': self.system_info,
+                'status': self.bad_status
+            }
+        }
+
         self.req = MagicMock()
         self.resp = MagicMock()
         self.registration = WorkerRegistration('worker').format()
@@ -92,7 +56,7 @@ class WhenTestingWorkerUpdateOnPut(testing.TestBase):
             self.test_route,
             method='PUT',
             headers={'content-type': 'application/json'},
-            body=jsonutils.dumps(self.body_bad))
+            body=jsonutils.dumps(self.bad_worker_status))
         self.assertEqual(falcon.HTTP_400, self.srmock.status)
 
     def test_raises_worker_not_found(self):
@@ -101,7 +65,7 @@ class WhenTestingWorkerUpdateOnPut(testing.TestBase):
             self.test_route,
             method='PUT',
             headers={'content-type': 'application/json'},
-            body=jsonutils.dumps(self.body_status))
+            body=jsonutils.dumps(self.worker_status))
         self.assertEqual(falcon.HTTP_404, self.srmock.status)
 
     def test_returns_400_bad_worker_status(self):
@@ -110,7 +74,7 @@ class WhenTestingWorkerUpdateOnPut(testing.TestBase):
             self.test_route,
             method='PUT',
             headers={'content-type': 'application/json'},
-            body=jsonutils.dumps(self.bad_status))
+            body=jsonutils.dumps(self.bad_worker_status))
         self.assertEqual(falcon.HTTP_400, self.srmock.status)
 
     def test_returns_200_worker_status(self):
@@ -119,61 +83,7 @@ class WhenTestingWorkerUpdateOnPut(testing.TestBase):
             self.test_route,
             method='PUT',
             headers={'content-type': 'application/json'},
-            body=jsonutils.dumps(self.body_status))
-        self.assertEqual(falcon.HTTP_200, self.srmock.status)
-
-    def test_returns_400_disk_usage_bad_keys(self):
-        self.db_handler.find_one.return_value = self.worker_dict
-        self.simulate_request(
-            self.test_route,
-            method='PUT',
-            headers={'content-type': 'application/json'},
-            body=jsonutils.dumps(self.disk_bad_keys))
-        self.assertEqual(falcon.HTTP_400, self.srmock.status)
-
-    def test_returns_400_disk_usage_bad_value(self):
-        self.db_handler.find_one.return_value = self.worker_dict
-        self.simulate_request(
-            self.test_route,
-            method='PUT',
-            headers={'content-type': 'application/json'},
-            body=jsonutils.dumps(self.disk_bad_val))
-        self.assertEqual(falcon.HTTP_400, self.srmock.status)
-
-    def test_returns_200_disk_usage(self):
-        self.db_handler.find_one.return_value = self.worker_dict
-        self.simulate_request(
-            self.test_route,
-            method='PUT',
-            headers={'content-type': 'application/json'},
-            body=jsonutils.dumps(self.body_disk))
-        self.assertEqual(falcon.HTTP_200, self.srmock.status)
-
-    def test_returns_400_load_average_bad_value(self):
-        self.db_handler.find_one.return_value = self.worker_dict
-        self.simulate_request(
-            self.test_route,
-            method='PUT',
-            headers={'content-type': 'application/json'},
-            body=jsonutils.dumps(self.bad_load_ave_val))
-        self.assertEqual(falcon.HTTP_400, self.srmock.status)
-
-    def test_returns_400_load_average_bad_keys(self):
-        self.db_handler.find_one.return_value = self.worker_dict
-        self.simulate_request(
-            self.test_route,
-            method='PUT',
-            headers={'content-type': 'application/json'},
-            body=jsonutils.dumps(self.bad_load_ave_keys))
-        self.assertEqual(falcon.HTTP_400, self.srmock.status)
-
-    def test_returns_200_load_average(self):
-        self.db_handler.find_one.return_value = self.worker_dict
-        self.simulate_request(
-            self.test_route,
-            method='PUT',
-            headers={'content-type': 'application/json'},
-            body=jsonutils.dumps(self.body_load_ave))
+            body=jsonutils.dumps(self.worker_status))
         self.assertEqual(falcon.HTTP_200, self.srmock.status)
 
 

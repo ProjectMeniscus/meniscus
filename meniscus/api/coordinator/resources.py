@@ -22,7 +22,6 @@ class WorkerRegistrationResource(ApiResource):
 
         #load json payload in body
         body = validated_body['worker_registration']
-        coordinator_flow.validate_worker_registration_req_body(body)
 
         #instantiate new worker object
         new_worker = Worker(**body)

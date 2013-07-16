@@ -114,17 +114,6 @@ class WhenTestingCoordinatorFlow(unittest.TestCase):
                          "used": 112512436
                      }}}}]
 
-    def test_req_body_validation(self):
-        #body fails for bad format
-        with self.assertRaises(falcon.HTTPError):
-            coordinator_flow.validate_worker_registration_req_body(
-                self.body_bad_personality)
-
-        #body success
-        with self.assertRaises(falcon.HTTPError):
-            coordinator_flow.validate_worker_registration_req_body(
-                self.body_bad_header)
-
     def test_add_worker(self):
         db_handler = MagicMock()
         db_handler.put.return_value = self.worker.format()

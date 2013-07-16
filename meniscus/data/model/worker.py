@@ -2,6 +2,7 @@ import platform
 import uuid
 
 import meniscus.api.utils.sys_assist as sys_assist
+from meniscus.openstack.common import timeutils
 
 
 class Worker(object):
@@ -91,6 +92,7 @@ class SystemInfo(object):
             self.architecture = kwargs['architecture']
             self.load_average = kwargs['load_average']
             self.disk_usage = kwargs['disk_usage']
+            self.timestamp = kwargs['timestamp']
         else:
             self.cpu_cores = sys_assist.get_cpu_core_count()
             self.os_type = platform.platform()
@@ -98,6 +100,7 @@ class SystemInfo(object):
             self.architecture = platform.machine()
             self.load_average = sys_assist.get_load_average()
             self.disk_usage = sys_assist.get_disk_usage()
+            self.timestamp = timeutils.utcnow()
 
     def format(self):
         return {
@@ -106,7 +109,8 @@ class SystemInfo(object):
             'memory_mb': self.memory_mb,
             'architecture': self.architecture,
             'load_average': self.load_average,
-            'disk_usage': self.disk_usage
+            'disk_usage': self.disk_usage,
+            'timestamp': self.timestamp
         }
 
 

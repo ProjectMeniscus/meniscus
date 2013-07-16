@@ -3,6 +3,7 @@ import falcon
 from meniscus.api import (abort, ApiResource, format_response_body,
                           handle_api_exception, load_body)
 from meniscus.api.validator_init import get_validator
+from meniscus.data.model.worker import SystemInfo
 from meniscus.data.model.worker import Worker
 
 
@@ -10,7 +11,7 @@ def _worker_not_found():
     """
     sends an http 404 invalid worker not found
     """
-    abort(falcon.HTTP_404, 'unable to locate worker.')
+    abort(falcon.HTTP_404, 'Unable to locate worker.')
 
 
 class WorkerStatusResource(ApiResource):
@@ -29,7 +30,7 @@ class WorkerStatusResource(ApiResource):
         """
 
         #load validated json payload in body
-        body = validated_body
+        body = validated_body['worker_status']
 
         #find the worker in db
         worker_dict = self.db.find_one('worker', {'worker_id': worker_id})
@@ -42,11 +43,8 @@ class WorkerStatusResource(ApiResource):
         if 'status' in body:
             worker.status = body['status']
 
-        if 'disk_usage' in body:
-            worker.system_info.disk_usage = body['disk_usage']
-
-        if 'load_average' in body:
-            worker.system_info.load_average = body['load_average']
+        if 'system_info' in body:
+            worker.system_info = SystemInfo(**body['system_info'])
 
         self.db.update('worker', worker.format_for_save())
         resp.status = falcon.HTTP_200

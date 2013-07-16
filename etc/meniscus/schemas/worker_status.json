@@ -1,33 +1,41 @@
 {
     "id": "http://projectmeniscus.org/json/worker_status#",
     "$schema": "http://json-schema.org/draft-04/schema#",
-
     "description": "Worker Status Schema",
     "type": "object",
     "additionalProperties": false,
 
     "properties": {
-        "status": {"$ref": "#/definitions/status"},
-        "system_info": {"$ref": "#/definitions/system_info"},
-        "load_average": {"$ref": "#/definitions/load_average"},
-        "disk_usage": {"$ref": "#/definitions/disk_usage"}
+        "worker_status": {
+            "$ref": "#/definitions/worker_status"
+        }
     },
 
     "oneOf": [
-        {"required": ["system_info"]},
-        {"required": ["load_average"]},
-        {"required": ["disk_usage"]},
-        {"required": ["status"]}
+         {"required": ["worker_status"]}
     ],
 
     "definitions": {
+
+        "worker_status": {
+            "required": ["system_info", "status"],
+            "additionalProperties": false,
+
+            "properties": {
+                "status": {"$ref": "#/definitions/status"},
+                "system_info": {"$ref": "#/definitions/system_info"}
+            }
+        },
 
         "system_info": {
             "required": [
                 "os_type",
                 "memory_mb",
                 "architecture",
-                "cpu_cores"
+                "cpu_cores",
+                "load_average",
+                "disk_usage",
+                "timestamp"
             ],
             "additionalProperties": false,
 
@@ -49,6 +57,10 @@
                 },
                 "load_average": {
                     "$ref": "#/definitions/load_average"
+                },
+                "timestamp": {
+                    "type": "string",
+                    "format": "date-time"
                 }
             }
         },

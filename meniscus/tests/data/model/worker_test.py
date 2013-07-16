@@ -87,6 +87,7 @@ class WhenTestingSystemInfoObject(unittest.TestCase):
             cpu_cores='4',
             os_type='Darwin-11.4.2-x86-64bit',
             memory_mb='1024',
+            timestamp='2013-07-15 19:26:53.076426',
             architecture='x86_64',
             load_average={
                 "1": 0.24755859375,
@@ -106,6 +107,8 @@ class WhenTestingSystemInfoObject(unittest.TestCase):
         self.assertEqual(self.system_info.os_type, 'Darwin-11.4.2-x86-64bit')
         self.assertEqual(self.system_info.memory_mb, '1024')
         self.assertEqual(self.system_info.architecture, 'x86_64')
+        self.assertEqual(self.system_info.timestamp,
+                         '2013-07-15 19:26:53.076426')
         self.assertEqual(
             self.system_info.disk_usage["/dev/sda1"],
             {
@@ -126,6 +129,7 @@ class WhenTestingSystemInfoObject(unittest.TestCase):
         self.assertTrue('architecture' in system_dict)
         self.assertTrue('load_average' in system_dict)
         self.assertTrue('disk_usage' in system_dict)
+        self.assertTrue('timestamp' in system_dict)
 
 
 class WhenTestingWorkerConfigurationObject(unittest.TestCase):

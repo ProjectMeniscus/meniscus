@@ -1,4 +1,5 @@
 from multiprocessing import Process
+from datetime import timedelta
 
 import falcon
 
@@ -6,10 +7,9 @@ from portal.server import SyslogServer, start_io
 
 from meniscus.api.correlation.resources import PublishMessageResource
 from meniscus.api.version.resources import VersionResource
-from meniscus.personas.common.publish_stats import WorkerStatusPublisher
-from meniscus.personas.common.publish_stats import WorkerStatsPublisher
 from meniscus.api.correlation import syslog
 from meniscus import env
+from meniscus.personas.common import publish_stats
 from meniscus.queue import celery
 
 _LOG = env.get_logger(__name__)
@@ -23,17 +23,19 @@ def start_up():
     #http correlation endpoint
     api.add_route('/v1/tenant/{tenant_id}/publish', PublishMessageResource())
 
-    register_worker_online = WorkerStatusPublisher('online')
-    register_worker_online.run()
-
-    publish_stats_service = WorkerStatsPublisher()
-    publish_stats_service.run()
-
     #syslog correlation endpoint
     server = SyslogServer(
         ("0.0.0.0", 5140), syslog.MessageHandler())
     server.start()
     Process(target=start_io).start()
 
-    Process(target=celery.worker_main).start()
+    celery.conf.CELERYBEAT_SCHEDULE = {
+        'worker_stats': {
+            'task': 'stats.publish',
+            'schedule': timedelta(seconds=publish_stats.WORKER_STATUS_INTERVAL)
+        },
+    }
+
+    #include blank argument to celery in order for beat to start correctly
+    Process(target=celery.worker_main, args=[['', '--beat']]).start()
     return application

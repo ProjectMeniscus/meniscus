@@ -8,8 +8,6 @@ import requests
 import meniscus.api.correlation.correlation_exceptions as exception
 from meniscus.api.correlation import correlator
 from meniscus.data.model.tenant import EventProducer
-from meniscus.data.model.tenant import Host
-from meniscus.data.model.tenant import HostProfile
 from meniscus.data.model.tenant import Tenant
 from meniscus.data.model.tenant import Token
 from meniscus.data.model.worker import WorkerConfiguration
@@ -109,43 +107,23 @@ class WhenTestingMessageBodyValidation(unittest.TestCase):
 class WhenTestingCorrelationMessage(unittest.TestCase):
     def setUp(self):
 
-        self.profiles = [
-            HostProfile(123, 'profile1', event_producer_ids=[432, 433]),
-            HostProfile(456, 'profile2', event_producer_ids=[432, 433])
-        ]
         self.producers = [
             EventProducer(432, 'producer1', 'syslog', durable=True,
                           sinks=VALID_SINKS),
             EventProducer(433, 'producer2', 'syslog', durable=False)
         ]
-        self.hosts = [
-            Host(765, 'host1', ip_address_v4='192.168.1.1', profile_id=123),
-            Host(766, 'host2', ip_address_v4='192.168.2.1', profile_id=456)]
         self.token = Token('ffe7104e-8d93-47dc-a49a-8fb0d39e5192',
                            'bbd6302e-8d93-47dc-a49a-8fb0d39e5192',
                            "2013-03-19T18:16:48.411029Z")
         self.tenant_id = '1234'
         self.tenant_name = 'TenantName'
         self.tenant = Tenant(self.tenant_id, self.token,
-                             profiles=self.profiles,
                              event_producers=self.producers,
-                             hosts=self.hosts,
                              tenant_name=self.tenant_name)
         self.destination = {
             'transaction_id': None,
             'transaction_time': None
         }
-
-    def test_process_message_throws_exception_host_not_found(self):
-        message = {
-            "host": "host99",
-            "pname": "pname",
-            "time": "2013-03-19T18:16:48.411029Z"
-        }
-
-        with self.assertRaises(exception.MessageValidationError):
-            correlator.add_correlation_info_to_message(
-                self.tenant, message)
 
     def test_process_message_durable(self):
         message = {
@@ -163,8 +141,6 @@ class WhenTestingCorrelationMessage(unittest.TestCase):
         self.assertTrue('meniscus' in message.keys())
         self.assertTrue('correlation' in message['meniscus'].keys())
         meniscus_dict = message['meniscus']['correlation']
-        self.assertTrue('host_id' in meniscus_dict.keys())
-        self.assertEquals(meniscus_dict['host_id'], 765)
         self.assertTrue('tenant_name' in meniscus_dict.keys())
         self.assertEquals(meniscus_dict['tenant_name'], self.tenant_name)
         self.assertTrue('ep_id' in meniscus_dict.keys())
@@ -174,7 +150,6 @@ class WhenTestingCorrelationMessage(unittest.TestCase):
         self.assertTrue('job_id' in meniscus_dict.keys())
         self.assertTrue('durable' in meniscus_dict.keys())
         self.assertTrue('encrypted' in meniscus_dict.keys())
-        self.assertTrue('correlation_timestamp' in meniscus_dict.keys())
         self.assertTrue('@timestamp' in meniscus_dict.keys())
         self.assertTrue(meniscus_dict['durable'])
         for sink in VALID_SINKS:
@@ -198,13 +173,10 @@ class WhenTestingCorrelationMessage(unittest.TestCase):
         self.assertTrue('meniscus' in message.keys())
         self.assertTrue('correlation' in message['meniscus'].keys())
         meniscus_dict = message['meniscus']['correlation']
-        self.assertTrue('host_id' in meniscus_dict.keys())
-        self.assertEquals(meniscus_dict['host_id'], 765)
         self.assertTrue('tenant_name' in meniscus_dict.keys())
         self.assertEquals(meniscus_dict['tenant_name'], self.tenant_name)
         self.assertTrue('ep_id' in meniscus_dict.keys())
         self.assertEquals(meniscus_dict['ep_id'], 433)
-        self.assertTrue('correlation_timestamp' in meniscus_dict.keys())
         self.assertTrue('@timestamp' in meniscus_dict.keys())
         self.assertTrue('pattern' in meniscus_dict.keys())
         self.assertEquals(meniscus_dict['pattern'], 'syslog')
@@ -226,13 +198,10 @@ class WhenTestingCorrelationMessage(unittest.TestCase):
         self.assertTrue('meniscus' in message.keys())
         self.assertTrue('correlation' in message['meniscus'].keys())
         meniscus_dict = message['meniscus']['correlation']
-        self.assertTrue('host_id' in meniscus_dict.keys())
-        self.assertEquals(meniscus_dict['host_id'], 765)
         self.assertTrue('tenant_name' in meniscus_dict.keys())
         self.assertEquals(meniscus_dict['tenant_name'], self.tenant_name)
         self.assertTrue('ep_id' in meniscus_dict.keys())
         self.assertEquals(meniscus_dict['ep_id'], None)
-        self.assertTrue('correlation_timestamp' in meniscus_dict.keys())
         self.assertTrue('pattern' in meniscus_dict.keys())
         self.assertEquals(meniscus_dict['pattern'], None)
         self.assertFalse('job_id' in meniscus_dict.keys())
@@ -242,25 +211,16 @@ class WhenTestingTenantIdentification(unittest.TestCase):
     def setUp(self):
 
         self.timestamp = "2013-03-19T18:16:48.411029Z"
-        self.profiles = [
-            HostProfile(123, 'profile1', event_producer_ids=[432, 433]),
-            HostProfile(456, 'profile2', event_producer_ids=[432, 433])
-        ]
         self.producers = [
             EventProducer(432, 'producer1', 'syslog', durable=True),
             EventProducer(433, 'producer2', 'syslog', durable=False)
         ]
-        self.hosts = [
-            Host(765, 'host1', ip_address_v4='192.168.1.1', profile_id=123),
-            Host(766, 'host2', ip_address_v4='192.168.2.1', profile_id=456)]
         self.token = Token('ffe7104e-8d93-47dc-a49a-8fb0d39e5192',
                            'bbd6302e-8d93-47dc-a49a-8fb0d39e5192',
                            "2013-03-19T18:16:48.411029Z")
         self.tenant_id = '1234'
         self.tenant = Tenant(self.tenant_id, self.token,
-                             profiles=self.profiles,
-                             event_producers=self.producers,
-                             hosts=self.hosts)
+                             event_producers=self.producers)
         self.tenant_found = MagicMock(return_value=self.tenant)
 
         self.cache = MagicMock()

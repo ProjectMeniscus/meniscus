@@ -35,55 +35,6 @@ described.
                 'sinks': self.sinks}
 
 
-class HostProfile(object):
-    """
-Host profiles are reusable collections of event producers with an
-associated, unique name for lookup.
-"""
-
-    def __init__(self, _id, name, event_producer_ids=None):
-        if event_producer_ids is None:
-            event_producer_ids = []
-
-        self._id = _id
-        self.name = name
-        self.event_producers = event_producer_ids
-
-    def get_id(self):
-        return self._id
-
-    def format(self):
-        return {'id': self._id,
-                'name': self.name,
-                'event_producer_ids': self.event_producers}
-
-
-class Host(object):
-    """
-Hosts represent a single, addressable entity in a logical tenant
-environment.
-"""
-
-    def __init__(self, _id, hostname, ip_address_v4=None, ip_address_v6=None,
-                 profile_id=None):
-        self._id = _id
-        self.hostname = hostname
-        self.ip_address_v4 = ip_address_v4
-        self.ip_address_v6 = ip_address_v6
-        self.profile = profile_id
-
-    def get_id(self):
-        return self._id
-
-    def format(self):
-
-        return {'id': self._id,
-                'hostname': self.hostname,
-                'ip_address_v4': self.ip_address_v4,
-                'ip_address_v6': self.ip_address_v6,
-                'profile_id': self.profile}
-
-
 class Token(object):
 
     def __init__(self, valid=None, previous=None, last_changed=None):
@@ -126,13 +77,8 @@ Tenants are users of the environments being monitored for
 application events.
 """
 
-    def __init__(self, tenant_id, token, hosts=None, profiles=None,
-                 event_producers=None,  _id=None, tenant_name=None):
-        if hosts is None:
-            hosts = list()
-
-        if profiles is None:
-            profiles = list()
+    def __init__(self, tenant_id, token, event_producers=None,
+                 _id=None, tenant_name=None):
 
         if event_producers is None:
             event_producers = list()
@@ -143,8 +89,6 @@ application events.
         self._id = _id
         self.tenant_id = str(tenant_id)
         self.token = token
-        self.hosts = hosts
-        self.profiles = profiles
         self.event_producers = event_producers
         self.tenant_name = tenant_name
 
@@ -154,8 +98,6 @@ application events.
     def format(self):
         return {'tenant_id': self.tenant_id,
                 'tenant_name': self.tenant_name,
-                'hosts': [h.format() for h in self.hosts],
-                'profiles': [p.format() for p in self.profiles],
                 'event_producers':
                 [p.format() for p in self.event_producers],
                 'token': self.token.format()}

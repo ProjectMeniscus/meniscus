@@ -9,12 +9,6 @@
         "tenant": {
             "$ref": "#/definitions/tenant"
         },
-        "host": {
-            "$ref": "#/definitions/host"
-        },
-        "profile": {
-            "$ref": "#/definitions/profile"
-        },
         "event_producer": {
             "$ref": "#/definitions/event_producer"
         },
@@ -25,8 +19,6 @@
 
     "oneOf": [
         { "required": ["tenant"] },
-        { "required": ["host"] },
-        { "required": ["profile"] },
         { "required": ["event_producer"] },
         { "required": ["token"] }
     ],
@@ -45,63 +37,12 @@
                 	"type": "string",
                     "minLength": 1
                 },
-                "hosts": {
-                    "type": "array",
-                    "items": { "$ref": "#/definitions/host" }
-                },
-                "profiles": {
-                    "type": "array",
-                    "items": { "$ref": "#/definitions/profile" }
-                },
                 "event_producers": {
                     "type": "array",
                     "items": { "$ref": "#/definitions/event_producer" }
                 },
                 "token": {
                     "$ref": "#/definitions/token"
-                }
-            }
-        },
-
-        "host": {
-            "required": ["hostname"],
-            "additionalProperties": false,
-
-            "properties": {
-                "id": {
-                    "type": "number"
-                },
-                "hostname": {
-                    "type": "string",
-                    "minLength": 1
-                },
-                "ip_address_v4": {
-                    "type": "string"
-                },
-                "ip_address_v6": {
-                    "type": "string"
-                },
-                "profile_id": {
-                    "type": "number"
-                }
-            }
-        },
-
-        "profile": {
-            "required": ["name"],
-            "additionalProperties": false,
-
-            "properties": {
-                "id": {
-                    "type": "number"
-                },
-                "name": {
-                    "type": "string",
-                    "minLength": 1
-                },
-                "event_producer_ids": {
-                    "type": "array",
-                    "items": { "type": "number" }
                 }
             }
         },

@@ -7,12 +7,8 @@ from meniscus.api import format_response_body
 from meniscus.api import handle_api_exception
 
 from meniscus.data.model.util import find_event_producer
-from meniscus.data.model.util import find_host
-from meniscus.data.model.util import find_host_profile
 from meniscus.data.model.util import find_tenant
 from meniscus.data.model.tenant import EventProducer
-from meniscus.data.model.tenant import Host
-from meniscus.data.model.tenant import HostProfile
 from meniscus.data.model.tenant import Tenant
 from meniscus.data.model.tenant import Token
 from meniscus.openstack.common.timeutils import parse_isotime
@@ -30,48 +26,11 @@ def _tenant_not_found():
     abort(falcon.HTTP_404, 'Unable to locate tenant.')
 
 
-def _profile_not_found():
-    """
-    sends an http 404 response to the caller
-    """
-    abort(falcon.HTTP_404, 'Unable to locate host profile.')
-
-
-def _producer_invalid():
-    """
-    sends an http 400 response to the caller
-    """
-    abort(falcon.HTTP_400, 'event producers specified do not exist.')
-
-
 def _producer_not_found():
     """
     sends an http 404 response to the caller
     """
     abort(falcon.HTTP_404, 'Unable to locate event producer.')
-
-
-def _host_not_found():
-    """
-    sends an http 404 response to the caller
-    """
-    abort(falcon.HTTP_404, 'Unable to locate host.')
-
-
-def _hostname_not_provided():
-    """
-    sends an http 400 response to the caller when a a tenant id is not given
-    """
-    abort(falcon.HTTP_400, 'Malformed request, hostname cannot be empty')
-
-
-def _profile_id_invalid():
-    """
-    sends an http 400 response to the caller
-    """
-    abort(
-        falcon.HTTP_400,
-        'Malformed request, profile specified does not exist')
 
 
 def _message_token_is_invalid():
@@ -146,162 +105,6 @@ class UserResource(ApiResource):
 
         self.db.delete('tenant', {'_id': tenant.get_id()})
         self.db.delete_sequence(tenant.tenant_id)
-        resp.status = falcon.HTTP_200
-
-
-class HostProfilesResource(ApiResource):
-
-    def __init__(self, db_handler):
-        self.db = db_handler
-
-    @handle_api_exception(operation_name='HostProfile GET')
-    def on_get(self, req, resp, tenant_id):
-        #ensure the tenant exists
-        tenant = find_tenant(self.db, tenant_id=tenant_id)
-        if not tenant:
-            _tenant_not_found()
-
-        resp.status = falcon.HTTP_200
-
-        #jsonify a list of formatted profiles
-        resp.body = format_response_body({
-            'profiles': [p.format() for p in tenant.profiles]
-        })
-
-    @handle_api_exception(operation_name='Profiles POST')
-    @falcon.before(get_validator('tenant'))
-    def on_post(self, req, resp, tenant_id, validated_body):
-
-        body = validated_body['profile']
-        tenant = find_tenant(self.db, tenant_id=tenant_id)
-
-        if not tenant:
-            _tenant_not_found()
-
-        profile_name = body['name']
-
-        # Check if the tenant already has a profile with this name
-        profile = find_host_profile(tenant, profile_name=profile_name)
-        if profile:
-            abort(falcon.HTTP_400,
-                  'Profile with name {0} already exists with id={1}.'
-                  .format(profile.name, profile.get_id()))
-
-        # Create the new profile for the host
-        new_host_profile = HostProfile(
-            self.db.next_sequence_value(tenant.tenant_id), profile_name)
-
-        if 'event_producer_ids' in body.keys():
-            producer_ids = body['event_producer_ids']
-
-            for producer_id in producer_ids:
-
-                #abort if any of the event_producers being passed in are not
-                # valid event_producers for this tenant
-                if not find_event_producer(tenant, producer_id=producer_id):
-                    _producer_invalid()
-
-            #update the list of event_producers
-            new_host_profile.event_producers = producer_ids
-
-        tenant.profiles.append(new_host_profile)
-        self.db.update('tenant', tenant.format_for_save())
-
-        resp.status = falcon.HTTP_201
-        resp.set_header('Location',
-                        '/v1/{0}/profiles/{1}'
-                        .format(tenant_id, new_host_profile.get_id()))
-
-
-class HostProfileResource(ApiResource):
-
-    def __init__(self, db_handler):
-        self.db = db_handler
-
-    @handle_api_exception(operation_name='HostProfile GET')
-    def on_get(self, req, resp, tenant_id, profile_id):
-        #verify the tenant exists
-        tenant = find_tenant(self.db, tenant_id=tenant_id)
-
-        if not tenant:
-            _tenant_not_found()
-
-        #verify the profile exists and belongs to the tenant
-        profile = find_host_profile(tenant, profile_id=profile_id)
-        if not profile:
-            _profile_not_found()
-
-        resp.status = falcon.HTTP_200
-        resp.body = format_response_body({'profile': profile.format()})
-
-    @handle_api_exception(operation_name='HostProfile PUT')
-    @falcon.before(get_validator('tenant'))
-    def on_put(self, req, resp, tenant_id, profile_id, validated_body):
-        #load the message
-        body = validated_body['profile']
-
-        #verify the tenant exists
-        tenant = find_tenant(self.db, tenant_id=tenant_id)
-        if not tenant:
-            _tenant_not_found()
-
-        #verify the profile exists and belongs to the tenant
-        profile = find_host_profile(tenant, profile_id=profile_id)
-        if not profile:
-            _profile_not_found()
-
-        #if attributes are present in message, update the profile
-        if 'name' in body.keys() and body['name'] != profile.name:
-
-            #if the tenant already has a profile with this name then abort
-            duplicate_profile = find_host_profile(tenant,
-                                                  profile_name=body['name'])
-            if duplicate_profile:
-                abort(falcon.HTTP_400,
-                      'Profile with name {0} already exists with id={1}.'
-                      .format(duplicate_profile.name,
-                              duplicate_profile.get_id()))
-
-            profile.name = body['name']
-
-        if 'event_producer_ids' in body.keys():
-            producer_ids = body['event_producer_ids']
-
-            for producer_id in producer_ids:
-
-                #abort if any of the event_producers being passed in are not
-                # valid event_producers for this tenant
-
-                if not find_event_producer(tenant, producer_id=producer_id):
-                    _producer_invalid()
-
-            #update the list of event_producers
-            profile.event_producers = producer_ids
-
-        self.db.update('tenant', tenant.format_for_save())
-        resp.status = falcon.HTTP_200
-
-    @handle_api_exception(operation_name='HostProfile DELETE')
-    def on_delete(self, req, resp, tenant_id, profile_id):
-        #verify the tenant exists
-        tenant = find_tenant(self.db, tenant_id=tenant_id)
-
-        if not tenant:
-            _tenant_not_found()
-
-        #verify the profile exists and belongs to the tenant
-        profile = find_host_profile(tenant, profile_id=profile_id)
-        if not profile:
-            _profile_not_found()
-
-        #remove any references to the profile being deleted
-        tenant.profiles.remove(profile)
-        for host in tenant.hosts:
-            if host.profile == profile.get_id():
-                host.profile = None
-
-        self.db.update('tenant', tenant.format_for_save())
-
         resp.status = falcon.HTTP_200
 
 
@@ -462,184 +265,7 @@ class EventProducerResource(ApiResource):
 
         #remove any references to the event producer being deleted
         tenant.event_producers.remove(event_producer)
-        for profile in tenant.profiles:
-            if event_producer.get_id() in profile.event_producers:
-                profile.event_producers.remove(event_producer.get_id())
 
-        self.db.update('tenant', tenant.format_for_save())
-
-        resp.status = falcon.HTTP_200
-
-
-class HostsResource(ApiResource):
-
-    def __init__(self, db_session):
-        self.db = db_session
-
-    @handle_api_exception(operation_name='Hosts GET')
-    def on_get(self, req, resp, tenant_id):
-        #verify the tenant exists
-        tenant = find_tenant(self.db, tenant_id=tenant_id)
-
-        if not tenant:
-            _tenant_not_found()
-
-        resp.status = falcon.HTTP_200
-        resp.body = format_response_body(
-            {'hosts': [h.format() for h in tenant.hosts]})
-
-    def _validate_req_body_on_post(self, body):
-        if 'hostname' not in body.keys() or not body['hostname']:
-            _hostname_not_provided()
-
-        if 'profile_id' in body.keys() and body['profile_id']:
-            try:
-                int(body['profile_id'])
-            except (TypeError, ValueError):
-                _profile_id_invalid()
-
-    @handle_api_exception(operation_name='Hosts POST')
-    @falcon.before(get_validator('tenant'))
-    def on_post(self, req, resp, tenant_id, validated_body):
-
-        body = validated_body['host']
-
-        #verify the tenant exists
-        tenant = find_tenant(self.db, tenant_id=tenant_id)
-
-        if not tenant:
-            _tenant_not_found()
-
-        hostname = body['hostname']
-
-        # Check if the tenant already has a host with this hostname
-        for host in tenant.hosts:
-            if host.hostname == hostname:
-                abort(falcon.HTTP_400,
-                      'Host with hostname {0} already exists with id={1}'
-                      .format(hostname, host.get_id()))
-
-        ip_address_v4 = None
-        if 'ip_address_v4' in body.keys():
-            ip_address_v4 = body['ip_address_v4']
-
-        ip_address_v6 = None
-        if 'ip_address_v6' in body.keys():
-            ip_address_v6 = body['ip_address_v6']
-
-        profile_id = None
-        #if profile id is not in post message, then use a null profile
-        if 'profile_id' in body.keys():
-            if body['profile_id']:
-                profile_id = body['profile_id']
-
-        #if profile id is in post message, then make sure it is valid profile
-        if profile_id:
-            #verify the profile exists and belongs to the tenant
-            profile = find_host_profile(tenant, profile_id=profile_id)
-            if not profile:
-                _profile_id_invalid()
-
-        # Create the new host definition
-        new_host = Host(
-            self.db.next_sequence_value(tenant.tenant_id),
-            hostname, ip_address_v4,
-            ip_address_v6, profile_id)
-
-        tenant.hosts.append(new_host)
-        self.db.update('tenant', tenant.format_for_save())
-
-        resp.status = falcon.HTTP_201
-        resp.set_header('Location',
-                        '/v1/{0}/hosts/{1}'
-                        .format(tenant_id, new_host.get_id()))
-
-
-class HostResource(ApiResource):
-
-    def __init__(self, db_handler):
-        self.db = db_handler
-
-    @handle_api_exception(operation_name='Host GET')
-    def on_get(self, req, resp, tenant_id, host_id):
-        #verify the tenant exists
-        tenant = find_tenant(self.db, tenant_id=tenant_id)
-
-        if not tenant:
-            _tenant_not_found()
-
-        #verify the hosts exists and belongs to the tenant
-        host = find_host(tenant, host_id=host_id)
-        if not host:
-            _host_not_found()
-
-        resp.status = falcon.HTTP_200
-        resp.body = format_response_body({'host': host.format()})
-
-    @handle_api_exception(operation_name='Host PUT')
-    @falcon.before(get_validator('tenant'))
-    def on_put(self, req, resp, tenant_id, host_id, validated_body):
-
-        body = validated_body['host']
-
-        #verify the tenant exists
-        tenant = find_tenant(self.db, tenant_id=tenant_id)
-
-        if not tenant:
-            _tenant_not_found()
-
-        #verify the hosts exists and belongs to the tenant
-        host = find_host(tenant, host_id=host_id)
-        if not host:
-            _host_not_found()
-
-        if 'hostname' in body.keys() and host.hostname != body['hostname']:
-            # Check if the tenant already has a host with this hostname
-            hostname = str(body['hostname'])
-            for duplicate_host in tenant.hosts:
-                if duplicate_host.hostname == hostname:
-                    abort(falcon.HTTP_400,
-                          'Host with hostname {0} already exists with'
-                          ' id={1}'.format(hostname, duplicate_host.get_id()))
-            host.hostname = hostname
-
-        if 'ip_address_v4' in body.keys():
-            host.ip_address_v4 = body['ip_address_v4']
-
-        if 'ip_address_v6' in body.keys():
-            host.ip_address_v6 = body['ip_address_v6']
-
-        if 'profile_id' in body.keys():
-            if body['profile_id']:
-                host.profile = int(body['profile_id'])
-            else:
-                host.profile = None
-
-            if host.profile:
-                #verify the profile exists and belongs to the tenant
-                profile = find_host_profile(tenant, profile_id=host.profile)
-                if not profile:
-                    _profile_id_invalid()
-
-        self.db.update('tenant', tenant.format_for_save())
-
-        resp.status = falcon.HTTP_200
-
-    @handle_api_exception(operation_name='Host DELETE')
-    def on_delete(self, req, resp, tenant_id, host_id):
-        #verify the tenant exists
-        tenant = find_tenant(self.db, tenant_id=tenant_id)
-
-        if not tenant:
-            _tenant_not_found()
-
-        #verify the hosts exists and belongs to the tenant
-        host = find_host(tenant, host_id=host_id)
-        if not host:
-            _host_not_found()
-
-        #delete the host
-        tenant.hosts.remove(host)
         self.db.update('tenant', tenant.format_for_save())
 
         resp.status = falcon.HTTP_200
@@ -705,8 +331,6 @@ class TokenResource(ApiResource):
 
         if not tenant:
             _tenant_not_found()
-
-        invalidate_now = False
 
         invalidate_now = body['invalidate_now']
 

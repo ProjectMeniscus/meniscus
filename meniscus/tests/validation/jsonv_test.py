@@ -16,16 +16,6 @@ class WhenLoading(unittest.TestCase):
     def tearDown(self):
         pass
 
-    def test_should_validate_host_object(self):
-        host_obj = {
-            'host': {
-                'id': 12345,
-                'hostname': 'test'
-            }
-        }
-        result = self.validator.validate(host_obj)
-        self.assertTrue(result.valid)
-
     def test_should_validate_simple_tenant_object(self):
         tenant_obj = {
             'tenant': {

@@ -10,8 +10,7 @@ from meniscus.api.utils.request import http_request
 from meniscus.data.cache_handler import ConfigCache
 from meniscus.data.cache_handler import TenantCache
 from meniscus.data.cache_handler import TokenCache
-from meniscus.data.model.util import find_event_producer_for_host
-from meniscus.data.model.util import find_host
+from meniscus.data.model.util import find_event_producer
 from meniscus.data.model.util import load_tenant_from_dict
 from meniscus import env
 
@@ -38,30 +37,20 @@ def validate_event_message_body(body):
 
 
 def add_correlation_info_to_message(tenant, message):
-    host = find_host(tenant, host_name=message['host'])
-
-    if not host:
-        message = 'invalid host, host with name {0} cannot be located'.\
-            format(message['host'])
-        _LOG.debug(message)
-        raise errors.MessageValidationError(message)
-
     #initialize correlation dictionary with default values
     correlation_dict = {
         'tenant_name': tenant.tenant_name,
-        'host_id': host.get_id(),
         'ep_id': None,
         'pattern': None,
         'durable': False,
         'encrypted': False,
-        'correlation_timestamp': timeutils.utcnow(),
         '@timestamp': timeutils.utcnow(),
         'sinks': list(),
         "destinations": dict()
     }
 
-    producer = find_event_producer_for_host(
-        tenant, host, message['pname'])
+    producer = find_event_producer(
+        tenant, producer_name=message['pname'])
 
     #if a valid producer was found, update values
     if producer:

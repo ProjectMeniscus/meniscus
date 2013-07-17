@@ -34,13 +34,9 @@ class WhenTestingPublishMessage(testing.TestBase):
                                  self.pattern, durable=True),
             tenant.EventProducer(2, self.producer_non_durable, self.pattern)
         ]
-        self.profiles = [tenant.HostProfile(1, 'myprofile', [1, 2])]
-        self.hosts = [tenant.Host(1, 'tohru', profile_id=1)]
-        self.bad_host_name = 'badhostname'
 
         self.tenant = tenant.Tenant(
-            self.tenant_id, self.token, profiles=self.profiles,
-            hosts=self.hosts, event_producers=self.producers)
+            self.tenant_id, self.token, event_producers=self.producers)
         self.message = {
             "log_message":  {
                 "ver": "1",

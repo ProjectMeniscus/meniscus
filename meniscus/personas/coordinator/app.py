@@ -5,10 +5,6 @@ from meniscus.api.status.resources import WorkerStatusResource
 from meniscus.api.status.resources import WorkersStatusResource
 from meniscus.api.tenant.resources import EventProducerResource
 from meniscus.api.tenant.resources import EventProducersResource
-from meniscus.api.tenant.resources import HostProfileResource
-from meniscus.api.tenant.resources import HostProfilesResource
-from meniscus.api.tenant.resources import HostResource
-from meniscus.api.tenant.resources import HostsResource
 from meniscus.api.tenant.resources import UserResource
 from meniscus.api.tenant.resources import TenantResource
 from meniscus.api.tenant.resources import TokenResource
@@ -35,12 +31,8 @@ def start_up():
     #Tenant Resources
     tenant = TenantResource(datastore)
     user = UserResource(datastore)
-    profiles = HostProfilesResource(datastore)
-    profile = HostProfileResource(datastore)
     event_producers = EventProducersResource(datastore)
     event_producer = EventProducerResource(datastore)
-    hosts = HostsResource(datastore)
-    host = HostResource(datastore)
     token = TokenResource(datastore)
 
     # Create API
@@ -58,13 +50,10 @@ def start_up():
     # Tenant Routing
     api.add_route('/v1/tenant', tenant)
     api.add_route('/v1/tenant/{tenant_id}', user)
-    api.add_route('/v1/tenant/{tenant_id}/profiles', profiles)
-    api.add_route('/v1/tenant/{tenant_id}/profiles/{profile_id}', profile)
     api.add_route('/v1/tenant/{tenant_id}/producers', event_producers)
     api.add_route('/v1/tenant/{tenant_id}/producers/{event_producer_id}',
                   event_producer)
-    api.add_route('/v1/tenant/{tenant_id}/hosts', hosts)
-    api.add_route('/v1/tenant/{tenant_id}/hosts/{host_id}', host)
+
     api.add_route('/v1/tenant/{tenant_id}/token', token)
 
     return application

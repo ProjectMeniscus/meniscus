@@ -12,11 +12,10 @@ from meniscus import env
 from meniscus.personas.common import publish_stats
 from meniscus.queue import celery
 
-import newrelic.agent
 
 _LOG = env.get_logger(__name__)
 
-@newrelic.agent.function_trace()
+
 def start_up():
 
     application = api = falcon.API()

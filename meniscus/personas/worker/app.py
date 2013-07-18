@@ -12,6 +12,7 @@ from meniscus import env
 from meniscus.personas.common import publish_stats
 from meniscus.queue import celery
 
+
 _LOG = env.get_logger(__name__)
 
 
@@ -37,5 +38,5 @@ def start_up():
     }
 
     #include blank argument to celery in order for beat to start correctly
-    Process(target=celery.worker_main, args=[['--loglevel=DEBUG', '--beat']]).start()
+    Process(target=celery.worker_main, args=[['', '--beat']]).start()
     return application

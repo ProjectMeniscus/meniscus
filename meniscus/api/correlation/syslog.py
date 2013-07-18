@@ -8,7 +8,7 @@ from meniscus.normalization.normalizer import *
 
 import newrelic.agent
 
-newrelic.agent.initialize("/etc/meniscus/newrelic.ini")
+
 _LOG = env.get_logger(__name__)
 
 

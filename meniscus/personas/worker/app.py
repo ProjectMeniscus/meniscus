@@ -37,5 +37,5 @@ def start_up():
     }
 
     #include blank argument to celery in order for beat to start correctly
-    Process(target=celery.worker_main, args=[['', '--beat']]).start()
+    Process(target=celery.worker_main, args=[['--loglevel=DEBUG', '--beat']]).start()
     return application

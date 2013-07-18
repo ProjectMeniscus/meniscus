@@ -53,7 +53,7 @@ class MessageHandler(SyslogMessageHandler):
     def exception(self, ex):
         _LOG.debug('syslog parser error: {0}'.format(ex.message))
 
-
+@newrelic.agent.function_trace()
 def _correlate_syslog_message(syslog_message):
     #remove meniscus tenant id and message token
     # from the syslog structured data

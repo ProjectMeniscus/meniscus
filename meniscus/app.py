@@ -1,5 +1,6 @@
 
 import newrelic.agent
+newrelic.agent.initialize("/etc/meniscus/newrelic.ini")
 
 from meniscus.ext.plugin import import_module
 from meniscus.data.cache_handler import ConfigCache
@@ -10,14 +11,14 @@ from meniscus.openstack.common import log
 log.setup('meniscus')
 _LOG = env.get_logger(__name__)
 
-newrelic.agent.initialize("/etc/meniscus/newrelic.ini")
+
 
 # Adding a hook into environment variables let's us override this
 DEFAULT_PERSONALITY_MODULE = env.get('WORKER_PERSONA',
                                      'meniscus.personas.pairing.app')
 config_cache = ConfigCache()
 
-
+@newrelic.agent.function_trace()
 def bootstrap_api(global_config, **local_conf):
 
     #if the configuration exists in the cache,

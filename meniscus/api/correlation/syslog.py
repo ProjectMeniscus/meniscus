@@ -11,6 +11,8 @@ import newrelic.agent
 _LOG = env.get_logger(__name__)
 
 
+newrelic.agent.initialize("/etc/meniscus/newrelic.ini")
+
 class MessageHandler(SyslogMessageHandler):
 
     def __init__(self, router=None):

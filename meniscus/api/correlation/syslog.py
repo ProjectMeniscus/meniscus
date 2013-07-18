@@ -6,8 +6,6 @@ from meniscus import env
 from meniscus.storage import dispatch
 from meniscus.normalization.normalizer import *
 
-import newrelic.agent
-
 
 _LOG = env.get_logger(__name__)
 
@@ -28,7 +26,6 @@ class MessageHandler(SyslogMessageHandler):
     def message_part(self, message_part):
         self.msg += message_part
 
-    @newrelic.agent.function_trace()
     def message_complete(self, last_message_part):
         full_message = self.msg + last_message_part
         syslog_message = self.msg_head.as_dict()
@@ -53,7 +50,7 @@ class MessageHandler(SyslogMessageHandler):
     def exception(self, ex):
         _LOG.debug('syslog parser error: {0}'.format(ex.message))
 
-@newrelic.agent.function_trace()
+
 def _correlate_syslog_message(syslog_message):
     #remove meniscus tenant id and message token
     # from the syslog structured data

@@ -1,7 +1,5 @@
 from multiprocessing import Process
 from datetime import timedelta
-import newrelic.agent
-newrelic.agent.initialize("/etc/meniscus/newrelic.ini")
 
 import falcon
 

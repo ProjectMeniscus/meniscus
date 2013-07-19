@@ -2,7 +2,6 @@ import os
 
 from meniscus import config
 from meniscus import env
-from meniscus.queue import celery
 
 from pylognorm import LogNormalizer
 from oslo.config import cfg

@@ -70,7 +70,7 @@ class WhenTestingSysAssist(unittest.TestCase):
 
     def test_get_lan_ip_should_return_localhost(self):
         with patch.object(sys_assist.socket, 'gethostbyname',
-                         return_value='127.0.0.1'):
+                          return_value='127.0.0.1'):
             ip = sys_assist.get_interface_ip('ABC9')
             self.assertEqual(ip, '127.0.0.1')
 

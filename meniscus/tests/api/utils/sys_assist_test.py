@@ -13,6 +13,10 @@ def suite():
 
 class WhenTestingSysAssist(unittest.TestCase):
     def setUp(self):
+        self.conf = MagicMock()
+        self.conf.network_interface.default_ifname = 'eth1'
+        self.get_config = MagicMock(return_value=self.conf)
+
         self.platform = 'linux'
         self.meminfo = ["MemTotal:        4196354 kB\n",
                         "MemFree:         1232352 kB\n",
@@ -47,7 +51,6 @@ class WhenTestingSysAssist(unittest.TestCase):
             self.assertEqual(cpu_count, 4)
 
     def test_get_interface_ip(self):
-
         with patch.object(sys_assist.socket, 'socket',
                           MagicMock()), \
             patch.object(sys_assist.fcntl, 'ioctl',
@@ -57,21 +60,18 @@ class WhenTestingSysAssist(unittest.TestCase):
             ip = sys_assist.get_interface_ip('etho0')
             self.assertEqual(ip, '10.6.60.95')
 
-    def test_get_lan_ip_should_return_external_ip(self):
+    def test_get_interface_ip_should_return_external_ip(self):
         with patch.object(sys_assist, 'get_interface_ip',
                           return_value='10.6.60.99'), \
             patch.object(sys_assist.socket, 'gethostbyname',
                          return_value='127.0.0.1'):
-            ip = sys_assist.get_lan_ip()
+            ip = sys_assist.get_interface_ip()
             self.assertEqual(ip, '10.6.60.99')
 
     def test_get_lan_ip_should_return_localhost(self):
-        io_error = MagicMock()
-        io_error.side_effect = IOError
-        with patch.object(sys_assist, 'get_interface_ip',  io_error), \
-            patch.object(sys_assist.socket, 'gethostbyname',
+        with patch.object(sys_assist.socket, 'gethostbyname',
                          return_value='127.0.0.1'):
-            ip = sys_assist.get_lan_ip()
+            ip = sys_assist.get_interface_ip('ABC9')
             self.assertEqual(ip, '127.0.0.1')
 
     def test_get_load_avergae(self):

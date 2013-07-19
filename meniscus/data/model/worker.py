@@ -66,7 +66,7 @@ class Worker(object):
 class WorkerRegistration(object):
     def __init__(self, personality, status='new'):
         self.hostname = platform.node()
-        self.ip_address_v4 = sys_assist.get_lan_ip()
+        self.ip_address_v4 = sys_assist.get_interface_ip()
         self.ip_address_v6 = ""
         self.personality = personality
         self.status = status

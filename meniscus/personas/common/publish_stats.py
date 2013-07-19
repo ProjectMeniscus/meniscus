@@ -38,21 +38,21 @@ def publish_worker_stats():
     """
     Publishes worker stats to the Coordinator(s) at set times
     """
-    #try:
-    cache = ConfigCache()
-    config = cache.get_config()
+    try:
+        cache = ConfigCache()
+        config = cache.get_config()
 
-    request_uri = "{0}/worker/{1}/status".format(
-        config.coordinator_uri, config.worker_id)
+        request_uri = "{0}/worker/{1}/status".format(
+            config.coordinator_uri, config.worker_id)
 
-    req_body = {
-        'worker_status': {
-            'status': 'online',
-            'system_info': SystemInfo().format()
+        req_body = {
+            'worker_status': {
+                'status': 'online',
+                'system_info': SystemInfo().format()
+            }
         }
-    }
 
-    http_request(url=request_uri, json_payload=jsonutils.dumps(req_body),
-                 http_verb='PUT')
-    #except Exception as ex:
-    #    _LOG.info(ex.message)
+        http_request(url=request_uri, json_payload=jsonutils.dumps(req_body),
+                     http_verb='PUT')
+    except Exception as ex:
+        _LOG.info(ex.message)

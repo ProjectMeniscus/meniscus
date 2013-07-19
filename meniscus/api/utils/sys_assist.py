@@ -6,6 +6,42 @@ import struct
 import subprocess
 import sys
 
+from oslo.config import cfg
+
+from meniscus import env
+from meniscus import config
+
+
+_LOG = env.get_logger(__name__)
+
+
+_network_interface_group = cfg.OptGroup(
+    name='network_interface',
+    title='Default network interface name'
+)
+config.get_config().register_group(_network_interface_group)
+
+_network_interface_options = [
+    cfg.StrOpt('default_ifname',
+               default='eth0',
+               help="""The default network interface to pull the IP from"""
+               )
+]
+
+config.get_config().register_opts(
+    _network_interface_options,
+    group=_network_interface_group
+)
+
+try:
+    config.init_config()
+except config.cfg.ConfigFilesNotFoundError as ex:
+    _LOG.exception(ex.message)
+
+conf = config.get_config()
+
+DEFAULT_NETWORK_IFNAME = conf.network_interface.default_ifname
+
 
 def get_sys_mem_total_kB():
     memory_total = None
@@ -72,37 +108,19 @@ def get_disk_usage():
     return disk_usage
 
 
-def get_interface_ip(ifname):
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    return socket.inet_ntoa(
-        fcntl.ioctl(s.fileno(), 0x8915,
-                    struct.pack('256s', ifname[:15]))[20:24])
+def get_interface_ip(ifname=DEFAULT_NETWORK_IFNAME):
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        return socket.inet_ntoa(
+            fcntl.ioctl(s.fileno(), 0x8915,
+                        struct.pack('256s', ifname[:15]))[20:24])
+    except IOError:
+        pass
 
-
-def get_lan_ip():
-    if os.name != "nt":
-        interfaces = [
-            "eth0",
-            "eth1",
-            "eth2",
-            "wlan0",
-            "wlan1",
-            "wifi0",
-            "ath0",
-            "ath1",
-            "ppp0"
-        ]
-        for ifname in interfaces:
-            try:
-                ip = get_interface_ip(ifname)
-                return ip
-            except IOError:
-                pass
-
-            try:
-                return socket.gethostbyname(socket.gethostname())
-            except socket.gaierror:
-                return '127.0.0.1'
+    try:
+        return socket.gethostbyname(socket.gethostname())
+    except socket.gaierror:
+        return '127.0.0.1'
 
 
 def get_cpu_core_count():

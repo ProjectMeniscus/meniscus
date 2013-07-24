@@ -2,9 +2,7 @@ import uuid
 
 import pyes
 from pyes.connection_http import update_connection_pool
-from oslo.config import cfg
 
-from meniscus.config import get_config
 from meniscus.data.datastore.handler import (
     DatabaseHandlerError, DatasourceHandler, STATUS_CONNECTED, STATUS_CLOSED)
 

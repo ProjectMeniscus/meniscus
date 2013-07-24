@@ -6,6 +6,7 @@ from meniscus import env
 from meniscus.storage import dispatch
 from meniscus.normalization.normalizer import *
 
+
 _LOG = env.get_logger(__name__)
 
 

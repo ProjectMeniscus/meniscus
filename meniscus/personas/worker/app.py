@@ -12,6 +12,7 @@ from meniscus import env
 from meniscus.personas.common import publish_stats
 from meniscus.queue import celery
 
+
 _LOG = env.get_logger(__name__)
 
 

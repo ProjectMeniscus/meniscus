@@ -217,5 +217,6 @@ else:
 
 def datasource_handler(handler_name):
     handler = _DATASOURCE_HANDLERS.get(handler_name)
-    handler.connect()
+    if handler:
+        handler.connect()
     return handler

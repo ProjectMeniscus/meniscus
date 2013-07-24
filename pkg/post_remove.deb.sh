@@ -36,7 +36,7 @@ case "$1" in
         [ -e /etc/meniscus ] && rm -rf /etc/meniscus
 	;;
 
-    remove|upgrade|failed-upgrade|abort-install|abort-upgrade|disappear)
+    remove|abort-install|disappear)
         [ -e /usr/share/meniscus ] && rm -rf /usr/share/meniscus
     ;;
 

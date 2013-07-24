@@ -218,5 +218,9 @@ else:
 def datasource_handler(handler_name):
     handler = _DATASOURCE_HANDLERS.get(handler_name)
     if handler:
-        handler.connect()
+        try:
+            handler.connect()
+        except Exception as ex:
+            _LOG.exception(ex.message)
+
     return handler

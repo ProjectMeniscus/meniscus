@@ -28,7 +28,12 @@ def start_up():
     server = SyslogServer(
         ("0.0.0.0", 5140), syslog.MessageHandler())
     server.start()
-    Process(target=start_io).start()
+
+    syslog_server_proc = Process(target=start_io)
+    syslog_server_proc.start()
+    _LOG.info(
+        'Syslog server started as process: {}'.format(syslog_server_proc.pid)
+    )
 
     celery.conf.CELERYBEAT_SCHEDULE = {
         'worker_stats': {
@@ -38,5 +43,9 @@ def start_up():
     }
 
     #include blank argument to celery in order for beat to start correctly
-    Process(target=celery.worker_main, args=[['', '--beat']]).start()
+    celery_proc = Process(target=celery.worker_main, args=[['', '--beat']])
+    celery_proc.start()
+    _LOG.info(
+        'Celery started as process: {}'.format(celery_proc.pid)
+    )
     return application

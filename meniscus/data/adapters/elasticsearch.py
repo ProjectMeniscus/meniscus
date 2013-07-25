@@ -79,6 +79,21 @@ class NamedDatasourceHandler(DatasourceHandler):
             document = dict()
         self._check_connection()
         _id = uuid.uuid4()
+        """
+        From the pyES documents
+
+        index(doc, index, doc_type, id=None, parent=None,
+              force_insert=False, op_type=None, bulk=False,
+              version=None, querystring_args=None, ttl=None)
+
+        Index a typed JSON document into a specific index and make it
+        searchable.
+
+        ^
+        In this case the doctype is the object name. I've changed code in
+        a layer higher to provide an object name based on the following
+        format: object_name='tenant/{tenant_id}'
+        """
         self.connection.index(document, self.index, object_name, _id)
         return _id
 

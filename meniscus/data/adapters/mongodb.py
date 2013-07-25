@@ -51,8 +51,7 @@ class NamedDatasourceHandler(DatasourceHandler):
     def find(self, object_name, query_filter=None, projection=None):
         if query_filter is None:
             query_filter = dict()
-        if projection is None:
-            projection = dict()
+
         self._check_connection()
         return self.database[object_name].find(query_filter, projection)
 

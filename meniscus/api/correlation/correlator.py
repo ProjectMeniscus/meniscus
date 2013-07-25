@@ -10,6 +10,7 @@ from meniscus.api.utils.request import http_request
 from meniscus.data.cache_handler import ConfigCache
 from meniscus.data.cache_handler import TenantCache
 from meniscus.data.cache_handler import TokenCache
+from meniscus.data.model.tenant import EventProducer
 from meniscus.data.model.util import find_event_producer
 from meniscus.data.model.util import load_tenant_from_dict
 from meniscus import env
@@ -37,45 +38,38 @@ def validate_event_message_body(body):
 
 
 def add_correlation_info_to_message(tenant, message):
-    #initialize correlation dictionary with default values
-    correlation_dict = {
-        'tenant_name': tenant.tenant_name,
-        'ep_id': None,
-        'pattern': None,
-        'durable': False,
-        'encrypted': False,
-        '@timestamp': timeutils.utcnow(),
-        'sinks': list(),
-        "destinations": dict()
-    }
-
+    #match the producer by the message pname
     producer = find_event_producer(
         tenant, producer_name=message['pname'])
 
-    #if a valid producer was found, update values
-    if producer:
+    #if the producer is not found, create a default producer
+    if not producer:
+        producer = EventProducer(_id=None, name="default", pattern="default")
 
-        #configure sink dispatch
-        destinations = dict()
-        for sink in producer.sinks:
-            destinations[sink] = {
-                'transaction_id': None,
-                'transaction_time': None
-            }
+    #create correlation dictionary
+    correlation_dict = {
+        'tenant_name': tenant.tenant_name,
+        'ep_id': producer.get_id(),
+        'pattern': producer.pattern,
+        'durable': producer.durable,
+        'encrypted': producer.encrypted,
+        '@timestamp': timeutils.utcnow(),
+        'sinks': producer.sinks,
+        "destinations": dict()
+    }
 
-        correlation_dict.update({
-            'ep_id': producer.get_id(),
-            'pattern': producer.pattern,
-            'durable': producer.durable,
-            'encrypted': producer.encrypted,
-            'sinks': producer.sinks,
-            "destinations": destinations
-        })
+    #configure sink dispatch
+    destinations = dict()
+    for sink in producer.sinks:
+        correlation_dict["destinations"][sink] = {
+            'transaction_id': None,
+            'transaction_time': None
+        }
 
-        #todo(sgonzales) persist message and create job
-        if producer.durable:
-            durable_job_id = str(uuid4())
-            correlation_dict.update({'job_id': durable_job_id})
+    #todo(sgonzales) persist message and create job
+    if producer.durable:
+        durable_job_id = str(uuid4())
+        correlation_dict.update({'job_id': durable_job_id})
 
     message.update({
         "meniscus": {

@@ -203,7 +203,7 @@ class WhenTestingCorrelationMessage(unittest.TestCase):
         self.assertTrue('ep_id' in meniscus_dict.keys())
         self.assertEquals(meniscus_dict['ep_id'], None)
         self.assertTrue('pattern' in meniscus_dict.keys())
-        self.assertEquals(meniscus_dict['pattern'], None)
+        self.assertEquals(meniscus_dict['pattern'], 'default')
         self.assertFalse('job_id' in meniscus_dict.keys())
 
 

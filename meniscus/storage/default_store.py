@@ -14,7 +14,7 @@ def persist_message(message):
     """Takes a message and persists it to the default datastore."""
     try:
         sink = _db_handler
-        sink.put('logs', message)
+        sink.put('tenant/{}'.format(message['meniscus']['tenant']), message)
     except Exception as ex:
         _LOG.exception(ex.message)
         persist_message.retry()

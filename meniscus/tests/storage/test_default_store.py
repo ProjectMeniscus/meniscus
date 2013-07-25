@@ -23,6 +23,9 @@ class WhenTestingStoragePersistence(unittest.TestCase):
                     "x-pid": "24592",
                     "x-info": "http://www.rsyslog.com"
                 }
+            },
+            "meniscus": {
+                "tenant": "12345"
             }
         }
 
@@ -32,4 +35,5 @@ class WhenTestingStoragePersistence(unittest.TestCase):
         with patch('meniscus.storage.default_store._db_handler',
                    self.db_handler):
             persist_message(self.message)
-            self.db_handler.put.assert_called_once_with('logs', self.message)
+            self.db_handler.put.assert_called_once_with(
+                'tenant/12345', self.message)

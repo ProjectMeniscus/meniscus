@@ -20,7 +20,16 @@ def should_normalize(message):
 
 @celery.task(acks_late=True, max_retries=None, serializer="json")
 def normalize_message(message):
-    """Takes a message and normalizes it."""
-    message['msg'] = json.loads(
+    """
+    This code takes a message and normalizes it into a dictionary. This
+    normalized dictionary is assigned to a field matching the pattern name
+    of the normalization. This dictionary is then assigned to the message
+    under the normalized field.
+    """
+    pattern = message['meniscus']['correlation']['pattern']
+    normalized_doc = json.loads(
         _normalizer.normalize(message['msg']).as_json())
+    message['normalized'] = {
+        pattern: normalized_doc
+    }
     return message

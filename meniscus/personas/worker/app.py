@@ -43,7 +43,12 @@ def start_up():
     }
 
     #include blank argument to celery in order for beat to start correctly
-    celery_proc = Process(target=celery.worker_main, args=[['', '--beat']])
+    celery_proc = Process(target=celery.worker_main, args=[[
+        '--logfile',
+        '/var/log/meniscus/celery_beat.log',
+        '--loglevel',
+        'WARNING',
+        '--beat']])
     celery_proc.start()
     _LOG.info(
         'Celery started as process: {}'.format(celery_proc.pid)

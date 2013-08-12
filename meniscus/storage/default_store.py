@@ -2,6 +2,8 @@ from meniscus.data.datastore import datasource_handler, DEFAULT_SINK
 from meniscus import env
 from meniscus.queue import celery
 
+from pyes.exceptions import NoServerAvailable
+
 
 _LOG = env.get_logger(__name__)
 
@@ -15,6 +17,8 @@ def persist_message(message):
     try:
         sink = _db_handler
         sink.put('tenant/{}'.format(message['meniscus']['tenant']), message)
+    except NoServerAvailable as nsa:
+        _LOG.exception(nsa.message)
+        persist_message.retry()
     except Exception as ex:
         _LOG.exception(ex.message)
-        persist_message.retry()

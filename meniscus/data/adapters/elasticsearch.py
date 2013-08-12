@@ -35,6 +35,7 @@ class NamedDatasourceHandler(DatasourceHandler):
         self.username = conf.username
         self.password = conf.password
         self.bulk_size = conf.bulk_size
+        self.bulk = self.bulk_size is not None
 
     def _check_connection(self):
         if self.status != STATUS_CONNECTED:
@@ -94,7 +95,8 @@ class NamedDatasourceHandler(DatasourceHandler):
         a layer higher to provide an object name based on the following
         format: object_name='tenant/{tenant_id}'
         """
-        self.connection.index(document, self.index, object_name, _id)
+        self.connection.index(
+            document, self.index, object_name, _id, bulk=self.bulk)
         return _id
 
     def update(self, object_name, document=None, id=None):

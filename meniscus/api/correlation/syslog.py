@@ -3,24 +3,43 @@ from portal.input.usyslog import SyslogMessageHandler
 from meniscus.api.correlation import correlator
 import meniscus.api.correlation.correlation_exceptions as errors
 from meniscus import env
+from meniscus import config
+from oslo.config import cfg
 from meniscus.storage import dispatch
 from meniscus.normalization.normalizer import *
 
+
+# Syslog server options
+syslog_group = cfg.OptGroup(
+    name='syslog_server', title='Syslog server options')
+config.get_config().register_group(syslog_group)
+
+config.get_config().register_opts(
+    [cfg.IntOpt('max_messages_per_stream',
+        default=-1,
+        help="""Sets the number of messages to consume per stream until the
+             the server should break the connection to force a reconenct
+             and hopefully a loadbalanced node rotation for the client.
+             """
+        )],
+        group=syslog_group)
 
 _LOG = env.get_logger(__name__)
 
 
 class MessageHandler(SyslogMessageHandler):
 
-    def __init__(self, router=None):
+    def __init__(self, conf):
         self.msg = b''
         self.msg_head = None
         self.outbound = None
         self.msg_count = 0
-        self.router = router
+        self.max_messages = conf.syslog_server.max_messages_per_stream
+        self.has_max = self.max_messages > 0
 
     def message_head(self, message_head):
-        self.msg_count += 1
+        if self.has_max:
+            self.msg_count += 1
         self.msg_head = message_head
 
     def message_part(self, message_part):
@@ -42,6 +61,9 @@ class MessageHandler(SyslogMessageHandler):
                 dispatch.persist_message(cee_message)
         except Exception as ex:
             _LOG.exception('unable to place persist_message task on queue')
+
+        if self.has_max and self.msg_count > self.max_messages:
+            return True # True means break the current connection
 
         #reset for next message
         self.msg_head = None

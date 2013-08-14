@@ -4,10 +4,10 @@ from meniscus.api.correlation import correlator
 import meniscus.api.correlation.correlation_exceptions as errors
 from meniscus import env
 from meniscus import config
+from oslo.config import cfg
 from meniscus.storage import dispatch
 from meniscus.normalization.normalizer import *
 
-from oslo.config import cfg
 
 # Syslog server options
 syslog_group = cfg.OptGroup(
@@ -29,12 +29,12 @@ _LOG = env.get_logger(__name__)
 
 class MessageHandler(SyslogMessageHandler):
 
-    def __init__(self, config):
+    def __init__(self, conf):
         self.msg = b''
         self.msg_head = None
         self.outbound = None
         self.msg_count = 0
-        self.max_messages = config.syslog_server.max_messages_per_stream
+        self.max_messages = conf.syslog_server.max_messages_per_stream
         self.has_max = self.max_messages > 0
 
     def message_head(self, message_head):

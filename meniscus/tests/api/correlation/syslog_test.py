@@ -19,10 +19,11 @@ def suite():
 class WhenTestingSyslogHandler(unittest.TestCase):
 
     def setUp(self):
-        self.router = MagicMock()
+        self.conf = MagicMock()
+        self.conf.syslog_server.max_connections_per_stream = 100
         self.tenant_id = '5164b8f4-16fb-4376-9d29-8a6cbaa02fa9'
         self.token = '87324559-33aa-4534-bfd1-036472a32f2e'
-        self.syslog_handler = syslog.MessageHandler(self.router)
+        self.syslog_handler = syslog.MessageHandler(self.conf)
         self.syslog_message_head = SyslogMessageHead()
 
         self.syslog_message_head.priority = '46'

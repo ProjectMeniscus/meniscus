@@ -12,11 +12,19 @@ from meniscus import env
 from meniscus.personas.common import publish_stats
 from meniscus.queue import celery
 
+from meniscus import config
+from oslo.config import cfg
 
 _LOG = env.get_logger(__name__)
 
 
 def start_up():
+    try:
+        config.init_config()
+    except config.cfg.ConfigFilesNotFoundError as ex:
+        _LOG.exception(ex.message)
+
+    conf = config.get_config()
 
     application = api = falcon.API()
     api.add_route('/', VersionResource())
@@ -26,7 +34,7 @@ def start_up():
 
     #syslog correlation endpoint
     server = SyslogServer(
-        ("0.0.0.0", 5140), syslog.MessageHandler())
+        ("0.0.0.0", 5140), syslog.MessageHandler(conf))
     server.start()
 
     syslog_server_proc = Process(target=start_io)

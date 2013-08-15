@@ -39,7 +39,6 @@ class NamedDatasourceHandler(DatasourceHandler):
     def _check_connection(self):
         if self.status != STATUS_CONNECTED:
             raise DatabaseHandlerError('Database not connected.')
-        self.connection.flush()
 
     def connect(self):
         bulk_size = None

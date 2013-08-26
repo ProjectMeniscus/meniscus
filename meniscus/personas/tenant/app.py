@@ -61,4 +61,3 @@ def start_up():
     )
 
     return application
-

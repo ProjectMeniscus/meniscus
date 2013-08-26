@@ -40,7 +40,8 @@
                     "enum": [
                         "coordinator",
                         "worker",
-                        "dispatcher"
+                        "dispatcher",
+                        "tenant"
                     ]
                 }
             }

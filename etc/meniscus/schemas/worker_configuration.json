@@ -8,7 +8,7 @@
 
     "properties": {
         "personality":  {
-            "enum": ["coordinator", "worker"]
+            "enum": ["coordinator", "worker", "dispatcher", "tenant"]
         },
         "personality_module": {
             "type": "string"

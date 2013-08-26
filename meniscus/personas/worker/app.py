@@ -2,18 +2,16 @@ from multiprocessing import Process
 from datetime import timedelta
 
 import falcon
-
 from portal.server import SyslogServer, start_io
 
 from meniscus.api.correlation.resources import PublishMessageResource
 from meniscus.api.version.resources import VersionResource
+from meniscus import config
 from meniscus.api.correlation import syslog
 from meniscus import env
 from meniscus.personas.common import publish_stats
 from meniscus.queue import celery
 
-from meniscus import config
-from oslo.config import cfg
 
 _LOG = env.get_logger(__name__)
 

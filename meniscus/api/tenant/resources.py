@@ -113,7 +113,7 @@ class EventProducersResource(ApiResource):
     def __init__(self, db_handler):
         self.db = db_handler
 
-    @handle_api_exception(operation_name='Event Producers DELETE')
+    @handle_api_exception(operation_name='Event Producers GET')
     def on_get(self, req, resp, tenant_id):
         tenant = find_tenant(self.db, tenant_id=tenant_id)
 

@@ -45,7 +45,8 @@
                     "enum": [
                         "coordinator",
                         "worker",
-                        "dispatcher"
+                        "dispatcher",
+                        "tenant"
                     ]
                 },
                 "status": {

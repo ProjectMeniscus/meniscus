@@ -1,7 +1,6 @@
 import uuid
 
 import pyes
-from pyes.connection_http import update_connection_pool
 
 from meniscus.data.datastore.handler import (
     DatabaseHandlerError, DatasourceHandler, STATUS_CONNECTED, STATUS_CLOSED)
@@ -35,14 +34,13 @@ class NamedDatasourceHandler(DatasourceHandler):
         self.username = conf.username
         self.password = conf.password
         self.bulk_size = conf.bulk_size
+        self.bulk = self.bulk_size is not None
 
     def _check_connection(self):
         if self.status != STATUS_CONNECTED:
             raise DatabaseHandlerError('Database not connected.')
-        self.connection.flush()
 
     def connect(self):
-        update_connection_pool(125)
         bulk_size = None
         if self.bulk_size > 0:
             bulk_size = self.bulk_size
@@ -75,10 +73,6 @@ class NamedDatasourceHandler(DatasourceHandler):
         return cursor[0] if len(cursor) > 0 else None
 
     def put(self, object_name, document=None):
-        if document is None:
-            document = dict()
-        self._check_connection()
-        _id = uuid.uuid4()
         """
         From the pyES documents
 
@@ -94,7 +88,13 @@ class NamedDatasourceHandler(DatasourceHandler):
         a layer higher to provide an object name based on the following
         format: object_name='tenant/{tenant_id}'
         """
-        self.connection.index(document, self.index, object_name, _id)
+        if document is None:
+            document = dict()
+        self._check_connection()
+        _id = str(uuid.uuid4())
+
+        self.connection.index(
+            document, self.index, object_name, _id, bulk=self.bulk)
         return _id
 
     def update(self, object_name, document=None, id=None):

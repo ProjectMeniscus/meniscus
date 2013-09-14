@@ -70,13 +70,16 @@
 
             "properties":{
                 "1": {
-                    "type": "number"
+                    "type": "number",
+                    "minimum": 0
                 },
                 "5": {
-                    "type": "number"
+                    "type": "number",
+                    "minimum": 0
                 },
                 "15": {
-                    "type": "number"
+                    "type": "number",
+                    "minimum": 0
                 }
             }
         },

@@ -19,14 +19,14 @@ class MessageHandler(SyslogMessageHandler):
         self.msg_count = 0
         self.router = router
 
-    def message_head(self, message_head):
+    def on_msg_head(self, message_head):
         self.msg_count += 1
         self.msg_head = message_head
 
-    def message_part(self, message_part):
+    def on_msg_part(self, message_part):
         self.msg += message_part
 
-    def message_complete(self, last_message_part):
+    def on_msg_complete(self, last_message_part):
         full_message = self.msg + last_message_part
         syslog_message = self.msg_head.as_dict()
         syslog_message['message'] = full_message.decode('utf-8')

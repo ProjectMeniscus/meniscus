@@ -1,4 +1,4 @@
-from portal.input.usyslog import SyslogMessageHandler
+from portal.input.syslog.usyslog import SyslogMessageHandler
 
 from meniscus.api.correlation import correlator
 import meniscus.api.correlation.correlation_exceptions as errors

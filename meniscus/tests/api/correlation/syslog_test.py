@@ -2,7 +2,7 @@ import unittest
 
 from mock import MagicMock
 from mock import patch
-from portal.input.usyslog import SyslogMessageHead
+from portal.input.syslog.usyslog import SyslogMessageHead
 
 import meniscus.api.correlation.correlation_exceptions as errors
 from meniscus.api.correlation import syslog
@@ -46,15 +46,15 @@ class WhenTestingSyslogHandler(unittest.TestCase):
 
     def test_message_head(self):
         count = self.syslog_handler.msg_count
-        self.syslog_handler.message_head(self.syslog_message_head)
+        self.syslog_handler.on_msg_head(self.syslog_message_head)
         self.assertEquals(self.syslog_message_head,
                           self.syslog_handler.msg_head)
         self.assertEquals(self.syslog_handler.msg_count, count + 1)
 
     def test_message_part(self):
-        self.syslog_handler.message_part(self.message_part_1)
+        self.syslog_handler.on_msg_part(self.message_part_1)
         self.assertEqual(self.syslog_handler.msg, self.message_part_1)
-        self.syslog_handler.message_part(self.message_part_2)
+        self.syslog_handler.on_msg_part(self.message_part_2)
         self.assertEqual(self.syslog_handler.msg,
                          self.message_part_1 + self.message_part_2)
 
@@ -91,9 +91,10 @@ class WhenTestingSyslogHandler(unittest.TestCase):
         correlate_function = MagicMock(return_value=correlated_message)
         normalizer_func = MagicMock()
 
-        self.syslog_handler.message_head(self.syslog_message_head)
-        self.syslog_handler.message_part(self.message_part_1)
-        self.syslog_handler.message_part(self.message_part_2)
+        self.syslog_handler.on_msg_head(self.syslog_message_head)
+        self.syslog_handler.on_msg_part(self.message_part_1)
+        self.syslog_handler.on_msg_part(self.message_part_2)
+        self.syslog_handler.on_msg_part(self.message_part_3)
 
         syslog_message = self.syslog_message_head.as_dict()
         syslog_message['message'] = (
@@ -107,7 +108,7 @@ class WhenTestingSyslogHandler(unittest.TestCase):
             patch('meniscus.api.correlation.syslog.normalize_message',
                   normalizer_func):
 
-            self.syslog_handler.message_complete(self.message_part_3)
+            self.syslog_handler.on_msg_complete()
             correlate_function.assert_called_once_with(syslog_message)
             normalizer_func.apply_async.assert_called_once()
             self.assertIs(self.syslog_handler.msg_head, None)

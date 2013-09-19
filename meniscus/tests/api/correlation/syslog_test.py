@@ -103,12 +103,14 @@ class WhenTestingSyslogHandler(unittest.TestCase):
             self.message_part_3
         ).decode('utf-8')
 
+        syslog_message['msg_length'] = 512
+
         with patch('meniscus.api.correlation.syslog._correlate_syslog_message',
                    correlate_function),\
             patch('meniscus.api.correlation.syslog.normalize_message',
                   normalizer_func):
 
-            self.syslog_handler.on_msg_complete()
+            self.syslog_handler.on_msg_complete(512)
             correlate_function.assert_called_once_with(syslog_message)
             normalizer_func.apply_async.assert_called_once()
             self.assertIs(self.syslog_handler.msg_head, None)

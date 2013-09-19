@@ -26,8 +26,9 @@ class MessageHandler(SyslogMessageHandler):
     def on_msg_part(self, message_part):
         self.msg += message_part
 
-    def on_msg_complete(self):
+    def on_msg_complete(self, msg_length):
         syslog_message = self.msg_head.as_dict()
+        syslog_message['msg_length'] = msg_length
         syslog_message['message'] = self.msg.decode('utf-8')
         cee_message = _correlate_syslog_message(syslog_message)
 

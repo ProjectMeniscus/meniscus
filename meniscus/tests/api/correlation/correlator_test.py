@@ -16,92 +16,9 @@ from meniscus.sinks import VALID_SINKS
 
 def suite():
     suite = unittest.TestSuite()
-    suite.addTest(WhenTestingMessageBodyValidation())
     suite.addTest(WhenTestingCorrelationMessage())
     suite.addTest(WhenTestingTenantIdentification())
     return suite
-
-
-class WhenTestingMessageBodyValidation(unittest.TestCase):
-    def setUp(self):
-        self.body_no_host = {
-            "pname": "pname",
-            "time": "2013-03-19T18:16:48.411029Z"
-        }
-        self.body_empty_host = {
-            "host": "",
-            "pname": "pname",
-            "time": "2013-03-19T18:16:48.411029Z"
-        }
-        self.body_no_pname = {
-            "host": "host",
-            "time": "2013-03-19T18:16:48.411029Z"
-        }
-        self.body_empty_pname = {
-            "host": "host",
-            "pname": "",
-            "time": "2013-03-19T18:16:48.411029Z"
-        }
-        self.body_no_time = {
-            "host": "host",
-            "pname": "pname"
-        }
-        self.body_empty_time = {
-            "host": "host",
-            "pname": "pname",
-            "time": ""
-        }
-        self.body_valid = {
-            "host": "host",
-            "pname": "pname",
-            "time": "2013-03-19T18:16:48.411029Z"
-        }
-
-    def test_should_raise_exception_for_no_host(self):
-        body = self.body_no_host
-        self.assertFalse('host' in body.keys())
-        with self.assertRaises(exception.MessageValidationError):
-            correlator.validate_event_message_body(body)
-
-    def test_should_raise_exception_for_empty_host(self):
-        body = self.body_empty_host
-        self.assertFalse(body['host'])
-        with self.assertRaises(exception.MessageValidationError):
-            correlator.validate_event_message_body(body)
-
-    def test_should_raise_exception_for_no_pname(self):
-        body = self.body_no_pname
-        self.assertFalse('pname' in body.keys())
-        with self.assertRaises(exception.MessageValidationError):
-            correlator.validate_event_message_body(body)
-
-    def test_should_raise_exception_for_empty_pname(self):
-        body = self.body_empty_pname
-        self.assertFalse(body['pname'])
-        with self.assertRaises(exception.MessageValidationError):
-            correlator.validate_event_message_body(body)
-
-    def test_should_raise_exception_for_no_time(self):
-        body = self.body_no_time
-        self.assertFalse('time' in body.keys())
-        with self.assertRaises(exception.MessageValidationError):
-            correlator.validate_event_message_body(body)
-
-    def test_should_raise_exception_for_empty_time(self):
-        body = self.body_empty_time
-        self.assertFalse(body['time'])
-        with self.assertRaises(exception.MessageValidationError):
-            correlator.validate_event_message_body(body)
-
-    def test_should_return_true_for_valid_body(self):
-        body = self.body_valid
-        self.assertTrue('host' in body.keys())
-        self.assertTrue(body['host'])
-        self.assertTrue('pname' in body.keys())
-        self.assertTrue(body['pname'])
-        self.assertTrue('time' in body.keys())
-        self.assertTrue(body['time'])
-        self.assertTrue(correlator.validate_event_message_body(body))
 
 
 class WhenTestingCorrelationMessage(unittest.TestCase):

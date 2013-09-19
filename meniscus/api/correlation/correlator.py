@@ -19,24 +19,6 @@ from meniscus import env
 _LOG = env.get_logger(__name__)
 
 
-def validate_event_message_body(body):
-    """
-    This method validates the on_post request body
-    """
-
-    # validate host with tenant
-    if 'host' not in body.keys() or not body['host']:
-        raise errors.MessageValidationError("host cannot be empty")
-
-    if 'pname' not in body.keys() or not body['pname']:
-        raise errors.MessageValidationError("pname cannot be empty")
-
-    if 'time' not in body.keys() or not body['time']:
-        raise errors.MessageValidationError("time cannot be empty")
-
-    return True
-
-
 def add_correlation_info_to_message(tenant, message):
     #match the producer by the message pname
     producer = find_event_producer(
@@ -59,7 +41,6 @@ def add_correlation_info_to_message(tenant, message):
     }
 
     #configure sink dispatch
-    destinations = dict()
     for sink in producer.sinks:
         correlation_dict["destinations"][sink] = {
             'transaction_id': None,

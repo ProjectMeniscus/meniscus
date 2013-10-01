@@ -11,3 +11,4 @@ meniscus/coverage.xml
 cache-store
 cache-config
 *~
+.python-version

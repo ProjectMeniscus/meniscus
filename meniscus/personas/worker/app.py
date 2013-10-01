@@ -2,12 +2,11 @@ from multiprocessing import Process
 from datetime import timedelta
 
 import falcon
-from portal.server import SyslogServer, start_io
 
 from meniscus.api.correlation.resources import PublishMessageResource
 from meniscus.api.version.resources import VersionResource
 from meniscus import config
-from meniscus.api.correlation import syslog
+from meniscus.api.correlation import zmq
 from meniscus import env
 from meniscus.personas.common import publish_stats
 from meniscus.queue import celery
@@ -31,14 +30,14 @@ def start_up():
     api.add_route('/v1/tenant/{tenant_id}/publish', PublishMessageResource())
 
     #syslog correlation endpoint
-    server = SyslogServer(
-        ("0.0.0.0", 5140), syslog.MessageHandler(conf))
-    server.start()
+    server = zmq.new_zqm_input_server(conf)
 
-    syslog_server_proc = Process(target=start_io)
-    syslog_server_proc.start()
+    server_proc = Process(target=server.start)
+    server_proc.start()
+
     _LOG.info(
-        'Syslog server started as process: {}'.format(syslog_server_proc.pid)
+        'ZeroMQ reception server started as process: {}'.format(
+            server_proc.pid)
     )
 
     celery.conf.CELERYBEAT_SCHEDULE = {

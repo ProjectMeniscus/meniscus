@@ -40,11 +40,6 @@ coordinator_db_options = [
                help="""database name
                     """
                ),
-    cfg.StrOpt('index',
-               default=None,
-               help="""datasource index
-                    """
-               ),
     cfg.StrOpt('username',
                default='test',
                help="""db username
@@ -89,11 +84,6 @@ short_term_store_options = [
     cfg.StrOpt('database',
                default='test',
                help="""database name
-                    """
-               ),
-    cfg.StrOpt('index',
-               default=None,
-               help="""datasource index
                     """
                ),
     cfg.StrOpt('username',
@@ -145,11 +135,6 @@ default_sink_options = [
     cfg.StrOpt('database',
                default=None,
                help="""database name
-                    """
-               ),
-    cfg.StrOpt('index',
-               default='logs',
-               help="""datasource index
                     """
                ),
     cfg.StrOpt('username',

@@ -37,4 +37,5 @@ class WhenTestingStoragePersistence(unittest.TestCase):
                    self.db_handler):
             persist_message(self.message)
             self.db_handler.put.assert_called_once_with(
-                self.message["meniscus"]["pattern"], self.message)
+                object_name=self.message["meniscus"]["pattern"],
+                document=self.message)

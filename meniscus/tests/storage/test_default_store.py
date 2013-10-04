@@ -25,7 +25,8 @@ class WhenTestingStoragePersistence(unittest.TestCase):
                 }
             },
             "meniscus": {
-                "tenant": "12345"
+                "tenant": "12345",
+                "pattern": "dhcpcd"
             }
         }
 
@@ -36,4 +37,4 @@ class WhenTestingStoragePersistence(unittest.TestCase):
                    self.db_handler):
             persist_message(self.message)
             self.db_handler.put.assert_called_once_with(
-                'tenant/12345', self.message)
+                self.message["meniscus"]["pattern"], self.message)

@@ -15,7 +15,7 @@ def persist_message(message):
     try:
         sink = _db_handler
         sink.put(object_name=message['meniscus']['correlation']['pattern'],
-                 document=message)
+                 document=message, index=message['meniscus']['tenant'])
     except Exception as ex:
         _LOG.exception(ex.message)
         persist_message.retry()

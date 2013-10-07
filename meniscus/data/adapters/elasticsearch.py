@@ -3,7 +3,8 @@ import uuid
 import pyes
 
 from meniscus.data.datastore.handler import (
-    DatabaseHandlerError, DatasourceHandler, STATUS_CONNECTED, STATUS_CLOSED)
+    DatabaseHandlerError, DatasourceHandler,
+    STATUS_CONNECTED, STATUS_CLOSED, STATUS_NEW)
 
 
 def format_terms(terms):
@@ -33,6 +34,7 @@ class NamedDatasourceHandler(DatasourceHandler):
         self.bulk_size = conf.bulk_size
         self.bulk = self.bulk_size is not None
         self.ttl = conf.ttl
+        self.status = STATUS_NEW
 
     def _check_connection(self):
         if self.status != STATUS_CONNECTED:
@@ -75,4 +77,3 @@ class NamedDatasourceHandler(DatasourceHandler):
         self.connection.index(
             document, index, object_name, _id, bulk=self.bulk, ttl=ttl)
         return _id
-

@@ -180,7 +180,7 @@ class WhenTestingEsDataSourceHandler(unittest.TestCase):
         self.es_handler.connection = connection
         self.es_handler.status = elasticsearch.STATUS_CONNECTED
 
-        test_ttl = 120
+        test_ttl = "120d"
         test_document = {"log": "test_data"}
         with patch(
                 'meniscus.data.adapters.elasticsearch.uuid.uuid4',

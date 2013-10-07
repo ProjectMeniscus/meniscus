@@ -147,8 +147,8 @@ default_sink_options = [
                help="""db password
                     """
                ),
-    cfg.IntOpt('ttl',
-               default=30,
+    cfg.StrOpt('ttl',
+               default="30d",
                help="""default time to live for documents
                     inserted into the default store
                     """

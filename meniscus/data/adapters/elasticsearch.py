@@ -77,3 +77,13 @@ class NamedDatasourceHandler(DatasourceHandler):
         self.connection.index(
             document, index, object_name, _id, bulk=self.bulk, ttl=ttl)
         return _id
+
+    def create_index(self, index):
+        self.connection.create_index(self, index)
+
+    def put_ttl_mapping(self, doc_type, index):
+        indices = [index]
+        mapping = {"_ttl": {"enabled": True}}
+
+        self.connection.indices.put_mapping(
+            self, doc_type=doc_type, mapping=mapping, indices=indices)

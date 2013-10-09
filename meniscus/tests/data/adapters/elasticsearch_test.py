@@ -193,3 +193,30 @@ class WhenTestingEsDataSourceHandler(unittest.TestCase):
             index_method.assert_called_once_with(
                 test_document, index_name, object_name, test_uuid,
                 bulk=self.es_handler.bulk, ttl=test_ttl)
+
+    def test_create_index(self):
+        create_index_method = MagicMock()
+        connection = MagicMock()
+        connection.create_index = create_index_method
+        self.es_handler.connection = connection
+
+        index = "dc2bb3e0-3116-11e3-aa6e-0800200c9a66"
+
+        self.es_handler.create_index(index)
+        create_index_method.assert_called_once_with(self.es_handler, index)
+
+    def test_put_ttl_mapping(self):
+        put_mapping_method = MagicMock()
+        connection = MagicMock()
+        connection.indices.put_mapping = put_mapping_method
+        self.es_handler.connection = connection
+
+        index = "dc2bb3e0-3116-11e3-aa6e-0800200c9a66"
+        doc_type = "default"
+
+        self.es_handler.put_ttl_mapping(doc_type=doc_type, index=index)
+        put_mapping_method.assert_called_once_with(
+            self.es_handler, doc_type=doc_type,
+            mapping={"_ttl": {"enabled": True}},
+            indices=[index])
+

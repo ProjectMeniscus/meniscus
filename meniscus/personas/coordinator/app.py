@@ -29,11 +29,11 @@ def start_up():
     worker_status = WorkerStatusResource(datastore)
 
     #Tenant Resources
-    tenant = TenantResource(datastore)
-    user = UserResource(datastore)
-    event_producers = EventProducersResource(datastore)
-    event_producer = EventProducerResource(datastore)
-    token = TokenResource(datastore)
+    tenant = TenantResource()
+    user = UserResource()
+    event_producers = EventProducersResource()
+    event_producer = EventProducerResource()
+    token = TokenResource()
 
     # Create API
     application = api = falcon.API()

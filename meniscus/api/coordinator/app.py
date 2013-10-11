@@ -27,11 +27,11 @@ workers_status = WorkersStatusResource(db_handler)
 worker_status = WorkerStatusResource(db_handler)
 
 #Tenant Resources
-tenant = TenantResource(db_handler)
-user = UserResource(db_handler)
-event_producers = EventProducersResource(db_handler)
-event_producer = EventProducerResource(db_handler)
-token = TokenResource(db_handler)
+tenant = TenantResource()
+user = UserResource()
+event_producers = EventProducersResource()
+event_producer = EventProducerResource()
+token = TokenResource()
 
 # Create API
 application = api = falcon.API()

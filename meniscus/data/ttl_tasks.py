@@ -1,3 +1,8 @@
+"""
+The ttl_tasks module is used for configuring time to live settings on the
+default sink.  Time to live items
+"""
+
 from meniscus.data.datastore import datasource_handler, DEFAULT_SINK
 from meniscus import env
 from meniscus.queue import celery

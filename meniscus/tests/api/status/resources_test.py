@@ -84,7 +84,7 @@ class WhenTestingWorkerUpdateOnPut(testing.TestBase):
         self.simulate_request(
             self.test_route,
             method='PUT',
-            headers={'content-type':'application/json'},
+            headers={'content-type': 'application/json'},
             body=jsonutils.dumps({
                 'worker_status': {
                     'system_info': system_info.format(),

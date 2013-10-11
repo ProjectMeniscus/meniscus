@@ -8,10 +8,8 @@ from meniscus.openstack.common import jsonutils
 
 
 def suite():
-
     test_suite = unittest.TestSuite()
-    test_suite.addTest(WhenTestingVersionResource())
-
+    suite.addTest(WhenTestingVersionResource())
     return test_suite
 
 
@@ -28,8 +26,10 @@ class WhenTestingVersionResource(unittest.TestCase):
 
     def test_should_return_version_json(self):
         self.resource.on_get(self.req, self.resp)
-
         parsed_body = jsonutils.loads(self.resp.body)
-
         self.assertTrue('v1' in parsed_body)
         self.assertEqual('current', parsed_body['v1'])
+
+
+if __name__ == '__main__':
+    unittest.main()

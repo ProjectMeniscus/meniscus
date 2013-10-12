@@ -1,7 +1,6 @@
 import falcon
 
-from meniscus.api import (abort, ApiResource, format_response_body,
-                          handle_api_exception, load_body)
+from meniscus import api
 from meniscus.api.validator_init import get_validator
 from meniscus.data.model.worker import SystemInfo
 from meniscus.data.model.worker import Worker
@@ -11,10 +10,10 @@ def _worker_not_found():
     """
     sends an http 404 invalid worker not found
     """
-    abort(falcon.HTTP_404, 'Unable to locate worker.')
+    api.abort(falcon.HTTP_404, 'Unable to locate worker.')
 
 
-class WorkerStatusResource(ApiResource):
+class WorkerStatusResource(api.ApiResource):
 
     def __init__(self, db_handler):
         """
@@ -22,7 +21,7 @@ class WorkerStatusResource(ApiResource):
         """
         self.db = db_handler
 
-    @handle_api_exception(operation_name='WorkerStatus PUT')
+    @api.handle_api_exception(operation_name='WorkerStatus PUT')
     @falcon.before(get_validator('worker_status'))
     def on_put(self, req, resp, worker_id, validated_body):
         """
@@ -49,7 +48,7 @@ class WorkerStatusResource(ApiResource):
         self.db.update('worker', worker.format_for_save())
         resp.status = falcon.HTTP_200
 
-    @handle_api_exception(operation_name='WorkerStatus GET')
+    @api.handle_api_exception(operation_name='WorkerStatus GET')
     def on_get(self, req, resp, worker_id):
         #find the worker in db
         worker_dict = self.db.find_one('worker', {'worker_id': worker_id})
@@ -60,10 +59,10 @@ class WorkerStatusResource(ApiResource):
         worker = Worker(**worker_dict)
 
         resp.status = falcon.HTTP_200
-        resp.body = format_response_body({'status': worker.get_status()})
+        resp.body = api.format_response_body({'status': worker.get_status()})
 
 
-class WorkersStatusResource(ApiResource):
+class WorkersStatusResource(api.ApiResource):
 
     def __init__(self, db_handler):
         """
@@ -71,7 +70,7 @@ class WorkersStatusResource(ApiResource):
         """
         self.db = db_handler
 
-    @handle_api_exception(operation_name='WorkersStatus GET')
+    @api.handle_api_exception(operation_name='WorkersStatus GET')
     def on_get(self, req, resp):
 
         workers = self.db.find('worker')
@@ -81,4 +80,4 @@ class WorkersStatusResource(ApiResource):
             for worker in workers]
 
         resp.status = falcon.HTTP_200
-        resp.body = format_response_body({'status': workers_status})
+        resp.body = api.format_response_body({'status': workers_status})

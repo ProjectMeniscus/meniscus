@@ -1,34 +1,34 @@
 
 import falcon
 
-from meniscus.api import (ApiResource, format_response_body,
-                          handle_api_exception)
+from meniscus import api
 from meniscus.data.model.worker import Worker
-from meniscus.api.coordinator import coordinator_flow
+from meniscus.data.model import worker_util
 from meniscus.api.validator_init import get_validator
 
 
-class WorkerRegistrationResource(ApiResource):
+class WorkerRegistrationResource(api.ApiResource):
+    """
+    A Resource for registering of new worker nodes.
+    """
 
-    def __init__(self, db_handler):
-        self.db = db_handler
-
-    @handle_api_exception(operation_name='WorkerRegistration POST')
+    @api.handle_api_exception(operation_name='WorkerRegistration POST')
     @falcon.before(get_validator('worker_registration'))
     def on_post(self, req, resp, validated_body):
         """
-        receives json req to register worker responds with a 202 for success
+        Registers a new worker when an HTTP POST is received
+        and responds with a 202 for success
         """
-
+        print "wut"
         #load json payload in body
         body = validated_body['worker_registration']
 
         #instantiate new worker object
         new_worker = Worker(**body)
-
+        print "wut"
         #persist the new worker
-        coordinator_flow.add_worker(self.db, new_worker)
+        worker_util.create_worker(new_worker)
 
         resp.status = falcon.HTTP_202
-        resp.body = format_response_body(
+        resp.body = api.format_response_body(
             {'worker_identity': new_worker.get_registration_identity()})

@@ -197,7 +197,7 @@ class WhenTestingEsDataSourceHandler(unittest.TestCase):
     def test_create_index(self):
         create_index_method = MagicMock()
         connection = MagicMock()
-        connection.create_index = create_index_method
+        connection.indices.create_index_if_missing = create_index_method
         self.es_handler.connection = connection
 
         index = "dc2bb3e0-3116-11e3-aa6e-0800200c9a66"

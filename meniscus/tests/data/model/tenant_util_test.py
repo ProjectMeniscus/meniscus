@@ -4,7 +4,6 @@ from mock import MagicMock, patch
 
 from meniscus.data.model.tenant import EventProducer, Tenant
 from meniscus.openstack.common import jsonutils
-_db_handler = MagicMock()
 
 from meniscus.data.model import tenant_util
 
@@ -53,7 +52,8 @@ class WhenTestingFindMethods(unittest.TestCase):
         self.ds_handler.find_one.return_value = self.tenant_dict
         self.tenant_obj = tenant_util.load_tenant_from_dict(self.tenant_dict)
         self.tenant_cache = MagicMock()
-        self.tenant_cache.cache_get.return_value = jsonutils.dumps(self.tenant_dict)
+        self.tenant_cache.cache_get.return_value = jsonutils.dumps(
+            self.tenant_dict)
         self.tenant_cache.cache_exists.return_value = True
         self.tenant_cache.cache_update = MagicMock()
         self.token_cache = MagicMock()
@@ -150,7 +150,7 @@ class WhenTestingFindMethods(unittest.TestCase):
             patch(
                 'meniscus.data.model.tenant_util.save_tenant',
                 save_tenant_call):
-            new_producer_id =tenant_util.create_event_producer(
+            new_producer_id = tenant_util.create_event_producer(
                 self.tenant_obj,
                 self.event_producer.name,
                 self.event_producer.pattern,

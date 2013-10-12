@@ -219,4 +219,3 @@ class WhenTestingEsDataSourceHandler(unittest.TestCase):
             self.es_handler, doc_type=doc_type,
             mapping={"_ttl": {"enabled": True}},
             indices=[index])
-

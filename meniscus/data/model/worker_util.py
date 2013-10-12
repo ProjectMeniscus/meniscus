@@ -19,4 +19,3 @@ def find_worker(worker_id):
     if worker_dict:
         return Worker(**worker_dict)
     return None
-

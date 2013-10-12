@@ -19,13 +19,13 @@ class WorkerRegistrationResource(api.ApiResource):
         Registers a new worker when an HTTP POST is received
         and responds with a 202 for success
         """
-        print "wut"
+
         #load json payload in body
         body = validated_body['worker_registration']
 
         #instantiate new worker object
         new_worker = Worker(**body)
-        print "wut"
+
         #persist the new worker
         worker_util.create_worker(new_worker)
 

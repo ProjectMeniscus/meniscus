@@ -27,7 +27,8 @@ class WhenTestingTtlTasks(unittest.TestCase):
         with patch('meniscus.data.ttl_tasks._db_handler',
                    self.db_handler):
             ttl_tasks.create_ttl_mapping(self.tenant_id, self.doc_type)
-            self.put_ttl_mapping_method.assert_called_once_with(doc_type=self.doc_type, index=self.tenant_id)
+            self.put_ttl_mapping_method.assert_called_once_with(
+                doc_type=self.doc_type, index=self.tenant_id)
 
     def test_create_index(self):
         delay_call = MagicMock()

@@ -3,15 +3,12 @@ from multiprocessing import Process
 import falcon
 
 from meniscus.api.coordinator.resources import WorkerRegistrationResource
-from meniscus.api.status.resources import WorkerStatusResource
-from meniscus.api.status.resources import WorkersStatusResource
-from meniscus.api.tenant.resources import EventProducerResource
-from meniscus.api.tenant.resources import EventProducersResource
-from meniscus.api.tenant.resources import UserResource
-from meniscus.api.tenant.resources import TenantResource
-from meniscus.api.tenant.resources import TokenResource
+from meniscus.api.status.resources import (
+    WorkerStatusResource, WorkersStatusResource)
+from meniscus.api.tenant.resources import (
+    EventProducerResource, EventProducersResource,
+    UserResource, TenantResource, TokenResource)
 from meniscus.api.version.resources import VersionResource
-from meniscus.data.datastore import COORDINATOR_DB, datasource_handler
 from meniscus import env
 from meniscus.queue import celery
 
@@ -23,13 +20,10 @@ def start_up():
     #Common Resource(s)
     versions = VersionResource()
 
-    #Datastore adapter/session manager
-    datastore = datasource_handler(COORDINATOR_DB)
-
     #Coordinator Resources
     worker_registration = WorkerRegistrationResource()
-    workers_status = WorkersStatusResource(datastore)
-    worker_status = WorkerStatusResource(datastore)
+    workers_status = WorkersStatusResource()
+    worker_status = WorkerStatusResource()
 
     #Tenant Resources
     tenant = TenantResource()

@@ -22,12 +22,11 @@ def create_index(tenant_id):
 
     try:
         _db_handler.create_index(index=tenant_id)
-        create_ttl_mapping.delay(tenant_id=tenant_id, producer_pattern="default")
+        create_ttl_mapping.delay(
+            tenant_id=tenant_id, producer_pattern="default")
     except Exception as ex:
         _LOG.exception(ex.message)
         create_index.retry()
-
-
 
 
 @celery.task(acks_late=True, max_retries=None, ignore_result=True)

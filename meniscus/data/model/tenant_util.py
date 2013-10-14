@@ -1,3 +1,8 @@
+"""
+The tenant_util module provides an abstraction of database operations used
+with instances of the Tenant class and its member objects
+"""
+
 from meniscus.data.datastore import COORDINATOR_DB, datasource_handler
 from meniscus.data.model.tenant import EventProducer
 from meniscus.data.model.tenant import Tenant

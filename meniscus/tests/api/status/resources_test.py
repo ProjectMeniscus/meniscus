@@ -70,29 +70,31 @@ class WhenTestingWorkerUpdateOnPut(testing.TestBase):
             self.assertEqual(falcon.HTTP_404, self.srmock.status)
 
     def test_returns_400_bad_worker_status(self):
-        self.db_handler.find_one.return_value = self.worker_dict
-        self.simulate_request(
-            self.test_route,
-            method='PUT',
-            headers={'content-type': 'application/json'},
-            body=jsonutils.dumps(self.bad_worker_status))
-        self.assertEqual(falcon.HTTP_400, self.srmock.status)
+        with patch('meniscus.data.model.worker_util.find_worker',
+                   MagicMock(return_value=self.worker)):
+            self.simulate_request(
+                self.test_route,
+                method='PUT',
+                headers={'content-type': 'application/json'},
+                body=jsonutils.dumps(self.bad_worker_status))
+            self.assertEqual(falcon.HTTP_400, self.srmock.status)
 
     def test_when_load_average_is_negative_then_should_return_http_400(self):
-        self.db_handler.find_one.return_value = self.worker_dict
-        system_info = SystemInfo()
-        system_info.load_average = {"1": -2, "15": -2, "5": -2}
-        self.simulate_request(
-            self.test_route,
-            method='PUT',
-            headers={'content-type': 'application/json'},
-            body=jsonutils.dumps({
-                'worker_status': {
-                    'system_info': system_info.format(),
-                    'status': self.status
-                }
-            }))
-        self.assertEqual(falcon.HTTP_400, self.srmock.status)
+        with patch('meniscus.data.model.worker_util.find_worker',
+                   MagicMock(return_value=self.worker)):
+            system_info = SystemInfo()
+            system_info.load_average = {"1": -2, "15": -2, "5": -2}
+            self.simulate_request(
+                self.test_route,
+                method='PUT',
+                headers={'content-type': 'application/json'},
+                body=jsonutils.dumps({
+                    'worker_status': {
+                        'system_info': system_info.format(),
+                        'status': self.status
+                    }
+                }))
+            self.assertEqual(falcon.HTTP_400, self.srmock.status)
 
     def test_returns_200_worker_status(self):
         with patch('meniscus.data.model.worker_util.find_worker',

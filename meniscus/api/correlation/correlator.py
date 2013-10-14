@@ -11,8 +11,8 @@ from meniscus.data.cache_handler import ConfigCache
 from meniscus.data.cache_handler import TenantCache
 from meniscus.data.cache_handler import TokenCache
 from meniscus.data.model.tenant import EventProducer
-from meniscus.data.model.util import find_event_producer
-from meniscus.data.model.util import load_tenant_from_dict
+from meniscus.data.model.tenant_util import find_event_producer
+from meniscus.data.model.tenant_util import load_tenant_from_dict
 from meniscus import env
 
 

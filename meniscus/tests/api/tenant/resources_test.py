@@ -4,13 +4,13 @@ import falcon
 import falcon.testing as testing
 from mock import MagicMock
 from mock import patch
-
-from meniscus.api.tenant.resources import EventProducerResource
-from meniscus.api.tenant.resources import EventProducersResource
-from meniscus.api.tenant.resources import MESSAGE_TOKEN
-from meniscus.api.tenant.resources import TenantResource
-from meniscus.api.tenant.resources import TokenResource
-from meniscus.api.tenant.resources import UserResource
+with patch('meniscus.api.tenant.resources.tenant_util', MagicMock()):
+    from meniscus.api.tenant.resources import EventProducerResource
+    from meniscus.api.tenant.resources import EventProducersResource
+    from meniscus.api.tenant.resources import MESSAGE_TOKEN
+    from meniscus.api.tenant.resources import TenantResource
+    from meniscus.api.tenant.resources import TokenResource
+    from meniscus.api.tenant.resources import UserResource
 from meniscus.data.model.tenant import EventProducer
 from meniscus.data.model.tenant import Tenant
 from meniscus.data.model.tenant import Token
@@ -76,12 +76,12 @@ class TenantApiTestBase(testing.TestBase):
 
 class TestingTenantResourceOnPost(TenantApiTestBase):
     def _set_resource(self):
-        self.resource = TenantResource(self.db_handler)
+        self.resource = TenantResource()
         self.test_route = '/v1/tenant'
         self.api.add_route(self.test_route, self.resource)
 
     def test_return_400_for_tenant_id_empty(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
                    self.tenant_not_found):
             self.simulate_request(
                 self.test_route,
@@ -91,7 +91,7 @@ class TestingTenantResourceOnPost(TenantApiTestBase):
             self.assertEqual(falcon.HTTP_400, self.srmock.status)
 
     def test_return_400_for_tenant_name_empty(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
                    self.tenant_not_found):
             self.simulate_request(
                 self.test_route,
@@ -102,7 +102,7 @@ class TestingTenantResourceOnPost(TenantApiTestBase):
             self.assertEqual(falcon.HTTP_400, self.srmock.status)
 
     def test_return_400_for_tenant_not_provided(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
                    self.tenant_not_found):
             self.simulate_request(
                 self.test_route,
@@ -112,7 +112,7 @@ class TestingTenantResourceOnPost(TenantApiTestBase):
             self.assertEqual(falcon.HTTP_400, self.srmock.status)
 
     def test_return_400_for_tenant_exist(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
                    self.tenant_found):
             self.simulate_request(
                 self.test_route,
@@ -122,8 +122,10 @@ class TestingTenantResourceOnPost(TenantApiTestBase):
             self.assertEqual(falcon.HTTP_400, self.srmock.status)
 
     def test_return_200_for_tenant_created(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
-                   self.tenant_not_found):
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
+                   self.tenant_not_found), patch(
+                'meniscus.api.tenant.resources.tenant_util.create_tenant',
+                MagicMock()):
             self.simulate_request(
                 self.test_route,
                 method='POST',
@@ -134,12 +136,12 @@ class TestingTenantResourceOnPost(TenantApiTestBase):
 
 class TestingUserResourceOnGet(TenantApiTestBase):
     def _set_resource(self):
-        self.resource = UserResource(self.db_handler)
+        self.resource = UserResource()
         self.test_route = '/v1/tenant/{tenant_id}'
         self.api.add_route(self.test_route, self.resource)
 
     def test_return_404_for_tenant_not_found(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
                    self.tenant_not_found):
             self.simulate_request(
                 self.test_route,
@@ -150,14 +152,14 @@ class TestingUserResourceOnGet(TenantApiTestBase):
         self.ds_handler_no_tenant = MagicMock()
         self.ds_handler_no_tenant.put = MagicMock()
         self.ds_handler_no_tenant.find_one.side_effect = [None, self.tenant]
-        with patch('meniscus.api.tenant.resources.find_tenant'):
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant'):
             self.simulate_request(
                 self.test_route,
                 method='GET')
             self.assertEqual(falcon.HTTP_200, self.srmock.status)
 
     def test_return_200_with_tenant_json(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
                    self.tenant_found):
             self.simulate_request(
                 self.test_route,
@@ -165,7 +167,7 @@ class TestingUserResourceOnGet(TenantApiTestBase):
             self.assertEqual(falcon.HTTP_200, self.srmock.status)
 
     def test_should_return_tenant_json(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
                    self.tenant_found):
             self.resource.on_get(self.req, self.resp, self.tenant_id)
 
@@ -179,39 +181,15 @@ class TestingUserResourceOnGet(TenantApiTestBase):
             self.assertEqual(tenant_dict[key], parsed_tenant[key])
 
 
-class TestingUserResourceOnDelete(TenantApiTestBase):
-
-    def _set_resource(self):
-        self.resource = UserResource(self.db_handler)
-        self.test_route = '/v1/tenant/{tenant_id}'
-        self.api.add_route(self.test_route, self.resource)
-
-    def test_return_404_for_tenant_not_found(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
-                   self.tenant_not_found):
-            self.simulate_request(
-                self.test_route,
-                method='DELETE')
-            self.assertEqual(falcon.HTTP_404, self.srmock.status)
-
-    def test_return_200_for_tenant_deleted(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
-                   self.tenant_found):
-            self.simulate_request(
-                self.test_route,
-                method='DELETE')
-            self.assertEqual(falcon.HTTP_200, self.srmock.status)
-
-
 class TestingEventProducersResourceOnGet(TenantApiTestBase):
 
     def _set_resource(self):
-        self.resource = EventProducersResource(self.db_handler)
+        self.resource = EventProducersResource()
         self.test_route = '/v1/tenant/{tenant_id}/producers'
         self.api.add_route(self.test_route, self.resource)
 
     def test_return_404_for_tenant_not_found(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
                    self.tenant_not_found):
             self.simulate_request(
                 self.test_route,
@@ -219,7 +197,7 @@ class TestingEventProducersResourceOnGet(TenantApiTestBase):
             self.assertEqual(falcon.HTTP_404, self.srmock.status)
 
     def test_should_return_200_on_get(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
                    self.tenant_found):
             self.simulate_request(
                 self.test_route,
@@ -227,7 +205,7 @@ class TestingEventProducersResourceOnGet(TenantApiTestBase):
             self.assertEqual(falcon.HTTP_200, self.srmock.status)
 
     def test_should_return_producer_json_on_get(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
                    self.tenant_found):
             self.resource.on_get(self.req, self.resp, self.tenant_id)
 
@@ -244,12 +222,12 @@ class TestingEventProducersResourceOnGet(TenantApiTestBase):
 class TestingEventProducersResourceOnPost(TenantApiTestBase):
 
     def _set_resource(self):
-        self.resource = EventProducersResource(self.db_handler)
+        self.resource = EventProducersResource()
         self.test_route = '/v1/tenant/{tenant_id}/producers'
         self.api.add_route(self.test_route, self.resource)
 
     def test_return_404_for_tenant_not_found(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
                    self.tenant_not_found):
             self.simulate_request(
                 self.test_route,
@@ -267,7 +245,7 @@ class TestingEventProducersResourceOnPost(TenantApiTestBase):
             self.assertEqual(falcon.HTTP_404, self.srmock.status)
 
     def test_return_400_for_name_empty(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
                    self.tenant_found):
             self.simulate_request(
                 self.test_route,
@@ -285,7 +263,7 @@ class TestingEventProducersResourceOnPost(TenantApiTestBase):
             self.assertEqual(falcon.HTTP_400, self.srmock.status)
 
     def test_return_400_for_name_not_provided(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
                    self.tenant_found):
             self.simulate_request(
                 self.test_route,
@@ -302,7 +280,7 @@ class TestingEventProducersResourceOnPost(TenantApiTestBase):
             self.assertEqual(falcon.HTTP_400, self.srmock.status)
 
     def test_return_400_for_pattern_empty(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
                    self.tenant_found):
             self.simulate_request(
                 self.test_route,
@@ -320,7 +298,7 @@ class TestingEventProducersResourceOnPost(TenantApiTestBase):
             self.assertEqual(falcon.HTTP_400, self.srmock.status)
 
     def test_return_400_for_pattern_not_provided(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
                    self.tenant_found):
             self.simulate_request(
                 self.test_route,
@@ -337,7 +315,7 @@ class TestingEventProducersResourceOnPost(TenantApiTestBase):
             self.assertEqual(falcon.HTTP_400, self.srmock.status)
 
     def test_return_400_for_pattern_not_provided(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
                    self.tenant_found):
             self.simulate_request(
                 self.test_route,
@@ -354,7 +332,7 @@ class TestingEventProducersResourceOnPost(TenantApiTestBase):
             self.assertEqual(falcon.HTTP_400, self.srmock.status)
 
     def test_return_400_for_bad_durable(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
                    self.tenant_found):
             self.simulate_request(
                 self.test_route,
@@ -373,7 +351,7 @@ class TestingEventProducersResourceOnPost(TenantApiTestBase):
             self.assertEqual(falcon.HTTP_400, self.srmock.status)
 
     def test_return_400_for_bad_encrypted(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
                    self.tenant_found):
             self.simulate_request(
                 self.test_route,
@@ -392,7 +370,7 @@ class TestingEventProducersResourceOnPost(TenantApiTestBase):
             self.assertEqual(falcon.HTTP_400, self.srmock.status)
 
     def test_return_400_for_bad_type_sink(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
                    self.tenant_found):
             self.simulate_request(
                 self.test_route,
@@ -411,7 +389,7 @@ class TestingEventProducersResourceOnPost(TenantApiTestBase):
             self.assertEqual(falcon.HTTP_400, self.srmock.status)
 
     def test_return_400_for_unsupported_and_supported_sink(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
                    self.tenant_found):
             self.simulate_request(
                 self.test_route,
@@ -430,7 +408,7 @@ class TestingEventProducersResourceOnPost(TenantApiTestBase):
             self.assertEqual(falcon.HTTP_400, self.srmock.status)
 
     def test_return_400_for_duplicate_supported_sink(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
                    self.tenant_found):
             self.simulate_request(
                 self.test_route,
@@ -449,8 +427,19 @@ class TestingEventProducersResourceOnPost(TenantApiTestBase):
             self.assertEqual(falcon.HTTP_400, self.srmock.status)
 
     def test_return_201_for_one_supported_sink(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
-                   self.tenant_found):
+        save_tenant = MagicMock()
+        create_event_producer = MagicMock()
+        with patch(
+                'meniscus.api.tenant.resources.tenant_util.find_tenant',
+                self.tenant_found), \
+            patch(
+                'meniscus.api.tenant.resources.tenant_util.save_tenant',
+                save_tenant), \
+            patch(
+                'meniscus.api.tenant.resources.'
+                'tenant_util.create_event_producer',
+                create_event_producer):
+
             self.simulate_request(
                 self.test_route,
                 method='POST',
@@ -468,8 +457,19 @@ class TestingEventProducersResourceOnPost(TenantApiTestBase):
             self.assertEqual(falcon.HTTP_201, self.srmock.status)
 
     def test_return_201_for_multiple_supported_sink(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
-                   self.tenant_found):
+        save_tenant = MagicMock()
+        create_event_producer = MagicMock()
+        with patch(
+                'meniscus.api.tenant.resources.tenant_util.find_tenant',
+                self.tenant_found), \
+            patch(
+                'meniscus.api.tenant.resources.tenant_util.save_tenant',
+                save_tenant), \
+            patch(
+                'meniscus.api.tenant.resources.'
+                'tenant_util.create_event_producer',
+                create_event_producer):
+
             self.simulate_request(
                 self.test_route,
                 method='POST',
@@ -487,8 +487,19 @@ class TestingEventProducersResourceOnPost(TenantApiTestBase):
             self.assertEqual(falcon.HTTP_201, self.srmock.status)
 
     def test_return_201_without_optional_fields(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
-                   self.tenant_found):
+        save_tenant = MagicMock()
+        create_event_producer = MagicMock()
+        with patch(
+            'meniscus.api.tenant.resources.tenant_util.find_tenant',
+            self.tenant_found), \
+            patch(
+                'meniscus.api.tenant.resources.tenant_util.save_tenant',
+                save_tenant), \
+            patch(
+                'meniscus.api.tenant.resources.'
+                'tenant_util.create_event_producer',
+                create_event_producer):
+
             self.simulate_request(
                 self.test_route,
                 method='POST',
@@ -505,8 +516,18 @@ class TestingEventProducersResourceOnPost(TenantApiTestBase):
             self.assertEqual(falcon.HTTP_201, self.srmock.status)
 
     def test_return_201_with_optional_fields(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
-                   self.tenant_found):
+        save_tenant = MagicMock()
+        create_event_producer = MagicMock()
+        with patch(
+                'meniscus.api.tenant.resources.tenant_util.find_tenant',
+                self.tenant_found), \
+            patch(
+                'meniscus.api.tenant.resources.tenant_util.save_tenant',
+                save_tenant), \
+            patch(
+                'meniscus.api.tenant.resources.'
+                'tenant_util.create_event_producer',
+                create_event_producer):
             self.simulate_request(
                 self.test_route,
                 method='POST',
@@ -529,13 +550,13 @@ class TestingEventProducersResourceOnPost(TenantApiTestBase):
 class TestingEventProducerResourceOnGet(TenantApiTestBase):
 
     def _set_resource(self):
-        self.resource = EventProducerResource(self.db_handler)
+        self.resource = EventProducerResource()
         self.test_route = '/v1/tenant/{tenant_id}' \
                           '/producers/{event_producer_id}'
         self.api.add_route(self.test_route, self.resource)
 
     def test_return_404_for_tenant_not_found(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
                    self.tenant_not_found):
             self.simulate_request(
                 self.test_route,
@@ -543,7 +564,7 @@ class TestingEventProducerResourceOnGet(TenantApiTestBase):
             self.assertEqual(falcon.HTTP_404, self.srmock.status)
 
     def test_return_404_for_producer_not_found(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
                    self.tenant_found):
             self.simulate_request(
                 '/v1/tenant/{tenant_id}/producers/{event_producer_id}'.format(
@@ -554,7 +575,7 @@ class TestingEventProducerResourceOnGet(TenantApiTestBase):
             self.assertEqual(falcon.HTTP_404, self.srmock.status)
 
     def test_should_return_200_on_get(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
                    self.tenant_found):
             self.simulate_request(
                 '/v1/tenant/{tenant_id}/producers/{event_producer_id}'.format(
@@ -565,7 +586,7 @@ class TestingEventProducerResourceOnGet(TenantApiTestBase):
             self.assertEqual(falcon.HTTP_200, self.srmock.status)
 
     def test_should_return_producer_json(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
                    self.tenant_found):
             self.resource.on_get(self.req, self.resp, self.tenant_id,
                                  self.producer_id)
@@ -582,13 +603,13 @@ class TestingEventProducerResourceOnGet(TenantApiTestBase):
 class TestingEventProducerResourceOnPut(TenantApiTestBase):
 
     def _set_resource(self):
-        self.resource = EventProducerResource(self.db_handler)
+        self.resource = EventProducerResource()
         self.test_route = '/v1/tenant/{tenant_id}' \
                           '/producers/{event_producer_id}'
         self.api.add_route(self.test_route, self.resource)
 
     def test_return_404_for_tenant_not_found(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
                    self.tenant_not_found):
             self.simulate_request(
                 '/v1/tenant/{tenant_id}/producers/{event_producer_id}'.format(
@@ -611,7 +632,7 @@ class TestingEventProducerResourceOnPut(TenantApiTestBase):
             self.assertEqual(falcon.HTTP_404, self.srmock.status)
 
     def test_return_400_for_name_not_provided(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
                    self.tenant_found):
             self.simulate_request(
                 '/v1/tenant/{tenant_id}/producers/{event_producer_id}'.format(
@@ -633,7 +654,7 @@ class TestingEventProducerResourceOnPut(TenantApiTestBase):
             self.assertEqual(falcon.HTTP_400, self.srmock.status)
 
     def test_return_400_for_name_empty(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
                    self.tenant_found):
             self.simulate_request(
                 '/v1/tenant/{tenant_id}/producers/{event_producer_id}'.format(
@@ -656,7 +677,7 @@ class TestingEventProducerResourceOnPut(TenantApiTestBase):
             self.assertEqual(falcon.HTTP_400, self.srmock.status)
 
     def test_return_400_for_pattern_not_provided(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
                    self.tenant_found):
             self.simulate_request(
                 '/v1/tenant/{tenant_id}/producers/{event_producer_id}'.format(
@@ -678,7 +699,7 @@ class TestingEventProducerResourceOnPut(TenantApiTestBase):
             self.assertEqual(falcon.HTTP_400, self.srmock.status)
 
     def test_return_400_pattern_name_empty(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
                    self.tenant_found):
             self.simulate_request(
                 '/v1/tenant/{tenant_id}/producers/{event_producer_id}'.format(
@@ -701,7 +722,7 @@ class TestingEventProducerResourceOnPut(TenantApiTestBase):
             self.assertEqual(falcon.HTTP_400, self.srmock.status)
 
     def test_return_404_producer_not_found(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
                    self.tenant_found):
             self.simulate_request(
                 '/v1/tenant/{tenant_id}/producers/{event_producer_id}'.format(
@@ -724,7 +745,7 @@ class TestingEventProducerResourceOnPut(TenantApiTestBase):
             self.assertEqual(falcon.HTTP_404, self.srmock.status)
 
     def test_return_400_producer_name_change_name_already_taken(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
                    self.tenant_found):
             self.simulate_request(
                 '/v1/tenant/{tenant_id}/producers/{event_producer_id}'.format(
@@ -747,8 +768,13 @@ class TestingEventProducerResourceOnPut(TenantApiTestBase):
             self.assertEqual(falcon.HTTP_400, self.srmock.status)
 
     def test_return_200_producer_updated(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
-                   self.tenant_found):
+        save_tenant = MagicMock()
+        with patch(
+                'meniscus.api.tenant.resources.tenant_util.find_tenant',
+                self.tenant_found), \
+                patch(
+                    'meniscus.api.tenant.resources.tenant_util.save_tenant',
+                    save_tenant):
             self.simulate_request(
                 '/v1/tenant/{tenant_id}/producers/{event_producer_id}'.format(
                     tenant_id=self.tenant_id,
@@ -773,13 +799,13 @@ class TestingEventProducerResourceOnPut(TenantApiTestBase):
 class TestingEventProducerResourceOnDelete(TenantApiTestBase):
 
     def _set_resource(self):
-        self.resource = EventProducerResource(self.db_handler)
+        self.resource = EventProducerResource()
         self.test_route = '/v1/tenant/{tenant_id}' \
                           '/producers/{event_producer_id}'
         self.api.add_route(self.test_route, self.resource)
 
     def test_return_404_for_tenant_not_found(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
                    self.tenant_not_found):
             self.simulate_request(
                 self.test_route,
@@ -787,7 +813,7 @@ class TestingEventProducerResourceOnDelete(TenantApiTestBase):
             self.assertEqual(falcon.HTTP_404, self.srmock.status)
 
     def test_return_404_for_producer_not_found(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
                    self.tenant_found):
             self.simulate_request(
                 '/v1/tenant/{tenant_id}/producers/{event_producer_id}'.format(
@@ -798,8 +824,11 @@ class TestingEventProducerResourceOnDelete(TenantApiTestBase):
             self.assertEqual(falcon.HTTP_404, self.srmock.status)
 
     def test_should_return_200_on_get(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
-                   self.tenant_found):
+        mock_tenant_util = MagicMock()
+        mock_tenant_util.find_tenant.return_value = self.tenant_found
+
+        with patch('meniscus.api.tenant.resources.tenant_util',
+                   mock_tenant_util):
             self.simulate_request(
                 '/v1/tenant/{tenant_id}/producers/{event_producer_id}'.format(
                     tenant_id=self.tenant_id,
@@ -812,12 +841,12 @@ class TestingEventProducerResourceOnDelete(TenantApiTestBase):
 class TestingTokenResourceOnHead(TenantApiTestBase):
 
     def _set_resource(self):
-        self.resource = TokenResource(self.db_handler)
+        self.resource = TokenResource()
         self.test_route = '/v1/tenant/{tenant_id}/token'
         self.api.add_route(self.test_route, self.resource)
 
     def test_return_404_for_tenant_not_found(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
                    self.tenant_not_found):
             self.simulate_request(
                 self.test_route,
@@ -826,7 +855,7 @@ class TestingTokenResourceOnHead(TenantApiTestBase):
             self.assertEqual(falcon.HTTP_404, self.srmock.status)
 
     def test_return_404_for_invalid_token(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
                    self.tenant_found):
             self.simulate_request(
                 self.test_route,
@@ -835,7 +864,7 @@ class TestingTokenResourceOnHead(TenantApiTestBase):
             self.assertEqual(falcon.HTTP_404, self.srmock.status)
 
     def test_return_200_valid_token(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
                    self.tenant_found):
             self.simulate_request(
                 self.test_route,
@@ -844,7 +873,7 @@ class TestingTokenResourceOnHead(TenantApiTestBase):
             self.assertEqual(falcon.HTTP_200, self.srmock.status)
 
     def test_should_return_200_previous_token(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
                    self.tenant_found):
             self.simulate_request(
                 self.test_route,
@@ -856,12 +885,12 @@ class TestingTokenResourceOnHead(TenantApiTestBase):
 class TestingTokenResourceOnGet(TenantApiTestBase):
 
     def _set_resource(self):
-        self.resource = TokenResource(self.db_handler)
+        self.resource = TokenResource()
         self.test_route = '/v1/tenant/{tenant_id}/token'
         self.api.add_route(self.test_route, self.resource)
 
     def test_return_404_for_tenant_not_found(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
                    self.tenant_not_found):
             self.simulate_request(
                 self.test_route,
@@ -870,7 +899,7 @@ class TestingTokenResourceOnGet(TenantApiTestBase):
             self.assertEqual(falcon.HTTP_404, self.srmock.status)
 
     def test_should_return_200_on_get(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
                    self.tenant_found):
             self.simulate_request(
                 self.test_route.format(
@@ -880,7 +909,7 @@ class TestingTokenResourceOnGet(TenantApiTestBase):
             self.assertEqual(falcon.HTTP_200, self.srmock.status)
 
     def test_should_return_token_json(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
                    self.tenant_found):
             self.resource.on_get(self.req, self.resp, self.tenant_id)
 
@@ -894,12 +923,12 @@ class TestingTokenResourceOnGet(TenantApiTestBase):
 class TestingTokenResourceOnPost(TenantApiTestBase):
 
     def _set_resource(self):
-        self.resource = TokenResource(self.db_handler)
+        self.resource = TokenResource()
         self.test_route = '/v1/tenant/{tenant_id}/token'
         self.api.add_route(self.test_route, self.resource)
 
     def test_return_404_for_tenant_not_found(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
                    self.tenant_not_found):
             self.simulate_request(
                 self.test_route,
@@ -915,7 +944,7 @@ class TestingTokenResourceOnPost(TenantApiTestBase):
             self.assertEqual(falcon.HTTP_404, self.srmock.status)
 
     def test_return_400_for_invalidate_now_not_provided(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
                    self.tenant_found):
             self.simulate_request(
                 self.test_route,
@@ -930,7 +959,7 @@ class TestingTokenResourceOnPost(TenantApiTestBase):
         self.assertEqual(falcon.HTTP_400, self.srmock.status)
 
     def test_return_400_for_invalidate_now_not_boolean(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
                    self.tenant_found):
             self.simulate_request(
                 self.test_route,
@@ -946,8 +975,10 @@ class TestingTokenResourceOnPost(TenantApiTestBase):
         self.assertEqual(falcon.HTTP_400, self.srmock.status)
 
     def test_return_203_for_invalidate_now(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
-                   self.tenant_found):
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
+                   self.tenant_found), patch(
+                'meniscus.api.tenant.resources.tenant_util.save_tenant',
+                MagicMock()):
             self.simulate_request(
                 self.test_route,
                 method='POST',
@@ -966,8 +997,10 @@ class TestingTokenResourceOnPost(TenantApiTestBase):
                            self.timestamp_original)
 
     def test_return_203_for_invalidate_now_false(self):
-        with patch('meniscus.api.tenant.resources.find_tenant',
-                   self.tenant_found):
+        with patch('meniscus.api.tenant.resources.tenant_util.find_tenant',
+                   self.tenant_found), patch(
+                'meniscus.api.tenant.resources.tenant_util.save_tenant',
+                MagicMock()):
             self.simulate_request(
                 self.test_route,
                 method='POST',
@@ -989,7 +1022,7 @@ class TestingTokenResourceOnPost(TenantApiTestBase):
 class TestingTokenResourceValidation(TenantApiTestBase):
 
     def _set_resource(self):
-        self.resource = TokenResource(self.db_handler)
+        self.resource = TokenResource()
 
     def test_iso_timestamp_format_should_throw_exception_for_time_limit(self):
         bad_time_format = "2013-03-19"

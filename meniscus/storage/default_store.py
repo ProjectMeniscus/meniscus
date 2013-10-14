@@ -14,7 +14,8 @@ def persist_message(message):
     """Takes a message and persists it to the default datastore."""
     try:
         sink = _db_handler
-        sink.put('tenant/{}'.format(message['meniscus']['tenant']), message)
+        sink.put(object_name=message['meniscus']['correlation']['pattern'],
+                 document=message, index=message['meniscus']['tenant'])
     except Exception as ex:
         _LOG.exception(ex.message)
         persist_message.retry()

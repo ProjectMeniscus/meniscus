@@ -24,7 +24,7 @@ def start_up():
     datastore = datasource_handler(COORDINATOR_DB)
 
     #Coordinator Resources
-    worker_registration = WorkerRegistrationResource(datastore)
+    worker_registration = WorkerRegistrationResource()
     workers_status = WorkersStatusResource(datastore)
     worker_status = WorkerStatusResource(datastore)
 

@@ -22,7 +22,7 @@ versions = VersionResource()
 
 #Coordinator Resources
 db_handler = datasource_handler(COORDINATOR_DB)
-worker_registration = WorkerRegistrationResource(db_handler)
+worker_registration = WorkerRegistrationResource()
 workers_status = WorkersStatusResource(db_handler)
 worker_status = WorkerStatusResource(db_handler)
 

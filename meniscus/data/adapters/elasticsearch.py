@@ -127,4 +127,4 @@ class NamedDatasourceHandler(DatasourceHandler):
         mapping = {"_ttl": {"enabled": True}}
 
         self.connection.indices.put_mapping(
-            self, doc_type=doc_type, mapping=mapping, indices=indices)
+            doc_type=doc_type, mapping=mapping, indices=indices)

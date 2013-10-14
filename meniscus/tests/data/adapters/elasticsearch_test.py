@@ -203,7 +203,7 @@ class WhenTestingEsDataSourceHandler(unittest.TestCase):
         index = "dc2bb3e0-3116-11e3-aa6e-0800200c9a66"
 
         self.es_handler.create_index(index)
-        create_index_method.assert_called_once_with(self.es_handler, index)
+        create_index_method.assert_called_once_with(index=index)
 
     def test_put_ttl_mapping(self):
         put_mapping_method = MagicMock()
@@ -216,6 +216,6 @@ class WhenTestingEsDataSourceHandler(unittest.TestCase):
 
         self.es_handler.put_ttl_mapping(doc_type=doc_type, index=index)
         put_mapping_method.assert_called_once_with(
-            self.es_handler, doc_type=doc_type,
+            doc_type=doc_type,
             mapping={"_ttl": {"enabled": True}},
             indices=[index])

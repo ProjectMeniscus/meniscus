@@ -2,7 +2,6 @@ import unittest
 
 from mock import MagicMock, patch
 
-#with patch('meniscus.data.datastore.datasource_handler', MagicMock()):
 from meniscus.data import ttl_tasks
 
 
@@ -40,7 +39,8 @@ class WhenTestingTtlTasks(unittest.TestCase):
             ttl_tasks.create_ttl_mapping.delay = delay_call
             ttl_tasks.create_index(self.tenant_id)
         self.create_index_method.assert_called_once_with(index=self.tenant_id)
-        delay_call.assert_called_once_with(self.tenant_id, "default")
+        delay_call.assert_called_once_with(
+            tenant_id=self.tenant_id, producer_pattern="default")
 
 
 if __name__ == "__main__":

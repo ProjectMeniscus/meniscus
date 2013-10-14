@@ -3,7 +3,7 @@ import unittest
 from mock import MagicMock, patch
 
 from meniscus.data.model.worker import Worker, WorkerRegistration
-from meniscus.openstack.common import jsonutils
+
 _db_handler = MagicMock()
 
 from meniscus.data.model import worker_util

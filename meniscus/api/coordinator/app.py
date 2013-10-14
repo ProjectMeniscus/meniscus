@@ -1,3 +1,5 @@
+from multiprocessing import Process
+
 import falcon
 
 from meniscus.api.coordinator.resources import WorkerRegistrationResource
@@ -12,6 +14,7 @@ from meniscus.api.version.resources import VersionResource
 from meniscus.data.datastore import COORDINATOR_DB, datasource_handler
 from meniscus import env
 from meniscus.openstack.common import log
+from meniscus.queue import celery
 
 
 log.setup('meniscus')
@@ -52,3 +55,9 @@ api.add_route('/v1/tenant/{tenant_id}/producers', event_producers)
 api.add_route('/v1/tenant/{tenant_id}/producers/{event_producer_id}',
               event_producer)
 api.add_route('/v1/tenant/{tenant_id}/token', token)
+
+celery_proc = Process(target=celery.worker_main)
+celery_proc.start()
+_LOG.info(
+    'Celery started as process: {}'.format(celery_proc.pid)
+)

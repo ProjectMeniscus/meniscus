@@ -116,7 +116,7 @@ class NamedDatasourceHandler(DatasourceHandler):
         Creates a new index on the elasticsearch cluster.
         If the index is already created, errors will be ignored.
         """
-        self.connection.indices.create_index_if_missing(self, index)
+        self.connection.indices.create_index_if_missing(index=index)
 
     def put_ttl_mapping(self, doc_type, index):
         """

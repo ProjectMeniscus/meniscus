@@ -20,7 +20,7 @@ def create_index(tenant_id):
     attempts to create the index and then call a task to create the mapping.
     """
     _db_handler.create_index(index=tenant_id)
-    create_ttl_mapping.delay(tenant_id, "default")
+    create_ttl_mapping.delay(tenant_id=tenant_id, producer_pattern="default")
 
 
 @celery.task(acks_late=True, max_retries=None, ignore_result=True)

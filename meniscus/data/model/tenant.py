@@ -5,12 +5,12 @@ from meniscus.sinks import DEFAULT_SINK
 
 class EventProducer(object):
     """
-An event producer is a nicer way of describing a parsing template
-for a producer of events. Event producer definitions should be
-reusable and not specific to any one host. While this may not
-always be the case, it should be considered for each event producer
-described.
-"""
+    An event producer is a nicer way of describing a parsing template
+    for a producer of events. Event producer definitions should be
+    reusable and not specific to any one host. While this may not
+    always be the case, it should be considered for each event producer
+    described.
+    """
 
     def __init__(self, _id, name, pattern, durable=False,
                  encrypted=False, sinks=None):
@@ -36,6 +36,9 @@ described.
 
 
 class Token(object):
+    """
+    Token is an object used to authenticate messages from a tenant.
+    """
 
     def __init__(self, valid=None, previous=None, last_changed=None):
         if not valid:
@@ -48,14 +51,25 @@ class Token(object):
         self.last_changed = last_changed
 
     def reset_token(self):
+        """
+        Resets a token by creating a new valid token,
+        and saves the current token as previous.
+        """
         self.previous = self.valid
         self.valid = str(uuid4())
         self.last_changed = isotime(subsecond=True)
 
     def reset_token_now(self):
+        """
+        Completely resets token values leaving no previous token.
+        """
         self.__init__()
 
     def validate_token(self, message_token):
+        """
+        Validates a token as True if the message_token matches
+        the current valid token or the previous token.
+        """
         if not message_token:
             return False
 

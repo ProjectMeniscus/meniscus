@@ -37,7 +37,7 @@ def get_normalizer(conf=config.get_config()):
     loaded_rules = list()
     if normalization_conf.rules_dir:
         loaded_rules = load_rules(normalizer, normalization_conf.rules_dir)
-    return (normalizer, loaded_rules)
+    return normalizer, loaded_rules
 
 
 def load_rules(normalizer, path):

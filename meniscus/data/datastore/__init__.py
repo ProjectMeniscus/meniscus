@@ -32,17 +32,12 @@ coordinator_db_options = [
                ),
     cfg.ListOpt('servers',
                 default='localhost:27017',
-                help="""hostanme:port for db servers
+                help="""hostname:port for db servers
                     """
                 ),
     cfg.StrOpt('database',
                default='test',
                help="""database name
-                    """
-               ),
-    cfg.StrOpt('index',
-               default=None,
-               help="""datasource index
                     """
                ),
     cfg.StrOpt('username',
@@ -83,17 +78,12 @@ short_term_store_options = [
                ),
     cfg.ListOpt('servers',
                 default='localhost:27017',
-                help="""hostanme:port for db servers
+                help="""hostname:port for db servers
                     """
                 ),
     cfg.StrOpt('database',
                default='test',
                help="""database name
-                    """
-               ),
-    cfg.StrOpt('index',
-               default=None,
-               help="""datasource index
                     """
                ),
     cfg.StrOpt('username',
@@ -115,7 +105,7 @@ config.get_config().register_opts(
 #Register data handler options for default sink
 default_sink_group = cfg.OptGroup(
     name=DEFAULT_SINK,
-    title='Deafault_Sink Configuration Options')
+    title='Default_Sink Configuration Options')
 
 config.get_config().register_group(default_sink_group)
 
@@ -134,7 +124,7 @@ default_sink_options = [
                ),
     cfg.ListOpt('servers',
                 default='localhost:9200',
-                help="""hostanme:port for db servers
+                help="""hostname:port for db servers
                     """
                 ),
     cfg.IntOpt('bulk_size',
@@ -147,11 +137,6 @@ default_sink_options = [
                help="""database name
                     """
                ),
-    cfg.StrOpt('index',
-               default='logs',
-               help="""datasource index
-                    """
-               ),
     cfg.StrOpt('username',
                default=None,
                help="""db username
@@ -160,6 +145,12 @@ default_sink_options = [
     cfg.StrOpt('password',
                default=None,
                help="""db password
+                    """
+               ),
+    cfg.StrOpt('ttl',
+               default="30d",
+               help="""default time to live for documents
+                    inserted into the default store
                     """
                )
 ]

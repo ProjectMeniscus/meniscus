@@ -13,7 +13,5 @@ celery
 librabbitmq
 pylognorm
 meniscus-portal
-pastedeploy
-paste
 pywebhdfs
 netaddr

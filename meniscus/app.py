@@ -14,7 +14,7 @@ DEFAULT_PERSONALITY_MODULE = env.get('WORKER_PERSONA',
 config_cache = ConfigCache()
 
 
-def bootstrap_api(global_config, **local_conf):
+def bootstrap_api():
 
     #if the configuration exists in the cache,
     # retrieve the personality module
@@ -34,3 +34,5 @@ def bootstrap_api(global_config, **local_conf):
 
     #start up the api from the specified personality_module
     return plugin_mod.start_up()
+
+application = bootstrap_api()

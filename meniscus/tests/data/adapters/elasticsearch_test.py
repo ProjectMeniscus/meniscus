@@ -1,109 +1,221 @@
 import unittest
-import os
-
-from meniscus.config import init_config, get_config
-
-from meniscus.data.datastore import datasource_handler
-
-from meniscus.data.adapters.elasticsearch import format_search
+from mock import MagicMock, patch
+from meniscus.data.adapters import elasticsearch
+from meniscus.data.adapters.elasticsearch import pyes
 
 
 def suite():
     suite = unittest.TestSuite()
-    suite.addTest(WhenConnectingToLiveES())
+    suite.addTest(WhenTestingFormatMethods())
+    suite.addTest(WhenTestingEsDataSourceHandler)
 
     return suite
 
 
-class WhenBuildingQueryObjects(unittest.TestCase):
+class WhenTestingFormatMethods(unittest.TestCase):
+    def setUp(self):
+        self.unformatted_terms = {
+            "tenant_id": "abcd1234",
+            "log_level": "DEBUG"
+        }
+        self.expected_format = [
+            {
+                'term': {
+                    "tenant_id": "abcd1234"
+                }
+            },
+            {
+                'term': {
+                    "log_level": "DEBUG"
+                }
+            }
+        ]
 
-    def test_should_format_one_term_queries(self):
-        expected = {
+        self.positive_terms = {
+            "appname": "apache",
+            "tenant_id": "abcd1234"
+        }
+        self.negative_terms = {
+            "log_level": "DEBUG"
+        }
+        self.expected_search = {
             'bool': {
-                'must': [
+                'must_not': [
                     {
                         'term': {
-                            'test': 'value'
+                            'log_level': 'DEBUG'
                         }
                     }
-                ]
-            }
-        }
-
-        actual = format_search(positive_terms={'test': 'value'})
-        self.assertEqual(expected, actual)
-
-    def test_should_format_multi_term_queries(self):
-        expected = {
-            'bool': {
+                ],
                 'must': [
                     {
                         'term': {
-                            'test': 'value'
+                            'tenant_id': 'abcd1234'
                         }
                     },
                     {
                         'term': {
-                            'value': 'test'
+                            'appname': 'apache'
                         }
                     }
                 ]
             }
         }
 
-        actual = format_search(positive_terms={
-            'test': 'value',
-            'value': 'test'
-        })
-        self.assertEqual(expected, actual)
+    def test_format_terms(self):
+        formatted_terms = elasticsearch.format_terms(self.unformatted_terms)
+        self.assertEqual(formatted_terms, self.expected_format)
+
+    def test_format_search(self):
+        formatted_search = elasticsearch.format_search(
+            self.positive_terms, self.negative_terms)
+
+        self.assertEqual(formatted_search, self.expected_search)
 
 
-class WhenConnectingToLiveES(unittest.TestCase):
-
+class WhenTestingEsDataSourceHandler(unittest.TestCase):
     def setUp(self):
-        init_config(['--config-file', 'meniscus.cfg'])
-        conf = get_config()
-        self.handler = datasource_handler(conf)
-        self.handler.connect()
+        self.conf = MagicMock()
+        self.conf.servers = ['localhost:9200']
+        self.conf.bulk_size = None
+        self.conf.ttl = 45
 
-    def tearDown(self):
-        self.handler.close()
+        self.bulk_conf = MagicMock()
+        self.bulk_conf.servers = ['localhost:9200']
+        self.bulk_conf.bulk_size = 100
+        self.bulk_conf.ttl = 30
 
-    @unittest.skipIf('RUN_INTEGRATION' not in os.environ or
-                     os.environ['RUN_INTEGRATION'] is False,
-                     'Integration tests are not enabled. Enable them by '
-                     'setting the environment variable "RUN_INTEGRATION"'
-                     'to true.')
-    def test_elasticsearch_adapter(self):
-        self.handler.put('test', {'name': 'test_1', 'value': 1})
-        self.handler.put('test', {'name': 'test_2', 'value': 2})
-        self.handler.put('test', {'name': 'test_2', 'value': 3})
-        self.handler.put('test', {'name': 'test_2', 'value': 4})
-        self.handler.put('test', {'name': 'test_2', 'value': 5})
-        self.handler.put('test', {'name': 'test_2', 'value': 6})
+        self.es_handler = elasticsearch.NamedDatasourceHandler(self.conf)
+        self.es_bulk_handler = elasticsearch.NamedDatasourceHandler(
+            self.bulk_conf)
 
-        test_obj = self.handler.find_one('test', {'name': 'test_1'})
-        self.assertEqual(1, test_obj['value'])
+    def test_constructor(self):
+        #test es_handler constructor with no bulk off
+        self.assertEqual(self.es_handler.es_servers, self.conf.servers)
+        self.assertEqual(self.es_handler.bulk_size, self.conf.bulk_size)
+        self.assertEqual(self.es_handler.bulk, False)
+        self.assertEqual(self.es_handler.ttl, self.conf.ttl)
+        self.assertEquals(self.es_handler.status, elasticsearch.STATUS_NEW)
 
-        obj_id = test_obj._meta.id
-        test_obj['value'] = 10
-        self.handler.update('test', test_obj, obj_id)
+        #test es_handler constructor with bulk on
+        self.assertEqual(self.es_bulk_handler.es_servers,
+                         self.bulk_conf.servers)
+        self.assertEqual(self.es_bulk_handler.bulk_size,
+                         self.bulk_conf.bulk_size)
+        self.assertEqual(self.es_bulk_handler.bulk, True)
+        self.assertEqual(self.es_bulk_handler.ttl, self.bulk_conf.ttl)
+        self.assertEquals(self.es_bulk_handler.status,
+                          elasticsearch.STATUS_NEW)
 
-        test_obj = self.handler.find_one('test', {'name': 'test_1'})
-        self.assertEqual(10, test_obj['value'])
-        self.assertEqual(obj_id, test_obj._meta.id)
+    def test_check_connection(self):
+        self.es_handler.status = elasticsearch.STATUS_NEW
+        with self.assertRaises(elasticsearch.DatabaseHandlerError):
+            self.es_handler._check_connection()
 
-        self.handler.delete('test', {'name': 'test_1'})
-        test_obj = self.handler.find_one('test', {'name': 'test_1'})
-        self.assertFalse(test_obj)
+        self.es_handler.status = elasticsearch.STATUS_CLOSED
+        with self.assertRaises(elasticsearch.DatabaseHandlerError):
+            self.es_handler._check_connection()
 
-        test_objs = self.handler.find('test', {'name': 'test_2'})
-        self.assertEqual(5, test_objs.count())
+        #test that a status of  STATUS_CONNECTED  does not raise an exception
+        handler_error_raised = False
+        try:
+            self.es_handler.status = elasticsearch.STATUS_CONNECTED
+            self.es_handler._check_connection()
+        except elasticsearch.DatabaseHandlerError:
+            handler_error_raised = True
+        self.assertFalse(handler_error_raised)
 
-        self.handler.delete('test', {'name': 'test_2'})
-        test_objs = self.handler.find('test', {'name': 'test_2'})
-        self.assertEqual(0, test_objs.count())
+    def test_connection(self):
+        connection = MagicMock(return_value=None)
+        with patch.object(pyes.ES, '__init__', connection):
+            self.es_handler.connect()
+        connection.assert_called_once_with(
+            self.es_handler.es_servers,
+            bulk_size=None
+        )
+        self.assertEquals(
+            self.es_handler.status,
+            elasticsearch.STATUS_CONNECTED)
 
+        connection = MagicMock(return_value=None)
+        with patch.object(pyes.ES, '__init__', connection):
+            self.es_bulk_handler.connect()
+        connection.assert_called_once_with(
+            self.es_bulk_handler.es_servers,
+            bulk_size=self.es_bulk_handler.bulk_size
+        )
+        self.assertEquals(
+            self.es_bulk_handler.status,
+            elasticsearch.STATUS_CONNECTED)
 
-if __name__ == '__main__':
-    unittest.main()
+    def test_close(self):
+        self.es_handler.close()
+        self.assertEqual(self.es_handler.connection, None)
+        self.assertEqual(self.es_handler.status, elasticsearch.STATUS_CLOSED)
+
+    def test_put(self):
+        index_method = MagicMock()
+        connection = MagicMock()
+        connection.index = index_method
+        self.es_handler.connection = connection
+        self.es_handler.status = elasticsearch.STATUS_CONNECTED
+
+        test_uuid = "7eaf874c-ea3a-4098-9617-35de9392d3b1"
+
+        #test with default document and ttl
+        with patch(
+                'meniscus.data.adapters.elasticsearch.uuid.uuid4',
+                MagicMock(return_value=test_uuid)):
+            object_name = 'syslog'
+            index_name = 'tenant_id'
+            self.es_handler.put(object_name, index=index_name)
+            index_method.assert_called_once_with(
+                dict(), index_name, object_name, test_uuid,
+                bulk=self.es_handler.bulk, ttl=self.es_handler.ttl)
+
+        #test with assigned document and ttl values
+        index_method = MagicMock()
+        connection = MagicMock()
+        connection.index = index_method
+        self.es_handler.connection = connection
+        self.es_handler.status = elasticsearch.STATUS_CONNECTED
+
+        test_ttl = "120d"
+        test_document = {"log": "test_data"}
+        with patch(
+                'meniscus.data.adapters.elasticsearch.uuid.uuid4',
+                MagicMock(return_value=test_uuid)):
+            object_name = 'syslog'
+            index_name = 'tenant_id'
+            self.es_handler.put(
+                object_name, document=test_document,
+                index=index_name, ttl=test_ttl)
+            index_method.assert_called_once_with(
+                test_document, index_name, object_name, test_uuid,
+                bulk=self.es_handler.bulk, ttl=test_ttl)
+
+    def test_create_index(self):
+        create_index_method = MagicMock()
+        connection = MagicMock()
+        connection.indices.create_index_if_missing = create_index_method
+        self.es_handler.connection = connection
+
+        index = "dc2bb3e0-3116-11e3-aa6e-0800200c9a66"
+
+        self.es_handler.create_index(index)
+        create_index_method.assert_called_once_with(index=index)
+
+    def test_put_ttl_mapping(self):
+        put_mapping_method = MagicMock()
+        connection = MagicMock()
+        connection.indices.put_mapping = put_mapping_method
+        self.es_handler.connection = connection
+
+        index = "dc2bb3e0-3116-11e3-aa6e-0800200c9a66"
+        doc_type = "default"
+
+        self.es_handler.put_ttl_mapping(doc_type=doc_type, index=index)
+        put_mapping_method.assert_called_once_with(
+            doc_type=doc_type,
+            mapping={"_ttl": {"enabled": True}},
+            indices=[index])

@@ -1,17 +1,18 @@
+from multiprocessing import Process
+
 import falcon
 
 from meniscus.api.coordinator.resources import WorkerRegistrationResource
-from meniscus.api.status.resources import WorkerStatusResource
-from meniscus.api.status.resources import WorkersStatusResource
-from meniscus.api.tenant.resources import EventProducerResource
-from meniscus.api.tenant.resources import EventProducersResource
-from meniscus.api.tenant.resources import UserResource
-from meniscus.api.tenant.resources import TenantResource
-from meniscus.api.tenant.resources import TokenResource
+from meniscus.api.status.resources import (
+    WorkerStatusResource, WorkersStatusResource)
+from meniscus.api.tenant.resources import (
+    EventProducerResource, EventProducersResource,
+    UserResource, TenantResource, TokenResource)
+
 from meniscus.api.version.resources import VersionResource
-from meniscus.data.datastore import COORDINATOR_DB, datasource_handler
 from meniscus import env
 from meniscus.openstack.common import log
+from meniscus.queue import celery
 
 
 log.setup('meniscus')
@@ -21,17 +22,16 @@ _LOG = env.get_logger(__name__)
 versions = VersionResource()
 
 #Coordinator Resources
-db_handler = datasource_handler(COORDINATOR_DB)
-worker_registration = WorkerRegistrationResource(db_handler)
-workers_status = WorkersStatusResource(db_handler)
-worker_status = WorkerStatusResource(db_handler)
+worker_registration = WorkerRegistrationResource()
+workers_status = WorkersStatusResource()
+worker_status = WorkerStatusResource()
 
 #Tenant Resources
-tenant = TenantResource(db_handler)
-user = UserResource(db_handler)
-event_producers = EventProducersResource(db_handler)
-event_producer = EventProducerResource(db_handler)
-token = TokenResource(db_handler)
+tenant = TenantResource()
+user = UserResource()
+event_producers = EventProducersResource()
+event_producer = EventProducerResource()
+token = TokenResource()
 
 # Create API
 application = api = falcon.API()
@@ -52,3 +52,9 @@ api.add_route('/v1/tenant/{tenant_id}/producers', event_producers)
 api.add_route('/v1/tenant/{tenant_id}/producers/{event_producer_id}',
               event_producer)
 api.add_route('/v1/tenant/{tenant_id}/token', token)
+
+celery_proc = Process(target=celery.worker_main)
+celery_proc.start()
+_LOG.info(
+    'Celery started as process: {}'.format(celery_proc.pid)
+)

@@ -24,8 +24,8 @@ def start_up():
     # Resources
     versions = VersionResource()
     configuration = PairingConfigurationResource()
-    worker_registration = WorkerRegistrationResource(datastore)
-    worker_status = WorkerStatusResource(datastore)
+    worker_registration = WorkerRegistrationResource()
+    worker_status = WorkerStatusResource()
 
     # Routing
     application = api = falcon.API()

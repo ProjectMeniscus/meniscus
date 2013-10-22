@@ -2,7 +2,7 @@ falcon
 wsgiref
 pymongo
 requests
-iso8601
+iso8601==0.1.4
 eventlet
 oslo.config
 uWSGI
@@ -11,6 +11,6 @@ jsonschema
 celery
 librabbitmq
 pylognorm
-meniscus-portal
+meniscus-portal==0.2.1.6
 pywebhdfs
 netaddr

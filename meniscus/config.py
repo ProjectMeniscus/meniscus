@@ -1,9 +1,15 @@
+import os
 from oslo.config import cfg
-from portal import env
+
+
+def _get(name, default=None):
+    value = os.environ.get(name)
+    return value if value else default
+
 
 _DEFAULT_CONFIG_ARGS = [
     '--config-file',
-    env.get('CONFIG_FILE', '/etc/meniscus/meniscus.cfg')
+    _get('CONFIG_FILE', '/etc/meniscus/meniscus.cfg')
 ]
 
 _config_opts = cfg.ConfigOpts()

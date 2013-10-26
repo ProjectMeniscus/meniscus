@@ -1,0 +1,6 @@
+description "Project Meniscus API node deaemon"
+author "John Hopper"
+start on (local-filesystems and net-device-up)
+stop on runlevel [06]
+respawn
+exec /usr/share/meniscus/bin/uwsgi --ini /etc/meniscus/uwsgi.ini

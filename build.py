@@ -19,20 +19,36 @@ from pip.locations import build_prefix, src_prefix
 PYTHONPATH = 'PYTHONPATH'
 
 
+class BuildLocations(object):
+
+    def __init__(self, ctx_root):
+        self.root = mkdir(path.join(ctx_root, 'build'))
+        self.dist = mkdir(path.join(ctx_root, 'dist'))
+        self.dist_lib = mkdir(path.join(self.dist, 'lib'))
+        self.dist_python = mkdir(path.join(self.dist_lib, 'python'))
+        self.files = mkdir(path.join(ctx_root, 'files'))
+
+
+class DeploymentLocations(object):
+
+    def __init__(self, ctx_root, project_name):
+        self.root = mkdir(path.join(ctx_root, 'layout'))
+
+        self.usr = mkdir(path.join(self.root, 'usr'))
+        self.usr_share = mkdir(path.join(self.usr, 'share'))
+        self.project_share = mkdir(path.join(self.usr_share, project_name))
+
+        self.etc = mkdir(path.join(self.root, 'etc'))
+        self.init_d = mkdir(path.join(self.etc, 'init.d'))
+
+
 class BuildContext(object):
 
-    def __init__(self, starting_dir, pkg_index, project_name):
-        self.ctx_root = starting_dir
-        self.etc = mkdir(path.join(self.ctx_root, 'etc'))
-        self.init_d = mkdir(path.join(self.etc, 'init.d'))
-        self.usr = mkdir(path.join(self.ctx_root, 'usr'))
-        self.usr_share = mkdir(path.join(self.usr, 'share'))
-        self.build_dir = mkdir(path.join(self.ctx_root, 'build'))
-        self.dist_dir = mkdir(path.join(self.usr_share, project_name))
-        self.home_dir = mkdir(path.join(self.dist_dir, 'lib'))
-        self.python_dist = mkdir(path.join(self.home_dir, 'python'))
-        self.files_dir = mkdir(path.join(self.ctx_root, 'files'))
+    def __init__(self, ctx_root, pkg_index, project_name):
+        self.root = ctx_root
         self.pkg_index = pkg_index
+        self.deploy = DeploymentLocations(ctx_root, project_name)
+        self.build = BuildLocations(ctx_root)
 
 
 def read(relative):
@@ -55,7 +71,7 @@ def download(url, dl_location):
 
 def run_python(bctx, cmd, cwd=None):
     env = os.environ.copy()
-    env[PYTHONPATH] = bctx.python_dist
+    env[PYTHONPATH] = bctx.build.dist_python
     run(cmd, cwd, env)
 
 
@@ -88,22 +104,22 @@ def unpack(name, bctx, stage_hooks, filename, dl_target):
     if dl_target.endswith('.tar.gz') or dl_target.endswith('.tgz'):
         archive = tarfile.open(dl_target, mode='r|gz')
         build_location = path.join(
-            bctx.build_dir, filename.rstrip('.tar.gz'))
+            bctx.build.root, filename.rstrip('.tar.gz'))
     elif dl_target.endswith('.zip'):
         archive = zipfile.ZipFile(dl_target, mode='r')
-        build_location = path.join(bctx.build_dir, filename.rstrip('.zip'))
+        build_location = path.join(bctx.build.root, filename.rstrip('.zip'))
     else:
         print('Unknown archive format: {}'.format(dl_target))
         raise Exception()
 
-    archive.extractall(bctx.build_dir)
+    archive.extractall(bctx.build.root)
     return build_location
 
 
 def install_req(name, bctx, stage_hooks=None):
     req = InstallRequirement.from_line(name, None)
     found_req = bctx.pkg_index.find_requirement(req, False)
-    dl_target = path.join(bctx.files_dir, found_req.filename)
+    dl_target = path.join(bctx.build.files, found_req.filename)
 
     # stages
     call_hook(name, 'download.before',
@@ -132,7 +148,7 @@ def install_req(name, bctx, stage_hooks=None):
               stage_hooks, bctx=bctx, build_location=build_location)
     run_python(
         bctx,
-        'python setup.py install --home={}'.format(bctx.dist_dir),
+        'python setup.py install --home={}'.format(bctx.build.dist),
         build_location)
     call_hook(name, 'install.after',
               stage_hooks, bctx=bctx, build_location=build_location)
@@ -193,54 +209,40 @@ def build(requirements_file, hooks, project_name, version):
     # Build root after requirements are finished
     run_python(bctx, 'python setup.py build')
     run_python(bctx, 'python setup.py install --home={}'.format(
-        bctx.dist_dir))
+        bctx.build.dist))
 
     # Copy all of the important files into their intended destinations
-    local_etc = path.join('.', 'etc')
-    copytree(local_etc, bctx.etc)
+    local_layout = path.join('.', 'pkg/layout')
+    copytree(local_layout, bctx.deploy.root)
 
-    project_etc = path.join(bctx.etc, project_name)
-    uwsgi_ini = path.join('.', 'uwsgi.ini')
-    shutil.copyfile(uwsgi_ini, path.join(project_etc, 'uwsgi.ini'))
-
-    init_script_name = '{}.init'.format(project_name)
-    init_script_path = path.join(path.join('.', 'pkg'), init_script_name)
-    shutil.copyfile(init_script_path, path.join(bctx.init_d, project_name))
+    # Copy the built virtualenv
+    copytree(bctx.build.dist, bctx.deploy.project_share)
 
     # Let's build a tarfile
     tar_filename = '{}_{}.tar.gz'.format(project_name, version)
-    tar_fpath = path.join(bctx.ctx_root, tar_filename)
+    tar_fpath = path.join(bctx.root, tar_filename)
 
     # Open the
     tarchive = tarfile.open(tar_fpath, 'w|gz')
-    tarchive.add(bctx.usr, arcname='usr')
-    tarchive.add(bctx.etc, arcname='etc')
+    tarchive.add(bctx.deploy.root, arcname='')
     tarchive.close()
 
     # Copy the finished tafile
     shutil.copyfile(tar_fpath, path.join('.', tar_filename))
 
     # Clean the build dir
-    print('Cleaning {}'.format(bctx.ctx_root))
-    shutil.rmtree(bctx.ctx_root)
-
-
-def fix_pyev(bctx, build_location):
-    os.chmod(
-        path.join(build_location, 'src/libev/configure'),
-        stat.S_IRUSR | stat.S_IWUSR | stat.S_IXUSR)
+    print('Cleaning {}'.format(bctx.root))
+    shutil.rmtree(bctx.root)
 
 
 hooks = {
-    'pyev': {
-        'unpack.after': fix_pyev
-    }
 }
 
 requirements_file = 'tools/pip-requires'
 
 if len(sys.argv) != 2:
     print('usage: build.py <project-name>')
+    exit(1)
 
 version = read('VERSION')[0]
 

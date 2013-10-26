@@ -31,6 +31,7 @@ class WhenConfiguring(unittest.TestCase):
         try:
             init_config(['--config-file', '../etc/meniscus/meniscus.conf'])
         except:
+            print('ass {}'.format(os.getcwd()))
             init_config(['--config-file', './etc/meniscus/meniscus.conf'])
 
         conf = get_config()

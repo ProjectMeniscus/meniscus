@@ -6,7 +6,7 @@ import falcon
 from meniscus.api.correlation.resources import PublishMessageResource
 from meniscus.api.version.resources import VersionResource
 from meniscus import config
-from meniscus.api.correlation import zmq
+from meniscus.api.correlation import receiver
 from meniscus import env
 from meniscus.personas.common import publish_stats
 from meniscus.queue import celery
@@ -30,7 +30,7 @@ def start_up():
     api.add_route('/v1/tenant/{tenant_id}/publish', PublishMessageResource())
 
     #syslog correlation endpoint
-    server = zmq.new_zqm_input_server(conf)
+    server = receiver.new_zqm_input_server(conf)
 
     server_proc = Process(target=server.start)
     server_proc.start()

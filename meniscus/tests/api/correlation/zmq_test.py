@@ -5,10 +5,10 @@ from mock import MagicMock
 from mock import patch
 
 import meniscus.api.correlation.correlation_exceptions as errors
-from meniscus.api.correlation import zmq
+from meniscus.api.correlation import receiver
 
 with patch('meniscus.data.datastore.datasource_handler', MagicMock()):
-    from meniscus.api.correlation.zmq import correlator
+    from meniscus.api.correlation.receiver import correlator
 
 def suite():
     suite = unittest.TestSuite()
@@ -54,7 +54,7 @@ class WhenTestingSyslogHandler(unittest.TestCase):
         zmq_reciever = MagicMock()
         zmq_reciever.get.return_value = json.dumps(self.src_msg)
 
-        self.server = zmq.ZeroMQInputServer(zmq_reciever)
+        self.server = receiver.ZeroMQInputServer(zmq_reciever)
 
 
     def test_getting_msg(self):
@@ -109,12 +109,12 @@ class WhenTestingSyslogHandler(unittest.TestCase):
                           'get_validated_tenant', get_validated_tenant_func), \
             patch('meniscus.api.correlation.zmq.correlator.'
                   'add_correlation_info_to_message', add_correlation_func):
-            zmq._correlate_src_message(self.src_msg)
+            receiver._correlate_src_message(self.src_msg)
         get_validated_tenant_func.assert_called_once()
         add_correlation_func.assert_called_once()
 
     def test_convert_to_cee(self):
-        cee_message = zmq._convert_message_cee(self.src_msg)
+        cee_message = receiver._convert_message_cee(self.src_msg)
 
         self.assertEquals(cee_message['ver'], self.src_msg['version'])
         self.assertEquals(cee_message['msgid'], self.src_msg['messageid'])

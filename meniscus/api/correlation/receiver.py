@@ -1,10 +1,10 @@
-import meniscus.api.correlation.correlation_exceptions as errors
 import simplejson as json
 
 import zmq
 
 from oslo.config import cfg
 
+import meniscus.config as config
 from meniscus import env
 from meniscus.storage import dispatch
 from meniscus.api.correlation import correlator
@@ -12,7 +12,7 @@ from meniscus.api.correlation import correlator
 from meniscus.normalization.normalizer import *
 
 # ZMQ configuration options
-_CONF = cfg.CONF
+_CONF = config.get_config()
 
 _ZMQ_GROUP = cfg.OptGroup(
     name='zmq_in', title='ZeroMQ Input Options')
@@ -21,11 +21,17 @@ _CONF.register_group(_ZMQ_GROUP)
 
 _ZMQ_OPTS = [
     cfg.ListOpt('zmq_downstream_hosts',
+                default=['127.0.0.1:5000'],
                 help='list of downstream host:port pairs to poll for '
                 'zmq messages')
 ]
 
 _CONF.register_opts(_ZMQ_OPTS)
+
+try:
+    config.init_config()
+except config.cfg.ConfigFilesNotFoundError as ex:
+    _LOG.exception(ex.message)
 
 _LOG = env.get_logger(__name__)
 

@@ -21,8 +21,6 @@ def start_up():
     except config.cfg.ConfigFilesNotFoundError as ex:
         _LOG.exception(ex.message)
 
-    conf = config.get_config()
-
     application = api = falcon.API()
     api.add_route('/', VersionResource())
 
@@ -30,7 +28,7 @@ def start_up():
     api.add_route('/v1/tenant/{tenant_id}/publish', PublishMessageResource())
 
     #syslog correlation endpoint
-    server = receiver.new_zqm_input_server(conf)
+    server = receiver.new_zqm_input_server()
 
     server_proc = Process(target=server.start)
     server_proc.start()

@@ -11,6 +11,8 @@ from meniscus.api.correlation import correlator
 
 from meniscus.normalization.normalizer import *
 
+_LOG = env.get_logger(__name__)
+
 # ZMQ configuration options
 _CONF = config.get_config()
 
@@ -33,7 +35,7 @@ try:
 except config.cfg.ConfigFilesNotFoundError as ex:
     _LOG.exception(ex.message)
 
-_LOG = env.get_logger(__name__)
+
 
 
 class ZeroMQReciever(object):
@@ -49,12 +51,15 @@ class ZeroMQReciever(object):
         return self.sock.recv()
 
 
-def new_zqm_input_server(conf):
+def new_zqm_input_server():
     downstream_hosts = list()
-    for host_port_str in conf.zmq_in.zmq_downstream_hosts:
-        downstream_hosts.append(host_port_str.split(':'))
 
-    return ZeroMQInputServer(ZeroMQReciever(downstream_hosts))
+    for host_port_str in _CONF.zmq_in.zmq_downstream_hosts:
+        host_port_tuple = (host_port_str.split(':'))
+        downstream_hosts.append(host_port_tuple)
+        rcv = ZeroMQReciever(downstream_hosts)
+
+    return ZeroMQInputServer(rcv)
 
 
 class ZeroMQInputServer(object):
@@ -95,6 +100,3 @@ class ZeroMQInputServer(object):
             return json.loads(msg)
         except Exception as ex:
             _LOG.exception(ex)
-
-
-

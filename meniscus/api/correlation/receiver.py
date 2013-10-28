@@ -26,7 +26,7 @@ _ZMQ_OPTS = [
                 'zmq messages')
 ]
 
-_CONF.register_opts(_ZMQ_OPTS)
+_CONF.register_opts(_ZMQ_OPTS, group=_ZMQ_GROUP)
 
 try:
     config.init_config()

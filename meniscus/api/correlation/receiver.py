@@ -31,7 +31,7 @@ _ZMQ_OPTS = [
 _CONF.register_opts(_ZMQ_OPTS, group=_ZMQ_GROUP)
 
 try:
-    config.init_config()
+    _CONF.init_config()
 except config.cfg.ConfigFilesNotFoundError as ex:
     _LOG.exception(ex.message)
 
@@ -52,13 +52,19 @@ class ZeroMQReciever(object):
 
 def new_zqm_input_server():
     downstream_hosts = list()
-   
+
+    _LOG.debug("downstream hosts from conf: {0}".format(
+        _CONF.zmq_in.zmq_downstream_hosts))
+
     for host_port_str in _CONF.zmq_in.zmq_downstream_hosts:
         host_port_tuple = (host_port_str.split(':'))
         downstream_hosts.append(host_port_tuple)
-        rcvr = ZeroMQReciever(downstream_hosts)
-        for host_tuple in rcvr.connect_host_tuples:
-            _LOG.info("ZeroMQReciever connected to {}:{}".format(*host_tuple))
+
+
+    rcvr = ZeroMQReciever(downstream_hosts)
+
+    for host_tuple in rcvr.connect_host_tuples:
+        _LOG.info("ZeroMQReciever connected to {}:{}".format(*host_tuple))
 
     return ZeroMQInputServer(rcvr)
 

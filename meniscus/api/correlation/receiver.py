@@ -13,13 +13,12 @@ from meniscus.normalization.normalizer import *
 
 _LOG = env.get_logger(__name__)
 
-# ZMQ configuration options
-_CONF = config.get_config()
 
+# ZMQ configuration options
 _ZMQ_GROUP = cfg.OptGroup(
     name='zmq_in', title='ZeroMQ Input Options')
 
-_CONF.register_group(_ZMQ_GROUP)
+config.get_config().register_group(_ZMQ_GROUP)
 
 _ZMQ_OPTS = [
     cfg.ListOpt('zmq_downstream_hosts',
@@ -28,12 +27,14 @@ _ZMQ_OPTS = [
                 'zmq messages')
 ]
 
-_CONF.register_opts(_ZMQ_OPTS, group=_ZMQ_GROUP)
+config.get_config().register_opts(_ZMQ_OPTS, group=_ZMQ_GROUP)
 
 try:
-    _CONF.init_config()
+    config.init_config()
 except config.cfg.ConfigFilesNotFoundError as ex:
     _LOG.exception(ex.message)
+
+_CONF = config.get_config()
 
 
 class ZeroMQReciever(object):

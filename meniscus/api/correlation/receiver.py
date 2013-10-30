@@ -36,15 +36,14 @@ except config.cfg.ConfigFilesNotFoundError as ex:
     _LOG.exception(ex.message)
 
 
-
-
 class ZeroMQReciever(object):
 
     def __init__(self, connect_host_tuples):
+        self.connect_host_tuples = connect_host_tuples
         self.context = zmq.Context()
         self.sock = self.context.socket(zmq.PULL)
 
-        for host_tuple in connect_host_tuples:
+        for host_tuple in self.connect_host_tuples:
             self.sock.connect("tcp://{}:{}".format(*host_tuple))
 
     def get(self):
@@ -53,19 +52,21 @@ class ZeroMQReciever(object):
 
 def new_zqm_input_server():
     downstream_hosts = list()
-
+   
     for host_port_str in _CONF.zmq_in.zmq_downstream_hosts:
         host_port_tuple = (host_port_str.split(':'))
         downstream_hosts.append(host_port_tuple)
-        rcv = ZeroMQReciever(downstream_hosts)
+        rcvr = ZeroMQReciever(downstream_hosts)
+        for host_tuple in rcvr.connect_host_tuples:
+            _LOG.info("ZeroMQReciever connected to {}:{}".format(*host_tuple))
 
-    return ZeroMQInputServer(rcv)
+    return ZeroMQInputServer(rcvr)
 
 
 class ZeroMQInputServer(object):
 
     def __init__(self, zmq_reciever):
-        self.zmq_sock = zmq_reciever
+        self.zmq_reciever = zmq_reciever
 
     def stop(self):
         self._stop = True
@@ -96,7 +97,7 @@ class ZeroMQInputServer(object):
 
     def get_msg(self):
         try:
-            msg = self.zmq_sock.get()
+            msg = self.zmq_reciever.get()
             return json.loads(msg)
         except Exception as ex:
             _LOG.exception(ex)

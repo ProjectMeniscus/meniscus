@@ -87,6 +87,7 @@ class ZeroMQInputServer(object):
 
     def process_msg(self):
         msg = self.get_msg()
+        _LOG.debug('msg received: {0}'.format(str(msg)))
         cee_message = correlator.correlate_src_message(msg)
 
         try:
@@ -104,6 +105,7 @@ class ZeroMQInputServer(object):
 
     def get_msg(self):
         try:
+            _LOG.debug('calling zmq_reciever.get()')
             msg = self.zmq_reciever.get()
             return json.loads(msg)
         except Exception as ex:

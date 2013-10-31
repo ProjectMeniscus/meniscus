@@ -16,11 +16,11 @@ def create_worker(worker):
     _db_handler.put('worker', worker.format())
 
 
-def find_worker(worker_id):
+def find_worker(hostname):
     """
-    returns worker object based on worker id
+    returns worker object based on hostname
     """
-    worker_dict = _db_handler.find_one('worker', {'worker_id': worker_id})
+    worker_dict = _db_handler.find_one('worker', {'hostname': hostname})
     if worker_dict:
         return Worker(**worker_dict)
     return None
@@ -35,7 +35,7 @@ def save_worker(worker):
 
 def retrieve_all_workers():
     """
-    Retreive all worker documents from the db and
+    Retrieve all worker documents from the db and
     return a list of Worker objects
     """
     return [

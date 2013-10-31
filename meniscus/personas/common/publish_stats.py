@@ -43,7 +43,7 @@ def publish_worker_stats():
         config = cache.get_config()
 
         request_uri = "{0}/worker/{1}/status".format(
-            config.coordinator_uri, config.worker_id)
+            config.coordinator_uri, config.hostname)
 
         req_body = {
             'worker_status': {

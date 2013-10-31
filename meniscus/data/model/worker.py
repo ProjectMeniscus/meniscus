@@ -52,16 +52,6 @@ class Worker(object):
         worker_dict['_id'] = self._id
         return worker_dict
 
-    def get_registration_identity(self):
-        """
-        Return a worker node's identity information
-        """
-        return{
-            'personality_module': 'meniscus.personas.{0}.app'
-            .format(self.personality),
-            'worker_id': self.worker_id
-        }
-
     def get_status(self):
         """
         Return a dictionary defining a worker node's system status
@@ -73,14 +63,6 @@ class Worker(object):
             'personality': self.personality,
             'status': self.status,
             'system_info': self.system_info.format()
-        }
-
-    def get_route_info(self):
-        return {
-            'worker_id': self.worker_id,
-            'ip_address_v4': self.ip_address_v4,
-            'ip_address_v6': self.ip_address_v6,
-            'status': self.status
         }
 
 

@@ -36,7 +36,6 @@ class WhenTestingWorkerObject(unittest.TestCase):
                                        personality='correlation',
                                        status='new',
                                        system_info=self.system_info.format())
-        self.worker_route = self.test_worker.get_route_info()
         self.worker_status = self.test_worker.get_status()
 
     def test_new_worker_no_ids(self):
@@ -47,15 +46,6 @@ class WhenTestingWorkerObject(unittest.TestCase):
     def test_new_worker_format_for_save(self):
         self.assertTrue('_id' in self.test_worker.format_for_save())
 
-    def test_new_worker_get_registration_identity(self):
-        self.assertTrue('personality_module'
-                        in self.test_worker.get_registration_identity())
-
-    def test_new_worker_routes(self):
-        self.assertEqual(self.worker_route['worker_id'], '0123456789')
-        self.assertEqual(self.worker_route['ip_address_v4'], '172.23.1.100')
-        self.assertEqual(self.worker_route['ip_address_v6'], '::1')
-
     def test_get_status(self):
         self.assertEqual(self.worker_status['hostname'], 'worker01')
         self.assertEqual(self.worker_status['worker_id'], '0123456789')
@@ -63,8 +53,6 @@ class WhenTestingWorkerObject(unittest.TestCase):
         self.assertEqual(self.worker_status['status'], 'new')
         self.assertEqual(self.worker_status['system_info'],
                          self.system_info.format())
-        self.assertEqual(self.worker_route['ip_address_v4'], '172.23.1.100')
-        self.assertEqual(self.worker_route['ip_address_v6'], '::1')
 
 
 class WhenTestingWorkerRegistrationObject(unittest.TestCase):

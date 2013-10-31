@@ -37,7 +37,7 @@ application = api = falcon.API()
 # Common Routing
 api.add_route('/', versions)
 
-api.add_route('/v1/worker/{worker_id}/status', worker_status)
+api.add_route('/v1/worker/{hostname}/status', worker_status)
 api.add_route('/v1/status', workers_status)
 
 # Tenant Routing

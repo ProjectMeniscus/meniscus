@@ -9,6 +9,7 @@ from meniscus import api
 from meniscus.api.validator_init import get_validator
 from meniscus.data.model.worker import SystemInfo
 from meniscus.data.model import worker_util
+from meniscus.data.model.worker import Worker
 
 
 def _worker_not_found():
@@ -25,7 +26,7 @@ class WorkerStatusResource(api.ApiResource):
 
     @api.handle_api_exception(operation_name='WorkerStatus PUT')
     @falcon.before(get_validator('worker_status'))
-    def on_put(self, req, resp, worker_id, validated_body):
+    def on_put(self, req, resp, hostname, validated_body):
         """
         updates a worker's status
         """
@@ -34,10 +35,15 @@ class WorkerStatusResource(api.ApiResource):
         body = validated_body['worker_status']
 
         #find the worker in db
-        worker = worker_util.find_worker(worker_id)
+        worker = worker_util.find_worker(hostname)
 
         if worker is None:
-            _worker_not_found()
+            #instantiate new worker object
+            new_worker = Worker(**body)
+            #persist the new worker
+            worker_util.create_worker(new_worker)
+            resp.status = falcon.HTTP_202
+            return
 
         if 'status' in body:
             worker.status = body['status']
@@ -49,12 +55,12 @@ class WorkerStatusResource(api.ApiResource):
         resp.status = falcon.HTTP_200
 
     @api.handle_api_exception(operation_name='WorkerStatus GET')
-    def on_get(self, req, resp, worker_id):
+    def on_get(self, req, resp, hostname):
         """
         Retrieve the status of a specified worker node
         """
         #find the worker in db
-        worker = worker_util.find_worker(worker_id)
+        worker = worker_util.find_worker(hostname)
 
         if worker is None:
             _worker_not_found()

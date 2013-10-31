@@ -4,11 +4,11 @@ import falcon
 import falcon.testing as testing
 from mock import MagicMock, patch
 
+
 from meniscus.api.status.resources import WorkerStatusResource
 from meniscus.api.status.resources import WorkersStatusResource
 from meniscus.data.model.worker import Worker
 from meniscus.data.model.worker import SystemInfo
-from meniscus.data.model.worker import WorkerRegistration
 from meniscus.openstack.common import jsonutils
 
 
@@ -39,15 +39,19 @@ class WhenTestingWorkerUpdateOnPut(testing.TestBase):
             }
         }
 
+        self.worker = Worker(_id='010101',
+                             worker_token='9876543210',
+                             hostname='worker01',
+                             ip_address_v4='172.23.1.100',
+                             ip_address_v6='::1',
+                             personality='worker',
+                             status='online',
+                             system_info={})
+
         self.req = MagicMock()
         self.resp = MagicMock()
-        self.registration = WorkerRegistration('worker').format()
-        self.worker_dict = Worker(**self.registration).format()
-        self.worker = Worker(**self.worker_dict)
-        self.worker_not_found = None
         self.resource = WorkerStatusResource()
-        self.worker_id = '51375fc4eea50d53066292b6'
-        self.test_route = '/v1/worker/{worker_id}/status'
+        self.test_route = '/v1/worker/{hostname}/status'
         self.api.add_route(self.test_route, self.resource)
 
     def test_returns_400_body_validation(self):
@@ -59,15 +63,16 @@ class WhenTestingWorkerUpdateOnPut(testing.TestBase):
                 body=jsonutils.dumps(self.bad_worker_status))
             self.assertEqual(falcon.HTTP_400, self.srmock.status)
 
-    def test_raises_worker_not_found(self):
-        with patch('meniscus.data.model.worker_util.find_worker',
-                   MagicMock(return_value=None)):
-            self.simulate_request(
-                self.test_route,
-                method='PUT',
-                headers={'content-type': 'application/json'},
-                body=jsonutils.dumps(self.worker_status))
-            self.assertEqual(falcon.HTTP_404, self.srmock.status)
+    # TODO: We need to add a test to check when a worker publishes it's status and doesn't exist that the entry is created
+    #def test_raises_worker_not_found(self):
+    #    with patch('meniscus.data.model.worker_util.find_worker',
+    #               MagicMock(return_value=None)):
+    #        self.simulate_request(
+    #            self.test_route,
+    #            method='PUT',
+    #            headers={'content-type': 'application/json'},
+    #            body=jsonutils.dumps(self.worker_status))
+    #        self.assertEqual(falcon.HTTP_202, self.srmock.status)
 
     def test_returns_400_bad_worker_status(self):
         with patch('meniscus.data.model.worker_util.find_worker',
@@ -112,9 +117,14 @@ class WhenTestingWorkersStatus(unittest.TestCase):
         self.req = MagicMock()
         self.resp = MagicMock()
         self.resource = WorkersStatusResource()
-        self.registration = WorkerRegistration('worker').format()
-        self.worker = Worker(**self.registration)
-        self.worker_dict = Worker(**self.registration).format()
+        self.worker = Worker(_id='010101',
+                             worker_token='9876543210',
+                             hostname='worker01',
+                             ip_address_v4='172.23.1.100',
+                             ip_address_v6='::1',
+                             personality='worker01',
+                             status='online',
+                             system_info={})
 
     def test_returns_200_on_get(self):
         with patch('meniscus.data.model.worker_util.retrieve_all_workers',
@@ -134,22 +144,27 @@ class WhenTestingWorkerStatus(unittest.TestCase):
         self.resp = MagicMock()
 
         self.resource = WorkerStatusResource()
-        self.registration = WorkerRegistration('worker').format()
-        self.worker = Worker(**self.registration)
-        self.worker_dict = Worker(**self.registration).format()
-        self.worker_id = '51375fc4eea50d53066292b6'
+        self.worker = Worker(_id='010101',
+                             worker_token='9876543210',
+                             hostname='worker01',
+                             ip_address_v4='172.23.1.100',
+                             ip_address_v6='::1',
+                             personality='worker01',
+                             status='online',
+                             system_info={})
+        self.hostname = 'worker01'
         self.worker_not_found = None
 
     def test_raises_worker_not_found(self):
         with patch('meniscus.data.model.worker_util.find_worker',
                    MagicMock(return_value=None)):
             with self.assertRaises(falcon.HTTPError):
-                self.resource.on_get(self.req, self.resp, self.worker_id)
+                self.resource.on_get(self.req, self.resp, self.hostname)
 
     def test_returns_200_on_get(self):
         with patch('meniscus.data.model.worker_util.find_worker',
                    MagicMock(return_value=self.worker)):
-            self.resource.on_get(self.req, self.resp, self.worker_id)
+            self.resource.on_get(self.req, self.resp, self.hostname)
             self.assertEquals(self.resp.status, falcon.HTTP_200)
             resp = jsonutils.loads(self.resp.body)
             status = resp['status']

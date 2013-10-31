@@ -66,35 +66,6 @@ class Worker(object):
         }
 
 
-class WorkerRegistration(object):
-    """
-    A class defining the data structure of a worker node's
-    registration information
-    """
-    def __init__(self, personality, status='new'):
-        self.hostname = platform.node()
-        self.ip_address_v4 = sys_assist.get_interface_ip()
-        self.ip_address_v6 = ""
-        self.personality = personality
-        self.status = status
-        self.system_info = SystemInfo()
-
-    def format(self):
-        """
-        Format an instance fo the WorkerRegistration object as a dictionary.
-        The output of this method can be passed to the constructor of the
-        Worker class to create a new Worker instance.
-        """
-        return{
-            'hostname': self.hostname,
-            'ip_address_v4': self.ip_address_v4,
-            'ip_address_v6': self.ip_address_v6,
-            'personality': self.personality,
-            'status': self.status,
-            'system_info': self.system_info.format()
-        }
-
-
 class SystemInfo(object):
     """
     A class defining the data structure for system stats for a worker node.

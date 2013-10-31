@@ -2,7 +2,6 @@ from multiprocessing import Process
 
 import falcon
 
-from meniscus.api.coordinator.resources import WorkerRegistrationResource
 from meniscus.api.status.resources import (
     WorkerStatusResource, WorkersStatusResource)
 from meniscus.api.tenant.resources import (
@@ -22,7 +21,6 @@ _LOG = env.get_logger(__name__)
 versions = VersionResource()
 
 #Coordinator Resources
-worker_registration = WorkerRegistrationResource()
 workers_status = WorkersStatusResource()
 worker_status = WorkerStatusResource()
 
@@ -38,9 +36,6 @@ application = api = falcon.API()
 
 # Common Routing
 api.add_route('/', versions)
-
-# Coordinator Routing
-api.add_route('/v1/pairing', worker_registration)
 
 api.add_route('/v1/worker/{worker_id}/status', worker_status)
 api.add_route('/v1/status', workers_status)

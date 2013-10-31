@@ -5,7 +5,6 @@ system status.
 """
 
 import platform
-import uuid
 
 import meniscus.api.utils.sys_assist as sys_assist
 from meniscus.openstack.common import timeutils
@@ -23,9 +22,7 @@ class Worker(object):
         WorkerRegistration object's dictionary representation.
         """
 
-        self._id = kwargs.get('_id', None)
-        self.worker_id = kwargs.get('worker_id', str(uuid.uuid4()))
-        self.worker_token = kwargs.get('worker_token', str(uuid.uuid4()))
+        self._id = kwargs.get('_id')
         self.hostname = kwargs['hostname']
         self.ip_address_v4 = kwargs['ip_address_v4']
         self.ip_address_v6 = kwargs['ip_address_v6']
@@ -38,8 +35,6 @@ class Worker(object):
         Format an instance of the Worker object as a dictionary
         """
         return{
-            'worker_id': self.worker_id,
-            'worker_token': self.worker_token,
             'hostname': self.hostname,
             'ip_address_v4': self.ip_address_v4,
             'ip_address_v6': self.ip_address_v6,
@@ -64,8 +59,7 @@ class Worker(object):
         return{
             'personality_module': 'meniscus.personas.{0}.app'
             .format(self.personality),
-            'worker_id': self.worker_id,
-            'worker_token': self.worker_token
+            'worker_id': self.worker_id
         }
 
     def get_status(self):
@@ -74,7 +68,6 @@ class Worker(object):
         """
         return{
             'hostname': self.hostname,
-            'worker_id': self.worker_id,
             'ip_address_v4': self.ip_address_v4,
             'ip_address_v6': self.ip_address_v6,
             'personality': self.personality,
@@ -166,13 +159,9 @@ class WorkerConfiguration(object):
     """
     The class defines a data structure for a worker's configuration info.
     """
-    def __init__(self, personality, personality_module, worker_token,
-                 worker_id, coordinator_uri):
+    def __init__(self, personality, coordinator_uri):
 
         self.personality = personality
-        self.personality_module = personality_module
-        self.worker_token = worker_token
-        self.worker_id = worker_id
         self.coordinator_uri = coordinator_uri
 
     def format(self):
@@ -181,8 +170,5 @@ class WorkerConfiguration(object):
         """
         return{
             'personality': self.personality,
-            'personality_module': self.personality_module,
-            'worker_token': self.worker_token,
-            'worker_id': self.worker_id,
             'coordinator_uri': self.coordinator_uri
         }

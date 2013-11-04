@@ -12,13 +12,6 @@ from meniscus.data.model import worker_util
 from meniscus.data.model.worker import Worker
 
 
-def _worker_not_found():
-    """
-    sends an http 404 invalid worker not found
-    """
-    api.abort(falcon.HTTP_404, 'Unable to locate worker.')
-
-
 class WorkerStatusResource(api.ApiResource):
     """
     A resource for updating and retrieving data for a single worker node
@@ -63,7 +56,7 @@ class WorkerStatusResource(api.ApiResource):
         worker = worker_util.find_worker(hostname)
 
         if worker is None:
-            _worker_not_found()
+            api.abort(falcon.HTTP_404, 'Unable to locate worker.')
 
         resp.status = falcon.HTTP_200
         resp.body = api.format_response_body({'status': worker.get_status()})

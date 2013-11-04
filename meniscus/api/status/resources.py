@@ -28,7 +28,7 @@ class WorkerStatusResource(api.ApiResource):
     @falcon.before(get_validator('worker_status'))
     def on_put(self, req, resp, hostname, validated_body):
         """
-        updates a worker's status
+        updates a worker's status or creates a new worker entry if not found
         """
 
         #load validated json payload in body

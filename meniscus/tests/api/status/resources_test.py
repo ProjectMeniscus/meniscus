@@ -63,7 +63,7 @@ class WhenTestingWorkerOnPut(testing.TestBase):
         self.req = MagicMock()
         self.resp = MagicMock()
         self.resource = WorkerStatusResource()
-        self.test_route = '/v1/worker/{hostname}/status'
+        self.test_route = '/worker/{hostname}/status'
         self.api.add_route(self.test_route, self.resource)
 
     def test_returns_400_body_validation(self):

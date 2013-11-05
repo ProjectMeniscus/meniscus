@@ -4,9 +4,9 @@ import unittest
 from mock import MagicMock
 from mock import patch
 import requests
+from meniscus.correlation import correlator
 
-import meniscus.api.correlation.correlation_exceptions as exception
-from meniscus.api.correlation import correlator
+import meniscus.correlation.errors as exception
 from meniscus.data.model.tenant import EventProducer
 from meniscus.data.model.tenant import Tenant
 from meniscus.data.model.tenant import Token

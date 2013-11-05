@@ -4,16 +4,7 @@ import json
 from mock import MagicMock
 from mock import patch
 
-import meniscus.api.correlation.correlation_exceptions as errors
-from meniscus.api.correlation import receiver
-
-with patch('meniscus.data.datastore.datasource_handler', MagicMock()):
-    from meniscus.api.correlation.receiver import correlator
-
-def suite():
-    suite = unittest.TestSuite()
-    suite.addTest(WhenTestingSyslogHandler())
-    return suite
+from meniscus.correlation import correlator, receiver
 
 
 class WhenTestingSyslogHandler(unittest.TestCase):

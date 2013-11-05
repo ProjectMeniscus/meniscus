@@ -3,7 +3,7 @@ from uuid import uuid4
 
 import requests
 
-import meniscus.api.correlation.correlation_exceptions as errors
+import meniscus.correlation.errors as errors
 from meniscus.openstack.common import timeutils
 from meniscus.api.tenant.resources import MESSAGE_TOKEN
 from meniscus.api.utils.request import http_request
@@ -19,7 +19,7 @@ from meniscus import env
 _LOG = env.get_logger(__name__)
 
 
-def _add_correlation_info_to_message(tenant, message):
+def add_correlation_info_to_message(tenant, message):
     #match the producer by the message pname
     producer = find_event_producer(
         tenant, producer_name=message['pname'])
@@ -83,7 +83,7 @@ def correlate_src_message(src_message):
     tenant = tenant_identification.get_validated_tenant()
 
     cee_message = _convert_message_cee(src_message)
-    _add_correlation_info_to_message(tenant, cee_message)
+    add_correlation_info_to_message(tenant, cee_message)
 
     return cee_message
 

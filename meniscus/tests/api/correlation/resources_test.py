@@ -4,11 +4,11 @@ from mock import MagicMock
 from mock import patch
 import falcon
 import falcon.testing as testing
+from meniscus.correlation import correlator
 
-import meniscus.api.correlation.correlation_exceptions as errors
+import meniscus.correlation.errors as errors
 with patch('meniscus.data.datastore.datasource_handler', MagicMock()):
-    from meniscus.api.correlation.resources import correlator
-from meniscus.api.correlation.resources import PublishMessageResource
+from meniscus.api.http_log.resources import PublishMessageResource
 from meniscus.api.tenant.resources import MESSAGE_TOKEN
 from meniscus.data.model import tenant
 from meniscus.openstack.common import jsonutils

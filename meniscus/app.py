@@ -1,3 +1,5 @@
+import platform
+
 from oslo.config import cfg
 
 from meniscus.config import get_config

@@ -4,11 +4,11 @@ from mock import MagicMock
 from mock import patch
 import falcon
 import falcon.testing as testing
+from meniscus.correlation import correlator
 
-import meniscus.api.correlation.correlation_exceptions as errors
+import meniscus.correlation.errors as errors
 with patch('meniscus.data.datastore.datasource_handler', MagicMock()):
-    from meniscus.api.correlation.resources import correlator
-from meniscus.api.correlation.resources import PublishMessageResource
+    from meniscus.api.http_log.resources import PublishMessageResource
 from meniscus.api.tenant.resources import MESSAGE_TOKEN
 from meniscus.data.model import tenant
 from meniscus.openstack.common import jsonutils
@@ -80,7 +80,7 @@ class WhenTestingPublishMessage(testing.TestBase):
         with patch.object(correlator.TenantIdentification,
                           'get_validated_tenant',
                           MagicMock(return_value=self.tenant)), \
-            patch('meniscus.api.correlation.resources.correlator.'
+            patch('meniscus.api.http_log.resources.correlator.'
                   'add_correlation_info_to_message',
                   MagicMock(side_effect=errors.MessageAuthenticationError)):
 
@@ -99,7 +99,7 @@ class WhenTestingPublishMessage(testing.TestBase):
         with patch.object(correlator.TenantIdentification,
                           'get_validated_tenant',
                           MagicMock(return_value=self.tenant)), \
-            patch('meniscus.api.correlation.resources.correlator.'
+            patch('meniscus.api.http_log.resources.correlator.'
                   'add_correlation_info_to_message',
                   MagicMock(side_effect=errors.ResourceNotFoundError)):
 
@@ -118,7 +118,7 @@ class WhenTestingPublishMessage(testing.TestBase):
         with patch.object(correlator.TenantIdentification,
                           'get_validated_tenant',
                           MagicMock(return_value=self.tenant)), \
-            patch('meniscus.api.correlation.resources.correlator.'
+            patch('meniscus.api.http_log.resources.correlator.'
                   'add_correlation_info_to_message',
                   MagicMock(side_effect=errors.CoordinatorCommunicationError)):
 
@@ -138,7 +138,7 @@ class WhenTestingPublishMessage(testing.TestBase):
         with patch.object(correlator.TenantIdentification,
                           'get_validated_tenant',
                           MagicMock(return_value=self.tenant)),\
-            patch('meniscus.api.correlation.resources.'
+            patch('meniscus.api.http_log.resources.'
                   'dispatch.persist_message',
                   MagicMock()):
             self.simulate_request(
@@ -156,7 +156,7 @@ class WhenTestingPublishMessage(testing.TestBase):
         with patch.object(correlator.TenantIdentification,
                           'get_validated_tenant',
                           MagicMock(return_value=self.tenant)), \
-            patch('meniscus.api.correlation.resources.'
+            patch('meniscus.api.http_log.resources.'
                   'dispatch.persist_message',
                   MagicMock()):
             self.simulate_request(

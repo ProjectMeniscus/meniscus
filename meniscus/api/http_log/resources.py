@@ -2,8 +2,8 @@ import falcon
 
 from meniscus.api import (abort, ApiResource, format_response_body,
                           handle_api_exception)
-from meniscus.api.correlation import correlator
-import meniscus.api.correlation.correlation_exceptions as errors
+from meniscus.correlation import correlator
+from meniscus.correlation import errors
 from meniscus.api.tenant.resources import MESSAGE_TOKEN
 from meniscus.api.validator_init import get_validator
 from meniscus.storage import dispatch

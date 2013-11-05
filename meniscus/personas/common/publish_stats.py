@@ -49,7 +49,6 @@ def publish_worker_stats():
         req_body = {
             'worker_status': Worker(personality=config.personality).format()
         }
-        print(req_body)
 
         http_request(url=request_uri, json_payload=jsonutils.dumps(req_body),
                      http_verb='PUT')

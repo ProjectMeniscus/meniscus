@@ -69,18 +69,22 @@ class WhenTestingWorkerUpdateOnPut(testing.TestBase):
 
     def test_return_202_for_new_worker_when_worker_not_found(self):
         create_worker = MagicMock()
+        body_json = jsonutils.dumps({
+            'worker_status': {
+                self.worker.format()
+            }})
         with patch('meniscus.data.model.worker_util.find_worker',
                    MagicMock(return_value=None),
-                   'meniscus.api.coordinator.resources.worker_util.create_worker',
+                   'meniscus.data.model.worker_util.create_worker',
                    create_worker):
 
             self.simulate_request(
                 self.test_route,
                 method='PUT',
                 headers={
-                    'content-type': 'application/json',
-                    },
-                body=jsonutils.dumps(self.worker.format()))
+                    'content-type': 'application/json'
+                },
+                body=body_json)
             self.assertEqual(falcon.HTTP_202, self.srmock.status)
 
     def test_returns_400_bad_worker_status(self):

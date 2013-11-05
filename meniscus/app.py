@@ -42,7 +42,8 @@ config_cache = ConfigCache()
 
 def bootstrap_api():
     # Persist the coordinator_uri and personality to ConfigCache
-    config = WorkerConfiguration(PERSONALITY, COORDINATOR_URI)
+    config = WorkerConfiguration(PERSONALITY, platform.node(),
+                                 COORDINATOR_URI)
     config_cache.set_config(config)
 
     personality_module = 'meniscus.personas.{0}.app'.format(PERSONALITY)

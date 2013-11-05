@@ -15,20 +15,28 @@ class Worker(object):
     Class that represents the data structure of worker node in a meniscus
     cluster.  The data contains basic identification and system info.
     """
-    def __init__(self, **kwargs):
+    def __init__(self, personality='worker', **kwargs):
         """
         The init function accepts **kwargs so that a Worker object can be
         constructed from its dictionary representation or from a
         WorkerRegistration object's dictionary representation.
         """
 
-        self._id = kwargs.get('_id')
-        self.hostname = kwargs['hostname']
-        self.ip_address_v4 = kwargs['ip_address_v4']
-        self.ip_address_v6 = kwargs['ip_address_v6']
-        self.personality = kwargs['personality']
-        self.status = kwargs['status']
-        self.system_info = SystemInfo(**kwargs['system_info'])
+        if kwargs:
+            self._id = kwargs.get('_id')
+            self.hostname = kwargs['hostname']
+            self.ip_address_v4 = kwargs['ip_address_v4']
+            self.ip_address_v6 = kwargs['ip_address_v6']
+            self.personality = personality
+            self.status = kwargs['status']
+            self.system_info = SystemInfo(**kwargs['system_info'])
+        else:
+            self.hostname = platform.node()
+            self.ip_address_v4 = sys_assist.get_interface_ip()
+            self.ip_address_v6 = ""
+            self.personality = personality
+            self.status = "online"
+            self.system_info = SystemInfo()
 
     def format(self):
         """
@@ -52,7 +60,6 @@ class Worker(object):
         worker_dict['_id'] = self._id
         return worker_dict
 
-    # TODO: Remove, redundant code. format() method does same thing
     def get_status(self):
         """
         Return a dictionary defining a worker node's system status

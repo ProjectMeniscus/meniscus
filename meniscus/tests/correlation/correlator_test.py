@@ -21,6 +21,63 @@ def suite():
     return suite
 
 
+class WhenCorrelateSrcMessage(unittest.TestCase):
+    def setUp(self):
+        self.tenant_id = '5164b8f4-16fb-4376-9d29-8a6cbaa02fa9'
+        self.token = '87324559-33aa-4534-bfd1-036472a32f2e'
+        self.src_msg = {
+            "profile": "http://projectmeniscus.org/cee/profiles/base",
+            "version": "1",
+            "messageid": "-",
+            "priority": "46",
+            "processid": "-",
+            "hostname": "tohru",
+            "appname": "rsyslogd",
+            "timestamp": "2013-04-02T14:12:04.873490-05:00",
+            "message": "start",
+            "sd": {
+                "meniscus": {
+                    "tenant": "5164b8f4-16fb-4376-9d29-8a6cbaa02fa9",
+                    "token": "87324559-33aa-4534-bfd1-036472a32f2e"
+                }
+            },
+            "native": {
+                "origin": {
+                    "x-info": "http://www.rsyslog.com",
+                    "swVersion": "7.2.5",
+                    "x-pid": "12662",
+                    "software": "rsyslogd"
+                }
+            }
+        }
+
+    def test_convert_to_cee(self):
+        cee_message = correlator._convert_message_cee(self.src_msg)
+        self.assertEquals(cee_message['ver'], self.src_msg['version'])
+        self.assertEquals(cee_message['msgid'], self.src_msg['messageid'])
+        self.assertEquals(cee_message['pid'], self.src_msg['processid'])
+        self.assertEquals(cee_message['pri'], self.src_msg['priority'])
+        self.assertEquals(cee_message['host'], self.src_msg['hostname'])
+        self.assertEquals(cee_message['pname'], self.src_msg['appname'])
+        self.assertEquals(cee_message['time'], self.src_msg['timestamp'])
+        self.assertEquals(cee_message['msg'], self.src_msg['message'])
+        self.assertEquals(
+            cee_message['native']['meniscus']['tenant'], self.tenant_id)
+        self.assertEquals(
+            cee_message['native']['meniscus']['token'], self.token)
+
+    def test_correlate_message(self):
+        get_validated_tenant_func = MagicMock()
+        add_correlation_func = MagicMock()
+        with patch.object(correlator.TenantIdentification,
+                          'get_validated_tenant', get_validated_tenant_func), \
+             patch('meniscus.correlation.correlator.'
+                   'add_correlation_info_to_message', add_correlation_func):
+            correlator.correlate_src_message(self.src_msg)
+        get_validated_tenant_func.assert_called_once_with()
+        add_correlation_func.assert_called_once()
+
+
 class WhenTestingCorrelationMessage(unittest.TestCase):
     def setUp(self):
 
@@ -214,7 +271,7 @@ class WhenTestingTenantIdentification(unittest.TestCase):
 
         with patch.object(
                 correlator.ConfigCache, 'get_config', self.get_config),\
-            patch('meniscus.api.correlation.'
+            patch('meniscus.correlation.'
                   'correlator.http_request', http_request):
 
             with self.assertRaises(exception.CoordinatorCommunicationError):
@@ -229,7 +286,7 @@ class WhenTestingTenantIdentification(unittest.TestCase):
 
         with patch.object(
                 correlator.ConfigCache, 'get_config', self.get_config), \
-            patch('meniscus.api.correlation.'
+            patch('meniscus.correlation.'
                   'correlator.http_request', http_request):
 
             with self.assertRaises(exception.MessageAuthenticationError):
@@ -244,7 +301,7 @@ class WhenTestingTenantIdentification(unittest.TestCase):
 
         with patch.object(
                 correlator.ConfigCache, 'get_config', self.get_config), \
-            patch('meniscus.api.correlation.'
+            patch('meniscus.correlation.'
                   'correlator.http_request', http_request):
 
             result = tenant_identify._validate_token_with_coordinator()
@@ -258,7 +315,7 @@ class WhenTestingTenantIdentification(unittest.TestCase):
 
         with patch.object(correlator.ConfigCache,
                           'get_config', self.get_config), \
-            patch('meniscus.api.correlation.'
+            patch('meniscus.correlation.'
                   'correlator.http_request', http_request):
 
             with self.assertRaises(exception.CoordinatorCommunicationError):
@@ -273,7 +330,7 @@ class WhenTestingTenantIdentification(unittest.TestCase):
 
         with patch.object(
                 correlator.ConfigCache, 'get_config', self.get_config),\
-            patch('meniscus.api.correlation.'
+            patch('meniscus.correlation.'
                   'correlator.http_request', http_request):
 
             with self.assertRaises(exception.ResourceNotFoundError):
@@ -288,7 +345,7 @@ class WhenTestingTenantIdentification(unittest.TestCase):
 
         with patch.object(
                 correlator.ConfigCache, 'get_config', self.get_config), \
-            patch('meniscus.api.correlation.'
+            patch('meniscus.correlation.'
                   'correlator.http_request', http_request):
 
             with self.assertRaises(exception.CoordinatorCommunicationError):
@@ -303,9 +360,9 @@ class WhenTestingTenantIdentification(unittest.TestCase):
 
         with patch.object(
                 correlator.ConfigCache, 'get_config', self.get_config), \
-            patch('meniscus.api.correlation.'
+            patch('meniscus.correlation.'
                   'correlator.http_request', http_request), \
-            patch('meniscus.api.correlation.'
+            patch('meniscus.correlation.'
                   'correlator.load_tenant_from_dict',
                   self.tenant_found):
 

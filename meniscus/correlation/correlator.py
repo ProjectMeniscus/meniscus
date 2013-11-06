@@ -3,7 +3,7 @@ from uuid import uuid4
 
 import requests
 
-import meniscus.correlation.errors as errors
+from meniscus.correlation import errors
 from meniscus.openstack.common import timeutils
 from meniscus.api.tenant.resources import MESSAGE_TOKEN
 from meniscus.api.utils.request import http_request

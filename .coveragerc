@@ -1,2 +1,2 @@
 [report]
-omit = etc/*,setup.py,*egg*,.tox/*,meniscus/tests/*
+omit = etc/*,setup.py,*egg*,.tox/*,meniscus/tests/*, pkg/*

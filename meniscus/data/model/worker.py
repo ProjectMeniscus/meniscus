@@ -112,9 +112,10 @@ class WorkerConfiguration(object):
     """
     The class defines a data structure for a worker's configuration info.
     """
-    def __init__(self, personality, coordinator_uri):
+    def __init__(self, personality, hostname, coordinator_uri):
 
         self.personality = personality
+        self.hostname = hostname
         self.coordinator_uri = coordinator_uri
 
     def format(self):
@@ -123,5 +124,6 @@ class WorkerConfiguration(object):
         """
         return{
             'personality': self.personality,
+            'hostname': self.hostname,
             'coordinator_uri': self.coordinator_uri
         }

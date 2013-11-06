@@ -10,13 +10,7 @@
         "personality":  {
             "enum": ["coordinator", "worker", "dispatcher", "tenant"]
         },
-        "personality_module": {
-            "type": "string"
-        },
-        "worker_token": {
-            "type": "string"
-        },
-        "worker_id": {
+        "hostname": {
             "type": "string"
         },
         "coordinators": {

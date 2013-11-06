@@ -12,6 +12,6 @@ jsonschema
 celery
 librabbitmq
 pylognorm
-meniscus-portal==0.2.1.7
 pywebhdfs
+pyzmq==13.1.0
 netaddr

@@ -52,6 +52,7 @@ class Worker(object):
         worker_dict['_id'] = self._id
         return worker_dict
 
+    # TODO: Remove, redundant code. format() method does same thing
     def get_status(self):
         """
         Return a dictionary defining a worker node's system status
@@ -112,9 +113,10 @@ class WorkerConfiguration(object):
     """
     The class defines a data structure for a worker's configuration info.
     """
-    def __init__(self, personality, coordinator_uri):
+    def __init__(self, personality, hostname, coordinator_uri):
 
         self.personality = personality
+        self.hostname = hostname
         self.coordinator_uri = coordinator_uri
 
     def format(self):
@@ -123,5 +125,6 @@ class WorkerConfiguration(object):
         """
         return{
             'personality': self.personality,
+            'hostname': self.hostname,
             'coordinator_uri': self.coordinator_uri
         }

@@ -23,14 +23,14 @@ class WhenTestingWorkerObject(unittest.TestCase):
                                   callback='172.22.15.25:8080/v1/config/',
                                   ip_address_v4='172.23.1.100',
                                   ip_address_v6='::1',
-                                  personality='correlation',
+                                  personality='worker',
                                   status='new',
                                   system_info=self.system_info.format())
         self.test_worker_lite = Worker(hostname='worker01',
                                        callback='172.22.15.25:8080/v1/config/',
                                        ip_address_v4='172.23.1.100',
                                        ip_address_v6='::1',
-                                       personality='correlation',
+                                       personality='worker',
                                        status='new',
                                        system_info=self.system_info.format())
         self.worker_status = self.test_worker.get_status()
@@ -40,7 +40,7 @@ class WhenTestingWorkerObject(unittest.TestCase):
 
     def test_get_status(self):
         self.assertEqual(self.worker_status['hostname'], 'worker01')
-        self.assertEqual(self.worker_status['personality'], 'correlation')
+        self.assertEqual(self.worker_status['personality'], 'worker')
         self.assertEqual(self.worker_status['status'], 'new')
         self.assertEqual(self.worker_status['system_info'],
                          self.system_info.format())
@@ -101,17 +101,20 @@ class WhenTestingWorkerConfigurationObject(unittest.TestCase):
 
     def setUp(self):
         self.worker_config = WorkerConfiguration(
-            "correlation",
+            "worker",
+            "worker01",
             "http://172.22.15.25:8080/v1")
 
     def test_worker_configuration(self):
-        self.assertEqual(self.worker_config.personality, 'correlation')
+        self.assertEqual(self.worker_config.personality, 'worker')
+        self.assertEqual(self.worker_config.hostname, 'worker01')
         self.assertEqual(self.worker_config.coordinator_uri,
                          'http://172.22.15.25:8080/v1')
 
     def test_worker_configuration_format(self):
         worker_dict = self.worker_config.format()
-        self.assertEqual(worker_dict['personality'], 'correlation')
+        self.assertEqual(worker_dict['personality'], 'worker')
+        self.assertEqual(worker_dict['hostname'], 'worker01')
         self.assertEqual(worker_dict['coordinator_uri'],
                          'http://172.22.15.25:8080/v1')
 

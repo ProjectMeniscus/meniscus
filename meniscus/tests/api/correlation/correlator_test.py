@@ -147,10 +147,8 @@ class WhenTestingTenantIdentification(unittest.TestCase):
         self.get_tenant = MagicMock(return_value=self.tenant)
         self.get_none = MagicMock(return_value=None)
         self.config = WorkerConfiguration(
-            personality='correlation',
-            personality_module='meniscus.personas.worker.correlation.app',
-            worker_id='fgc7104e-8d93-47dc-a49a-8fb0d39e5192',
-            worker_token='bbd6307f-8d93-47dc-a49a-8fb0d39e5192',
+            personality='worker',
+            hostname='worker01',
             coordinator_uri='http://192.168.1.2/v1')
         self.get_config = MagicMock(return_value=self.config)
 

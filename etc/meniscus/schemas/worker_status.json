@@ -18,12 +18,13 @@
     "definitions": {
 
         "worker_status": {
-            "required": ["system_info", "status"],
+            "required": ["system_info", "status", "hostname"],
             "additionalProperties": false,
 
             "properties": {
                 "status": {"$ref": "#/definitions/status"},
-                "system_info": {"$ref": "#/definitions/system_info"}
+                "system_info": {"$ref": "#/definitions/system_info"},
+                "hostname": {"$ref": "#/definitions/hostname"}
             }
         },
 
@@ -110,6 +111,9 @@
                 "offline",
                 "draining"
             ]
+        },
+        "hostname": {
+            "type": "string"
         }
     }
 }

@@ -23,15 +23,13 @@ class WhenTestingPublishStats(unittest.TestCase):
         self.conf.status_update.worker_status_interval = 60
         self.get_config = MagicMock(return_value=self.conf)
         self.config = WorkerConfiguration(
-            personality='worker.correlation',
-            personality_module='meniscus.personas.worker.correlation.app',
-            worker_id='fgc7104e-8d93-47dc-a49a-8fb0d39e5192',
-            worker_token='bbd6307f-8d93-47dc-a49a-8fb0d39e5192',
+            personality='worker',
+            hostname='worker01',
             coordinator_uri='http://192.168.1.2/v1')
         self.system_info = SystemInfo()
         self.info_format = MagicMock(return_value=self.system_info.format())
         self.request_uri = "{0}/worker/{1}/status".format(
-            self.config.coordinator_uri, self.config.worker_id)
+            self.config.coordinator_uri, self.config.hostname)
         self.req_body = jsonutils.dumps({
             'worker_status': {
                 'status': 'online',

@@ -12,7 +12,6 @@ class CorrelationInputServer(transport.ZeroMQInputServer):
 
     def process_msg(self):
         msg = self._get_msg()
-        _LOG.debug('msg received: {0}'.format(str(msg)))
         cee_message = correlator.correlate_src_message(msg)
 
         try:

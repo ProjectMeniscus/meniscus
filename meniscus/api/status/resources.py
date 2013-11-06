@@ -32,8 +32,9 @@ class WorkerStatusResource(api.ApiResource):
 
         if worker is None:
             #instantiate new worker object
+            new_worker = Worker(**body)
             #persist the new worker
-            worker_util.create_worker(worker)
+            worker_util.create_worker(new_worker)
             resp.status = falcon.HTTP_202
             return
 

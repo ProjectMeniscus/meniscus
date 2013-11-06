@@ -52,6 +52,7 @@ class Worker(object):
         worker_dict['_id'] = self._id
         return worker_dict
 
+    # TODO: Remove, redundant code. format() method does same thing
     def get_status(self):
         """
         Return a dictionary defining a worker node's system status

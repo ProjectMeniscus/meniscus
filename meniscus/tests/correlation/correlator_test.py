@@ -71,8 +71,8 @@ class WhenCorrelateSrcMessage(unittest.TestCase):
         add_correlation_func = MagicMock()
         with patch.object(correlator.TenantIdentification,
                           'get_validated_tenant', get_validated_tenant_func), \
-             patch('meniscus.correlation.correlator.'
-                   'add_correlation_info_to_message', add_correlation_func):
+            patch('meniscus.correlation.correlator.'
+                  'add_correlation_info_to_message', add_correlation_func):
             correlator.correlate_src_message(self.src_msg)
         get_validated_tenant_func.assert_called_once_with()
         add_correlation_func.assert_called_once()

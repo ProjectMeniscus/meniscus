@@ -222,5 +222,3 @@ class ZeroMQCaster(object):
             self.socket = None
             self.context = None
             self.bound = False
-
-

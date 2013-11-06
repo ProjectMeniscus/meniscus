@@ -77,8 +77,8 @@ class WhenTestingCorrelationInputServer(unittest.TestCase):
         normalizer_func = MagicMock()
         with patch('meniscus.correlation.correlator.correlate_src_message',
                    correlate_func), \
-             patch('meniscus.correlation.receiver.normalize_message',
-                   normalizer_func),\
+            patch('meniscus.correlation.receiver.normalize_message',
+                  normalizer_func),\
             patch('meniscus.correlation.receiver.should_normalize',
                   MagicMock(return_value=True)):
             self.server.process_msg()

@@ -212,4 +212,3 @@ class TenantIdentification(object):
             raise errors.ResourceNotFoundError(message)
         else:
             raise errors.CoordinatorCommunicationError
-

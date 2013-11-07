@@ -93,7 +93,8 @@
                     "$ref": "#/definitions/load_average"
                 },
                 "timestamp": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "date-time"
                 }
             }
         },

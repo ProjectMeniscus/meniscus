@@ -29,10 +29,12 @@ class WhenConfiguring(unittest.TestCase):
 
     def test_loading(self):
         try:
-            init_config(['--config-file', '../etc/meniscus/meniscus.conf'])
+            init_config(['--config-file',
+                         '../pkg/layout/etc/meniscus/meniscus.conf'])
         except:
             print('ass {}'.format(os.getcwd()))
-            init_config(['--config-file', './etc/meniscus/meniscus.conf'])
+            init_config(['--config-file',
+                         './pkg/layout/etc/meniscus/meniscus.conf'])
 
         conf = get_config()
         conf.register_group(test_group)

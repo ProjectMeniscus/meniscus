@@ -1,2 +1,2 @@
 [report]
-omit = etc/*,setup.py,*egg*,.tox/*,meniscus/tests/*,build.py,pkg/*
+omit = etc/*,setup.py,*egg*,.tox/*,meniscus/tests/*,build.py,pkg/*,meniscus/openstack/*

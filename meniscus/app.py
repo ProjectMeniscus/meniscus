@@ -1,5 +1,12 @@
-from meniscus.ext.plugin import import_module
+import platform
+
+from oslo.config import cfg
+
+from meniscus.config import get_config
+from meniscus.config import init_config
 from meniscus.data.cache_handler import ConfigCache
+from meniscus.data.model.worker import WorkerConfiguration
+from meniscus.ext.plugin import import_module
 from meniscus import env
 from meniscus.openstack.common import log
 
@@ -7,27 +14,43 @@ from meniscus.openstack.common import log
 log.setup('meniscus')
 _LOG = env.get_logger(__name__)
 
+# default configuration options
+_default_group = cfg.OptGroup(name='default', title='Default')
+get_config().register_group(_default_group)
 
-# Adding a hook into environment variables let's us override this
-DEFAULT_PERSONALITY_MODULE = env.get('WORKER_PERSONA',
-                                     'meniscus.personas.pairing.app')
+_DEFAULT_OPTIONS = [
+    cfg.StrOpt('personality',
+               default='worker',
+               help="""The personality to load"""
+               ),
+    cfg.StrOpt('coordinator_uri',
+               default='localhost:8080',
+               help="""The URI of the Coordinator (can be a load balancer)"""
+               )
+]
+
+get_config().register_opts(_DEFAULT_OPTIONS, group=_default_group)
+try:
+    init_config()
+    conf = get_config()
+except cfg.ConfigFilesNotFoundError:
+    conf = get_config()
+
+PERSONALITY = conf.default.personality
+COORDINATOR_URI = conf.default.coordinator_uri
+
 config_cache = ConfigCache()
 
 
 def bootstrap_api():
+    # Persist the coordinator_uri and personality to ConfigCache
+    config = WorkerConfiguration(PERSONALITY, platform.node(),
+                                 COORDINATOR_URI)
+    config_cache.set_config(config)
 
-    #if the configuration exists in the cache,
-    # retrieve the personality module
-    config = config_cache.get_config()
-
-    if config:
-        personality_module = config.personality_module
-        _LOG.info('loading personality module from config: {0}'
-                  .format(personality_module))
-    else:
-        personality_module = DEFAULT_PERSONALITY_MODULE
-        _LOG.info('loading default personality module: {0}'
-                  .format(personality_module))
+    personality_module = 'meniscus.personas.{0}.app'.format(PERSONALITY)
+    _LOG.info('loading default personality module: {0}'
+        .format(personality_module))
 
     #load the personality module as a plug in
     plugin_mod = import_module(personality_module)

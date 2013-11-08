@@ -7,11 +7,13 @@ from mock import patch
 from meniscus.openstack.common import jsonutils
 from meniscus.personas.common.publish_stats import ConfigCache
 from meniscus.personas.common.publish_stats import publish_worker_stats
-from meniscus.personas.common.publish_stats import SystemInfo
+from meniscus.data.model.worker import SystemInfo
+from meniscus.data.model.worker import Worker
 from meniscus.data.model.worker import WorkerConfiguration
 
 
 def suite():
+
     suite = unittest.TestSuite()
     suite.addTest(WhenTestingPublishStats())
     return suite
@@ -23,21 +25,19 @@ class WhenTestingPublishStats(unittest.TestCase):
         self.conf.status_update.worker_status_interval = 60
         self.get_config = MagicMock(return_value=self.conf)
         self.config = WorkerConfiguration(
-            personality='worker.correlation',
-            personality_module='meniscus.personas.worker.correlation.app',
-            worker_id='fgc7104e-8d93-47dc-a49a-8fb0d39e5192',
-            worker_token='bbd6307f-8d93-47dc-a49a-8fb0d39e5192',
+            personality='worker',
+            hostname='worker01',
             coordinator_uri='http://192.168.1.2/v1')
-        self.system_info = SystemInfo()
-        self.info_format = MagicMock(return_value=self.system_info.format())
+        self.system_info = SystemInfo().format()
         self.request_uri = "{0}/worker/{1}/status".format(
-            self.config.coordinator_uri, self.config.worker_id)
-        self.req_body = jsonutils.dumps({
-            'worker_status': {
-                'status': 'online',
-                'system_info': self.system_info.format()
-            }
-        })
+            self.config.coordinator_uri, self.config.hostname)
+
+        self.worker_status = {
+            'worker_status': Worker(personality='worker').format()
+        }
+        self.worker_status['worker_status']['system_info'] = self.system_info
+        self.req_body = jsonutils.dumps(self.worker_status)
+
         self.get_config = MagicMock(return_value=self.config)
         self.resp = requests.Response()
         self.http_request = MagicMock(return_value=self.resp)
@@ -48,11 +48,12 @@ class WhenTestingPublishStats(unittest.TestCase):
                 'meniscus.personas.common.publish_stats.http_request',
                 self.http_request), patch(
                 'meniscus.personas.common.publish_stats.get_config',
-                self.get_config),\
-            patch.object(
+                self.get_config), patch.object(
                 SystemInfo, 'format',
-                self.info_format):
+                MagicMock(return_value=self.system_info)):
+
             publish_worker_stats()
+
             self.http_request.assert_called_once_with(
                 url=self.request_uri,
                 json_payload=self.req_body,

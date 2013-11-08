@@ -5,7 +5,6 @@ system status.
 """
 
 import platform
-import uuid
 
 import meniscus.api.utils.sys_assist as sys_assist
 from meniscus.openstack.common import timeutils
@@ -16,30 +15,34 @@ class Worker(object):
     Class that represents the data structure of worker node in a meniscus
     cluster.  The data contains basic identification and system info.
     """
-    def __init__(self, **kwargs):
+    def __init__(self, personality='worker', **kwargs):
         """
         The init function accepts **kwargs so that a Worker object can be
         constructed from its dictionary representation or from a
         WorkerRegistration object's dictionary representation.
         """
 
-        self._id = kwargs.get('_id', None)
-        self.worker_id = kwargs.get('worker_id', str(uuid.uuid4()))
-        self.worker_token = kwargs.get('worker_token', str(uuid.uuid4()))
-        self.hostname = kwargs['hostname']
-        self.ip_address_v4 = kwargs['ip_address_v4']
-        self.ip_address_v6 = kwargs['ip_address_v6']
-        self.personality = kwargs['personality']
-        self.status = kwargs['status']
-        self.system_info = SystemInfo(**kwargs['system_info'])
+        if kwargs:
+            self._id = kwargs.get('_id')
+            self.hostname = kwargs['hostname']
+            self.ip_address_v4 = kwargs['ip_address_v4']
+            self.ip_address_v6 = kwargs['ip_address_v6']
+            self.personality = personality
+            self.status = kwargs['status']
+            self.system_info = SystemInfo(**kwargs['system_info'])
+        else:
+            self.hostname = platform.node()
+            self.ip_address_v4 = sys_assist.get_interface_ip()
+            self.ip_address_v6 = ""
+            self.personality = personality
+            self.status = "online"
+            self.system_info = SystemInfo()
 
     def format(self):
         """
         Format an instance of the Worker object as a dictionary
         """
         return{
-            'worker_id': self.worker_id,
-            'worker_token': self.worker_token,
             'hostname': self.hostname,
             'ip_address_v4': self.ip_address_v4,
             'ip_address_v6': self.ip_address_v6,
@@ -57,58 +60,9 @@ class Worker(object):
         worker_dict['_id'] = self._id
         return worker_dict
 
-    def get_registration_identity(self):
-        """
-        Return a worker node's identity information
-        """
-        return{
-            'personality_module': 'meniscus.personas.{0}.app'
-            .format(self.personality),
-            'worker_id': self.worker_id,
-            'worker_token': self.worker_token
-        }
-
     def get_status(self):
         """
         Return a dictionary defining a worker node's system status
-        """
-        return{
-            'hostname': self.hostname,
-            'worker_id': self.worker_id,
-            'ip_address_v4': self.ip_address_v4,
-            'ip_address_v6': self.ip_address_v6,
-            'personality': self.personality,
-            'status': self.status,
-            'system_info': self.system_info.format()
-        }
-
-    def get_route_info(self):
-        return {
-            'worker_id': self.worker_id,
-            'ip_address_v4': self.ip_address_v4,
-            'ip_address_v6': self.ip_address_v6,
-            'status': self.status
-        }
-
-
-class WorkerRegistration(object):
-    """
-    A class defining the data structure of a worker node's
-    registration information
-    """
-    def __init__(self, personality, status='new'):
-        self.hostname = platform.node()
-        self.ip_address_v4 = sys_assist.get_interface_ip()
-        self.ip_address_v6 = ""
-        self.personality = personality
-        self.status = status
-        self.system_info = SystemInfo()
-
-    def format(self):
-        """
-        Format an instance fo the WorkerRegistration object as a dictionary.
-        The output of this method can be passed to the constructor of the
-        Worker class to create a new Worker instance.
         """
         return{
             'hostname': self.hostname,
@@ -166,13 +120,10 @@ class WorkerConfiguration(object):
     """
     The class defines a data structure for a worker's configuration info.
     """
-    def __init__(self, personality, personality_module, worker_token,
-                 worker_id, coordinator_uri):
+    def __init__(self, personality, hostname, coordinator_uri):
 
         self.personality = personality
-        self.personality_module = personality_module
-        self.worker_token = worker_token
-        self.worker_id = worker_id
+        self.hostname = hostname
         self.coordinator_uri = coordinator_uri
 
     def format(self):
@@ -181,8 +132,6 @@ class WorkerConfiguration(object):
         """
         return{
             'personality': self.personality,
-            'personality_module': self.personality_module,
-            'worker_token': self.worker_token,
-            'worker_id': self.worker_id,
+            'hostname': self.hostname,
             'coordinator_uri': self.coordinator_uri
         }

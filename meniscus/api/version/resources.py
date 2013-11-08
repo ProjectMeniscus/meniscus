@@ -5,7 +5,7 @@ from meniscus.api import format_response_body
 
 
 class VersionResource(ApiResource):
-    """ Return the current version of the Pairing API """
+    """ Return the current version of the API """
 
     def on_get(self, req, resp):
         resp.status = falcon.HTTP_200

@@ -43,40 +43,11 @@ class WhenTestingConfigCache(unittest.TestCase):
         self.cache_set = MagicMock()
         self.cache_del = MagicMock()
         self.config = WorkerConfiguration(
-            personality='correlation',
-            personality_module='meniscus.personas.worker.correlation.app',
-            worker_id='fgc7104e-8d93-47dc-a49a-8fb0d39e5192',
-            worker_token='bbd6307f-8d93-47dc-a49a-8fb0d39e5192',
+            personality='worker',
+            hostname='worker01',
             coordinator_uri='http://192.168.1.2/v1')
         self.config_json = jsonutils.dumps(self.config.format())
         self.cache_get_config = MagicMock(return_value=self.config_json)
-        self.routes = [
-            {
-                "service_domain": "correlation|normalization|storage",
-                "targets": [
-                    {
-                        "worker_id": "488eb3fc-34dd-48ad-a1bb-99ee2a43bf1d",
-                        "ip_address_v4": "192.168.100.101",
-                        "ip_address_v6": "::1",
-                        "status": "online|draining"
-                    },
-                    {
-                        "worker_id": "e0ac0dc3-694e-4522-94f0-fb25a4dbb8a1",
-                        "ip_address_v4": "192.168.100.102",
-                        "ip_address_v6": "::1",
-                        "status": "online|draining"
-                    },
-                    {
-                        "worker_id": "64d7a5ab-55b6-4ff7-b362-0d67544bb6f8",
-                        "ip_address_v4": "192.168.100.103",
-                        "ip_address_v6": "::1",
-                        "status": "online|draining"
-                    }
-                ]
-            }
-        ]
-        self.routes_json = jsonutils.dumps(self.routes)
-        self.cache_get_routes = MagicMock(return_value=self.routes_json)
 
     def test_clear_calls_cache_clear(self):
         with patch.object(NativeProxy, 'cache_clear', self.cache_clear):

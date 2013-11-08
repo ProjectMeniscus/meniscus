@@ -9,7 +9,7 @@ def _get(name, default=None):
 
 _DEFAULT_CONFIG_ARGS = [
     '--config-file',
-    _get('CONFIG_FILE', '/etc/meniscus/meniscus.cfg')
+    _get('CONFIG_FILE', '/etc/meniscus/meniscus.conf')
 ]
 
 _config_opts = cfg.ConfigOpts()

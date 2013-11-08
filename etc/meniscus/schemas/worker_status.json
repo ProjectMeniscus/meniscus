@@ -6,35 +6,69 @@
     "additionalProperties": false,
 
     "properties": {
-        "worker_status": {
-            "$ref": "#/definitions/worker_status"
-        }
+        "worker_status": {"$ref": "#/definitions/worker_status"}
     },
 
     "oneOf": [
-         {"required": ["worker_status"]}
+        {"required": ["worker_status"]}
     ],
 
     "definitions": {
 
         "worker_status": {
-            "required": ["system_info", "status"],
+
+            "required": [
+                "hostname",
+                "ip_address_v4",
+                "ip_address_v6",
+                "personality",
+                "status",
+                "system_info"
+            ],
+
             "additionalProperties": false,
 
             "properties": {
-                "status": {"$ref": "#/definitions/status"},
-                "system_info": {"$ref": "#/definitions/system_info"}
+
+                "hostname": {
+                    "type": "string"
+                },
+                "ip_address_v4": {
+                    "type": "string",
+                    "format": "ipv4"
+                },
+                "ip_address_v6": {
+                    "type": "string"
+                },
+                "personality": {
+                    "enum": [
+                        "coordinator",
+                        "worker",
+                        "dispatcher",
+                        "tenant"
+                    ]
+                },
+                "status": {
+                    "enum": [
+                        "new",
+                        "online",
+                        "offline",
+                        "draining"
+                    ]
+                },
+                "system_info": {
+                    "$ref": "#/definitions/system_info"
+                }
             }
         },
-
         "system_info": {
             "required": [
                 "os_type",
                 "memory_mb",
                 "architecture",
                 "cpu_cores",
-                "load_average",
                 "disk_usage",
+                "load_average",
                 "timestamp"
             ],
             "additionalProperties": false,
@@ -70,16 +104,13 @@
 
             "properties":{
                 "1": {
-                    "type": "number",
-                    "minimum": 0
+                    "type": "number"
                 },
                 "5": {
-                    "type": "number",
-                    "minimum": 0
+                    "type": "number"
                 },
                 "15": {
-                    "type": "number",
-                    "minimum": 0
+                    "type": "number"
                 }
             }
         },
@@ -102,14 +133,16 @@
                     "type": "number"
                 }
             }
+
         },
-        "status": {
-            "enum": [
-                "new",
-                "online",
-                "offline",
-                "draining"
-            ]
+        "hostname": {
+            "type": "string"
+        },
+        "ip_address_v4": {
+            "type": "string"
+        },
+        "ip_address_v6": {
+            "type": "string"
         }
     }
 }

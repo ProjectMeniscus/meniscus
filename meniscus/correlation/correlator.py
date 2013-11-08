@@ -154,8 +154,7 @@ class TenantIdentification(object):
 
         token_header = {
             MESSAGE_TOKEN: self.message_token,
-            "WORKER-ID": config.worker_id,
-            "WORKER-TOKEN": config.worker_token
+            "hostname": config.hostname
         }
 
         request_uri = "{0}/tenant/{1}/token".format(
@@ -186,8 +185,7 @@ class TenantIdentification(object):
 
         token_header = {
             MESSAGE_TOKEN: self.message_token,
-            "WORKER-ID": config.worker_id,
-            "WORKER-TOKEN": config.worker_token
+            "hostname": config.hostname
         }
 
         request_uri = "{0}/tenant/{1}".format(

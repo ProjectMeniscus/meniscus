@@ -1,11 +1,12 @@
 from oslo.config import cfg
+
 from meniscus.api.utils.request import http_request
 from meniscus.config import get_config
 from meniscus.config import init_config
 from meniscus.data.cache_handler import ConfigCache
+from meniscus.data.model.worker import Worker
 from meniscus.openstack.common import jsonutils
 from meniscus.queue import celery
-from meniscus.data.model.worker import SystemInfo
 from meniscus import env
 
 
@@ -43,13 +44,10 @@ def publish_worker_stats():
         config = cache.get_config()
 
         request_uri = "{0}/worker/{1}/status".format(
-            config.coordinator_uri, config.worker_id)
+            config.coordinator_uri, config.hostname)
 
         req_body = {
-            'worker_status': {
-                'status': 'online',
-                'system_info': SystemInfo().format()
-            }
+            'worker_status': Worker(personality=config.personality).format()
         }
 
         http_request(url=request_uri, json_payload=jsonutils.dumps(req_body),

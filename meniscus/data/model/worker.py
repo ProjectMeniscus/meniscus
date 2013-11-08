@@ -99,7 +99,7 @@ class SystemInfo(object):
             self.architecture = platform.machine()
             self.load_average = sys_assist.get_load_average()
             self.disk_usage = sys_assist.get_disk_usage()
-            self.timestamp = timeutils.utcnow()
+            self.timestamp = str(timeutils.utcnow())
 
     def format(self):
         """

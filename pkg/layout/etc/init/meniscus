@@ -1,4 +1,4 @@
-description "Project Meniscus API node deaemon"
+description "Project Meniscus API node daemon"
 author "John Hopper"
 start on (local-filesystems and net-device-up)
 stop on runlevel [06]

@@ -8,6 +8,7 @@ from meniscus.data.datastore import datasource_handler
 from meniscus.data.adapters import mongodb
 from meniscus.data.adapters.mongodb import MongoClient
 
+
 def suite():
     suite = unittest.TestSuite()
     suite.addTest(WhenConnectingToLiveMongoDB())
@@ -62,6 +63,32 @@ class WhenTestingMongoDataSourceHandler(unittest.TestCase):
             self.mongo_handler.connect()
         self.mongo_handler.close()
         self.assertEquals(self.mongo_handler.status, mongodb.STATUS_CLOSED)
+
+    def test_create_sequence_existing_sequence(self):
+        self.mongo_handler.status = mongodb.STATUS_CONNECTED
+        sequence = 'sequence01'
+        create_sequence = MagicMock()
+        self.mongo_handler.find_one = create_sequence
+        self.mongo_handler.create_sequence(sequence)
+        create_sequence.assert_called_once_with('counters', {'name': sequence})
+
+    def test_create_sequence_new_sequence(self):
+        self.mongo_handler.status = mongodb.STATUS_CONNECTED
+        sequence = 'sequence01'
+        create_sequence = MagicMock()
+        self.mongo_handler.find_one = MagicMock(return_value=None)
+        self.mongo_handler.put = create_sequence
+        self.mongo_handler.create_sequence(sequence)
+        create_sequence.assert_called_once_with('counters', {'name': sequence,
+                                                             'seq': 1})
+
+    def test_delete_sequence(self):
+        self.mongo_handler.status = mongodb.STATUS_CONNECTED
+        sequence = 'sequence01'
+        delete_sequence = MagicMock()
+        self.mongo_handler.delete = delete_sequence
+        self.mongo_handler.delete_sequence(sequence)
+        delete_sequence.assert_called_once_with('counters', {'name': sequence})
 
 
 class WhenConnectingToLiveMongoDB(unittest.TestCase):

@@ -1,0 +1,83 @@
+{
+    "tenant": {
+        "id": "ef94929b-8fdd-47b7-a216-680bd4065c63",
+        "hosts": [{
+            "id": "71d7d079-a202-4173-9d97-d6dea475e4a6",
+            "hostname": "worker-n24.cluster-01",
+            "ip_address_v4": "127.0.0.1",
+            "ip_address_v6": "::1",
+            "profile": 12345
+        },
+        {
+            "id": "71d7d079-a202-4173-9d97-d6dea475e4a6",
+            "hostname": "worker-n24.cluster-0",
+            "ip_address_v4": "127.0.0.1",
+            "ip_address_v6": "::1",
+            "profile": 123456
+        }],
+        "profiles": [{
+            "id": 12345,
+            "name": "profile-1",
+            "event_producers": [ 12345, 12346 ]
+        },
+        {
+            "id": 123456,
+            "name": "profile-2",
+            "event_producers": [ 12346 ]
+        }],
+        "event_producers": [{
+            "id": 12345,
+            "name": "apache",
+            "durable": true,
+            "encrypted": false,
+            "sink": "hdfs"
+        },
+        {
+            "id": 12346,
+            "name": "myapp.debug",
+            "durable": false,
+            "encrypted": false
+        }],
+        "token": {
+            "valid": "0ebcdb6a-fa82-4241-a806-0e936c01d80a",
+            "previous": "492687cd-ec0c-433d-ab6f-cd7065695f2a",
+            "last_changed": "2013-05-29 00:12:47.162431208-05:00"
+        }
+    }
+}
+
+{
+    "host": {
+        "id": "71d7d079-a202-4173-9d97-d6dea475e4a6",
+        "hostname": "worker-n24.cluster-01",
+        "ip_address_v4": "127.0.0.1",
+        "ip_address_v6": "::1",
+        "profile": 4125
+    }
+}
+
+{
+    "profile": {
+        "id": 12345,
+        "name": "profile-1",
+        "event_producers": [ 23, 24, 55, 123, 124, 125, 126 ]
+    }
+}
+
+{
+    "event_producer": {
+        "id": 12345,
+        "name": "apache",
+        "durable": true,
+        "encrypted": false,
+        "sinks": ["elasticsearch"]
+    }
+}
+
+{
+    "token": {
+        "valid": "0ebcdb6a-fa82-4241-a806-0e936c01d80a",
+        "previous": "492687cd-ec0c-433d-ab6f-cd7065695f2a",
+        "last_changed": "2013-05-29 00:12:47.162431208-05:00"
+    }
+}

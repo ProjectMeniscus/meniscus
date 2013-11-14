@@ -1,0 +1,21 @@
+{
+    "log_message": {
+        "profile": "http: //projectmeniscus.org/cee/profiles/base",
+        "ver": "1",
+        "msgid": "-",
+        "pri": "46",
+        "pid": "-",
+        "host": "lulu",
+        "pname": "rsyslogd",
+        "time": "2013-04-02T14: 12: 04.873490-05: 00",
+        "msg": "start",
+        "native": {
+            "origin": {
+                "x-info": "http: //www.rsyslog.com",
+                "swVersion": "7.2.5",
+                "x-pid": "12662",
+                "software": "rsyslogd"
+            }
+        }
+    }
+}

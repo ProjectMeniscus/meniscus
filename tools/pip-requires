@@ -4,7 +4,6 @@ wsgiref
 pymongo
 requests
 iso8601==0.1.4
-eventlet
 oslo.config
 uWSGI
 pyes
@@ -15,3 +14,4 @@ pylognorm
 pywebhdfs
 pyzmq==13.1.0
 netaddr
+Babel>=0.9.6

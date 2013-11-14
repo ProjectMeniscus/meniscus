@@ -3,22 +3,22 @@
 # Administrator of the National Aeronautics and Space Administration.
 # All Rights Reserved.
 #
-#    Licensed under the Apache License, Version 2.0 (the "License"); you may
-#    not use this file except in compliance with the License. You may obtain
-#    a copy of the License at
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
 #
-#         http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
-#    Unless required by applicable law or agreed to in writing, software
-#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
-#    License for the specific language governing permissions and limitations
-#    under the License.
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
 
 """Openstack logging handler.
 
 This module adds to logging functionality by adding the option to specify
-a context object when calling the various log methods.  If the context object
+a context object when calling the various log methods. If the context object
 is not specified, default formatting is used. Additionally, an instance uuid
 may be passed as part of the log message, which is intended to make it easier
 for admins to find messages related to a specific instance.
@@ -27,8 +27,6 @@ It also allows setting of formatting information through conf.
 
 """
 
-import ConfigParser
-import cStringIO
 import inspect
 import itertools
 import logging
@@ -39,8 +37,9 @@ import sys
 import traceback
 
 from oslo.config import cfg
+from six import moves
 
-from meniscus.openstack.common.gettextutils import _  # noqa
+from meniscus.openstack.common.gettextutils import _ # noqa
 from meniscus.openstack.common import importutils
 from meniscus.openstack.common import jsonutils
 from meniscus.openstack.common import local
@@ -75,7 +74,7 @@ logging_cli_opts = [
                help='DEPRECATED. '
                     'A logging.Formatter log message format string which may '
                     'use any of the available logging.LogRecord attributes. '
-                    'This option is deprecated.  Please use '
+                    'This option is deprecated. Please use '
                     'logging_context_format_string and '
                     'logging_default_format_string instead.'),
     cfg.StrOpt('log-date-format',
@@ -161,14 +160,14 @@ CONF.register_opts(log_opts)
 
 # our new audit level
 # NOTE(jkoelker) Since we synthesized an audit level, make the logging
-#                module aware of it so it acts like other levels.
+# module aware of it so it acts like other levels.
 logging.AUDIT = logging.INFO + 1
 logging.addLevelName(logging.AUDIT, 'AUDIT')
 
 
 try:
     NullHandler = logging.NullHandler
-except AttributeError:  # NOTE(jkoelker) NullHandler added in Python 2.7
+except AttributeError: # NOTE(jkoelker) NullHandler added in Python 2.7
     class NullHandler(logging.Handler):
         def handle(self, record):
             pass
@@ -259,14 +258,14 @@ class ContextAdapter(BaseLoggerAdapter):
             extra.update(_dictify_context(context))
 
         instance = kwargs.pop('instance', None)
+        instance_uuid = (extra.get('instance_uuid', None) or
+                         kwargs.pop('instance_uuid', None))
         instance_extra = ''
         if instance:
             instance_extra = CONF.instance_format % instance
-        else:
-            instance_uuid = kwargs.pop('instance_uuid', None)
-            if instance_uuid:
-                instance_extra = (CONF.instance_uuid_format
-                                  % {'uuid': instance_uuid})
+        elif instance_uuid:
+            instance_extra = (CONF.instance_uuid_format
+                              % {'uuid': instance_uuid})
         extra.update({'instance': instance_extra})
 
         extra.update({"project": self.project})
@@ -278,7 +277,7 @@ class ContextAdapter(BaseLoggerAdapter):
 class JSONFormatter(logging.Formatter):
     def __init__(self, fmt=None, datefmt=None):
         # NOTE(jkoelker) we ignore the fmt argument, but its still there
-        #                since logging.config.fileConfig passes it.
+        # since logging.config.fileConfig passes it.
         self.datefmt = datefmt
 
     def formatException(self, ei, strip_newlines=True):
@@ -346,7 +345,7 @@ class LogConfigError(Exception):
 def _load_log_config(log_config):
     try:
         logging.config.fileConfig(log_config)
-    except ConfigParser.Error as exc:
+    except moves.configparser.Error as exc:
         raise LogConfigError(log_config, str(exc))
 
 
@@ -417,13 +416,13 @@ def _setup_logging_from_conf():
 
     if CONF.publish_errors:
         handler = importutils.import_object(
-            "openstack.common.log_handler.PublishErrorsHandler",
+            "marconi.openstack.common.log_handler.PublishErrorsHandler",
             logging.ERROR)
         log_root.addHandler(handler)
 
     datefmt = CONF.log_date_format
     for handler in log_root.handlers:
-        # NOTE(alaski): CONF.log_format overrides everything currently.  This
+        # NOTE(alaski): CONF.log_format overrides everything currently. This
         # should be deprecated in favor of context aware formatting.
         if CONF.log_format:
             handler.setFormatter(logging.Formatter(fmt=CONF.log_format,
@@ -460,10 +459,10 @@ def getLogger(name='unknown', version='unknown'):
 def getLazyLogger(name='unknown', version='unknown'):
     """Returns lazy logger.
 
-    Creates a pass-through logger that does not create the real logger
-    until it is really needed and delegates all calls to the real logger
-    once it is created.
-    """
+Creates a pass-through logger that does not create the real logger
+until it is really needed and delegates all calls to the real logger
+once it is created.
+"""
     return LazyAdapter(name, version)
 
 
@@ -481,15 +480,15 @@ class WritableLogger(object):
 class ContextFormatter(logging.Formatter):
     """A context.RequestContext aware formatter configured through flags.
 
-    The flags used to set format strings are: logging_context_format_string
-    and logging_default_format_string.  You can also specify
-    logging_debug_format_suffix to append extra formatting if the log level is
-    debug.
+The flags used to set format strings are: logging_context_format_string
+and logging_default_format_string. You can also specify
+logging_debug_format_suffix to append extra formatting if the log level is
+debug.
 
-    For information about what variables are available for the formatter see:
-    http://docs.python.org/library/logging.html#formatter
+For information about what variables are available for the formatter see:
+http://docs.python.org/library/logging.html#formatter
 
-    """
+"""
 
     def format(self, record):
         """Uses contextstring if request_id is set, otherwise default."""
@@ -519,7 +518,7 @@ class ContextFormatter(logging.Formatter):
         if not record:
             return logging.Formatter.formatException(self, exc_info)
 
-        stringbuffer = cStringIO.StringIO()
+        stringbuffer = moves.StringIO()
         traceback.print_exception(exc_info[0], exc_info[1], exc_info[2],
                                   None, stringbuffer)
         lines = stringbuffer.getvalue().split('\n')
@@ -538,12 +537,12 @@ class ContextFormatter(logging.Formatter):
 
 class ColorHandler(logging.StreamHandler):
     LEVEL_COLORS = {
-        logging.DEBUG: '\033[00;32m',  # GREEN
-        logging.INFO: '\033[00;36m',  # CYAN
-        logging.AUDIT: '\033[01;36m',  # BOLD CYAN
-        logging.WARN: '\033[01;33m',  # BOLD YELLOW
-        logging.ERROR: '\033[01;31m',  # BOLD RED
-        logging.CRITICAL: '\033[01;31m',  # BOLD RED
+        logging.DEBUG: '\033[00;32m', # GREEN
+        logging.INFO: '\033[00;36m', # CYAN
+        logging.AUDIT: '\033[01;36m', # BOLD CYAN
+        logging.WARN: '\033[01;33m', # BOLD YELLOW
+        logging.ERROR: '\033[01;31m', # BOLD RED
+        logging.CRITICAL: '\033[01;31m', # BOLD RED
     }
 
     def format(self, record):

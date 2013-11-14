@@ -15,7 +15,7 @@ get_config().register_group(_cache_group)
 
 _CACHE_OPTIONS = [
     cfg.IntOpt('default_expires',
-               default=900,
+               default=3600,
                help="""default time to keep items in cache"""
                ),
     cfg.IntOpt('config_expires',

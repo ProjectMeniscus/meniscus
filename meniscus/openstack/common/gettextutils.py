@@ -19,7 +19,7 @@ gettext for openstack-common modules.
 
 Usual usage in an openstack.common module:
 
-    from marconi.openstack.common.gettextutils import _
+    from meniscus.openstack.common.gettextutils import _
 """
 
 import copy
@@ -35,8 +35,8 @@ except ImportError:
 from babel import localedata
 import six
 
-_localedir = os.environ.get('marconi'.upper() + '_LOCALEDIR')
-_t = gettext.translation('marconi', localedir=_localedir, fallback=True)
+_localedir = os.environ.get('meniscus'.upper() + '_LOCALEDIR')
+_t = gettext.translation('meniscus', localedir=_localedir, fallback=True)
 
 _AVAILABLE_LANGUAGES = {}
 USE_LAZY = False
@@ -56,7 +56,7 @@ def enable_lazy():
 
 def _(msg):
     if USE_LAZY:
-        return Message(msg, 'marconi')
+        return Message(msg, 'meniscus')
     else:
         if six.PY3:
             return _t.gettext(msg)

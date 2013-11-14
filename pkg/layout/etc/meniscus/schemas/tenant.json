@@ -1,0 +1,94 @@
+{
+    "id": "http://projectmeniscus.org/json/tenant#",
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "description": "Tenant API schema",
+    "type": "object",
+    "additionalProperties": false,
+
+    "properties": {
+        "tenant": {
+            "$ref": "#/definitions/tenant"
+        },
+        "event_producer": {
+            "$ref": "#/definitions/event_producer"
+        },
+        "token": {
+            "$ref": "#/definitions/token"
+        }
+    },
+
+    "oneOf": [
+        { "required": ["tenant"] },
+        { "required": ["event_producer"] },
+        { "required": ["token"] }
+    ],
+
+    "definitions": {
+        "tenant": {
+            "required": ["tenant_id"],
+            "additionalProperties": false,
+
+            "properties": {
+                "tenant_id": {
+                	"type": "string",
+                    "minLength": 1
+                },
+                "tenant_name": {
+                	"type": "string",
+                    "minLength": 1
+                },
+                "event_producers": {
+                    "type": "array",
+                    "items": { "$ref": "#/definitions/event_producer" }
+                },
+                "token": {
+                    "$ref": "#/definitions/token"
+                }
+            }
+        },
+
+        "event_producer": {
+            "required": ["name", "pattern"],
+            "additionalProperties": false,
+
+            "properties": {
+                "id": {
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "pattern": {
+                    "type": "string",
+                    "minLength": 1
+                },
+                "durable": {
+                    "type": "boolean"
+                },
+                "encrypted": {
+                    "type": "boolean"
+                },
+                "sinks": {
+                    "type": "array",
+                    "items": {
+                        "enum": ["elasticsearch", "hdfs"]
+                    },
+                    "minLength": 1,
+                    "uniqueItems": true
+                }
+            }
+        },
+
+        "token": {
+            "required": ["invalidate_now"],
+            "additionalProperties": false,
+
+            "properties": {
+                "invalidate_now": {
+                    "type": "boolean"
+                }
+            }
+        }
+    }
+}

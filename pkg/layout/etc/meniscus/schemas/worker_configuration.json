@@ -1,0 +1,21 @@
+{
+    "id": "http://projectmeniscus.org/json/worker_configuration#",
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "description": "Worker Configuration Schema",
+
+    "type": "object",
+    "additionalProperties": false,
+
+    "properties": {
+        "personality":  {
+            "enum": ["coordinator", "worker", "dispatcher", "tenant"]
+        },
+        "hostname": {
+            "type": "string"
+        },
+        "coordinators": {
+            "type": "array",
+            "items": { "type": "string" }
+        }
+    }
+}

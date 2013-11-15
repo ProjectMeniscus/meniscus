@@ -1,17 +1,17 @@
 # Copyright 2011 OpenStack Foundation.
 # All Rights Reserved.
 #
-#    Licensed under the Apache License, Version 2.0 (the "License"); you may
-#    not use this file except in compliance with the License. You may obtain
-#    a copy of the License at
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
 #
-#         http://www.apache.org/licenses/LICENSE-2.0
+# http://www.apache.org/licenses/LICENSE-2.0
 #
-#    Unless required by applicable law or agreed to in writing, software
-#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
-#    License for the specific language governing permissions and limitations
-#    under the License.
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
 
 """
 Time related utilities and helper functions.
@@ -19,6 +19,7 @@ Time related utilities and helper functions.
 
 import calendar
 import datetime
+import time
 
 import iso8601
 import six
@@ -47,9 +48,9 @@ def parse_isotime(timestr):
     try:
         return iso8601.parse_date(timestr)
     except iso8601.ParseError as e:
-        raise ValueError(e.message)
+        raise ValueError(unicode(e))
     except TypeError as e:
-        raise ValueError(e.message)
+        raise ValueError(unicode(e))
 
 
 def strtime(at=None, fmt=PERFECT_TIME_FORMAT):
@@ -88,6 +89,11 @@ def is_newer_than(after, seconds):
 
 def utcnow_ts():
     """Timestamp version of our utcnow function."""
+    if utcnow.override_time is None:
+        # NOTE(kgriffs): This is several times faster
+        # than going through calendar.timegm(...)
+        return int(time.time())
+
     return calendar.timegm(utcnow().timetuple())
 
 
@@ -109,12 +115,15 @@ def iso8601_from_timestamp(timestamp):
 utcnow.override_time = None
 
 
-def set_time_override(override_time=datetime.datetime.utcnow()):
+def set_time_override(override_time=None):
     """Overrides utils.utcnow.
 
-    Make it return a constant time or a list thereof, one at a time.
-    """
-    utcnow.override_time = override_time
+Make it return a constant time or a list thereof, one at a time.
+
+:param override_time: datetime instance or list thereof. If not
+given, defaults to the current UTC time.
+"""
+    utcnow.override_time = override_time or datetime.datetime.utcnow()
 
 
 def advance_time_delta(timedelta):
@@ -140,8 +149,8 @@ def clear_time_override():
 def marshall_now(now=None):
     """Make an rpc-safe datetime with microseconds.
 
-    Note: tzinfo is stripped, but not required for relative times.
-    """
+Note: tzinfo is stripped, but not required for relative times.
+"""
     if not now:
         now = utcnow()
     return dict(day=now.day, month=now.month, year=now.year, hour=now.hour,
@@ -163,9 +172,9 @@ def unmarshall_time(tyme):
 def delta_seconds(before, after):
     """Return the difference between two timing objects.
 
-    Compute the difference in seconds between two date, time, or
-    datetime objects (as a float, to microsecond resolution).
-    """
+Compute the difference in seconds between two date, time, or
+datetime objects (as a float, to microsecond resolution).
+"""
     delta = after - before
     try:
         return delta.total_seconds()
@@ -177,10 +186,10 @@ def delta_seconds(before, after):
 def is_soon(dt, window):
     """Determines if time is going to happen in the next window seconds.
 
-    :params dt: the time
-    :params window: minimum seconds to remain to consider the time not soon
+:params dt: the time
+:params window: minimum seconds to remain to consider the time not soon
 
-    :return: True if expiration is within the given duration
-    """
+:return: True if expiration is within the given duration
+"""
     soon = (utcnow() + datetime.timedelta(seconds=window))
     return normalize_time(dt) <= soon

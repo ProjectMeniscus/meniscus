@@ -2,8 +2,8 @@ from oslo.config import cfg
 
 from meniscus.config import get_config
 from meniscus.config import init_config
-from meniscus.data.model.tenant_util import load_tenant_from_dict
-from meniscus.data.model.tenant_util import load_token_from_dict
+from meniscus.data.model.tenant import (
+    load_tenant_from_dict, load_token_from_dict)
 from meniscus.data.model.worker import WorkerConfiguration
 from meniscus.openstack.common import jsonutils
 from meniscus.proxy import NativeProxy

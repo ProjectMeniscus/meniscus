@@ -5,8 +5,8 @@ with instances of the Tenant class and its member objects
 
 from meniscus.data.datastore import COORDINATOR_DB, datasource_handler
 from meniscus.data.model.tenant import EventProducer
-from meniscus.data.model.tenant import Tenant
-from meniscus.data.model.tenant import Token
+from meniscus.data.model.tenant import (
+    load_tenant_from_dict, Tenant, Token)
 from meniscus.data import ttl_tasks
 
 _db_handler = datasource_handler(COORDINATOR_DB)
@@ -67,40 +67,6 @@ def save_tenant(tenant):
     Update an existing tenant in the datastore
     """
     _db_handler.update('tenant', tenant.format_for_save())
-
-
-def load_tenant_from_dict(tenant_dict):
-    """
-    Create a Tenant Object from a dictionary
-    """
-    #Create a list of EventProducer objects from the dictionary
-    event_producers = [EventProducer(
-        e['id'], e['name'], e['pattern'],
-        e['durable'], e['encrypted'], e['sinks'])
-
-        for e in tenant_dict['event_producers']]
-
-    token = load_token_from_dict(tenant_dict['token'])
-
-    _id = None
-    if "_id" in tenant_dict.keys():
-        _id = tenant_dict['_id']
-
-    #Return the tenant object
-    return Tenant(
-        tenant_dict['tenant_id'], token,
-        event_producers=event_producers,
-        _id=_id, tenant_name=tenant_dict['tenant_name'])
-
-
-def load_token_from_dict(token_dict):
-    """
-    Create a Token object from a dictionary
-    """
-    return Token(
-        token_dict['valid'],
-        token_dict['previous'],
-        token_dict['last_changed'])
 
 
 def create_event_producer(tenant, name, pattern, durable, encrypted, sinks):

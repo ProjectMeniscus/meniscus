@@ -120,3 +120,39 @@ application events.
         tenant_dict = self.format()
         tenant_dict['_id'] = self._id
         return tenant_dict
+
+
+def load_tenant_from_dict(tenant_dict):
+    """
+    Create a Tenant Object from a dictionary
+    """
+    #Create a list of EventProducer objects from the dictionary
+    event_producers = [
+        EventProducer(
+            e['id'], e['name'], e['pattern'],
+            e['durable'], e['encrypted'], e['sinks']
+        )
+        for e in tenant_dict['event_producers']
+    ]
+
+    token = load_token_from_dict(tenant_dict['token'])
+
+    _id = None
+    if "_id" in tenant_dict.keys():
+        _id = tenant_dict['_id']
+
+    #Return the tenant object
+    return Tenant(
+        tenant_dict['tenant_id'], token,
+        event_producers=event_producers,
+        _id=_id, tenant_name=tenant_dict['tenant_name'])
+
+
+def load_token_from_dict(token_dict):
+    """
+    Create a Token object from a dictionary
+    """
+    return Token(
+        token_dict['valid'],
+        token_dict['previous'],
+        token_dict['last_changed'])

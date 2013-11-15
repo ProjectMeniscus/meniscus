@@ -15,21 +15,21 @@ log.setup('meniscus')
 _LOG = env.get_logger(__name__)
 
 # default configuration options
-_default_group = cfg.OptGroup(name='default', title='Default')
-get_config().register_group(_default_group)
+_node_group = cfg.OptGroup(name='node', title='Node')
+get_config().register_group(_node_group)
 
-_DEFAULT_OPTIONS = [
+_NODE_OPTIONS = [
     cfg.StrOpt('personality',
                default='worker',
                help="""The personality to load"""
                ),
     cfg.StrOpt('coordinator_uri',
-               default='localhost:8080',
+               default='http://localhost:8080/v1',
                help="""The URI of the Coordinator (can be a load balancer)"""
                )
 ]
 
-get_config().register_opts(_DEFAULT_OPTIONS, group=_default_group)
+get_config().register_opts(_NODE_OPTIONS, group=_node_group)
 try:
     init_config()
     conf = get_config()

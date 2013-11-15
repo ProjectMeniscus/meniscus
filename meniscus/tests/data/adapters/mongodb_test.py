@@ -172,7 +172,7 @@ class WhenTestingMongoDataSourceHandler(unittest.TestCase):
         self.mongo_handler.database[object_name].update = set_field
         self.mongo_handler.set_field(object_name, update_fields)
         set_field.assert_called_once_with({}, {"$set": update_fields},
-                                           multi=True)
+                                          multi=True)
 
     def test_set_field_query_filter(self):
         self.mongo_handler.status = mongodb.STATUS_CONNECTED

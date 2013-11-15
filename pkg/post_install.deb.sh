@@ -41,7 +41,7 @@ case "$1" in
         if [ ! -d /var/lib/meniscus ]; then
             mkdir /var/lib/meniscus
             chown meniscus:meniscus -R /var/lib/meniscus/ /etc/meniscus
-            chmod -R 0700 /etc/meniscus/
+            chmod -R 0744 /etc/meniscus/
         fi
     ;;
 

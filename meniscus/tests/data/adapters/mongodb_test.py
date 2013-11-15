@@ -1,17 +1,12 @@
 import unittest
-import os
 
 from mock import MagicMock, patch
 
-from meniscus.config import init_config, get_config
-from meniscus.data.datastore import datasource_handler
 from meniscus.data.adapters import mongodb
-from meniscus.data.adapters.mongodb import MongoClient
 
 
 def suite():
     suite = unittest.TestSuite()
-    suite.addTest(WhenConnectingToLiveMongoDB())
     suite.addTest(WhenTestingMongoDataSourceHandler())
     return suite
 
@@ -90,68 +85,151 @@ class WhenTestingMongoDataSourceHandler(unittest.TestCase):
         self.mongo_handler.delete_sequence(sequence)
         delete_sequence.assert_called_once_with('counters', {'name': sequence})
 
+    def test_next_sequence_value(self):
+        self.mongo_handler.status = mongodb.STATUS_CONNECTED
+        sequence_name = 'sequence01'
+        next_sequence_value = MagicMock()
+        self.mongo_handler.database = MagicMock()
+        self.mongo_handler.database['counters'].find_and_modify \
+            = next_sequence_value
+        self.mongo_handler.next_sequence_value(sequence_name)
+        next_sequence_value.assert_called_once_with(
+            {'name': sequence_name}, {'$inc': {'seq': 1}})
 
-class WhenConnectingToLiveMongoDB(unittest.TestCase):
+    def test_find_no_query_filter(self):
+        self.mongo_handler.status = mongodb.STATUS_CONNECTED
+        object_name = 'object01'
+        find = MagicMock()
+        self.mongo_handler.database = MagicMock()
+        self.mongo_handler.database[object_name].find = find
+        self.mongo_handler.find(object_name)
+        find.assert_called_once_with({}, None)
 
-    def setUp(self):
-        init_config(['--config-file', 'meniscus.cfg'])
-        conf = get_config()
-        self.handler = datasource_handler(conf)
-        self.handler.connect()
+    def test_find_with_query_filter(self):
+        self.mongo_handler.status = mongodb.STATUS_CONNECTED
+        object_name = 'object01'
+        query_filter = {"filter": "test"}
+        find = MagicMock()
+        self.mongo_handler.database = MagicMock()
+        self.mongo_handler.database[object_name].find = find
+        self.mongo_handler.find(object_name, query_filter)
+        find.assert_called_once_with(query_filter, None)
 
-    def tearDown(self):
-        self.handler.close()
+    def test_find_one_no_query_filter(self):
+        self.mongo_handler.status = mongodb.STATUS_CONNECTED
+        object_name = 'object01'
+        find_one = MagicMock()
+        self.mongo_handler.database = MagicMock()
+        self.mongo_handler.database[object_name].find_one = find_one
+        self.mongo_handler.find_one(object_name)
+        find_one.assert_called_once_with({})
 
-    @unittest.skipIf('RUN_INTEGRATION' not in os.environ or
-                     os.environ['RUN_INTEGRATION'] is False,
-                     'Integration tests are not enabled. Enable them by '
-                     'setting the environment variable "RUN_INTEGRATION"'
-                     'to true.')
-    def test_mongodb_adapter(self):
-        self.handler.put('test', {'name': 'test_1', 'value': 1})
-        self.handler.put('test', {'name': 'test_2', 'value': 2})
-        self.handler.put('test', {'name': 'test_2', 'value': 3})
-        self.handler.put('test', {'name': 'test_2', 'value': 4})
-        self.handler.put('test', {'name': 'test_2', 'value': 5})
-        self.handler.put('test', {'name': 'test_2', 'value': 6})
+    def test_find_one_with_query_filter(self):
+        self.mongo_handler.status = mongodb.STATUS_CONNECTED
+        object_name = 'object01'
+        query_filter = {"filter": "test"}
+        find_one = MagicMock()
+        self.mongo_handler.database = MagicMock()
+        self.mongo_handler.database[object_name].find_one = find_one
+        self.mongo_handler.find_one(object_name, query_filter)
+        find_one.assert_called_once_with(query_filter)
 
-        test_obj = self.handler.find_one('test', {'name': 'test_1'})
-        self.assertEqual(1, test_obj['value'])
+    def test_put_no_document(self):
+        self.mongo_handler.status = mongodb.STATUS_CONNECTED
+        object_name = 'object01'
+        insert = MagicMock()
+        self.mongo_handler.database = MagicMock()
+        self.mongo_handler.database[object_name].insert = insert
+        self.mongo_handler.put(object_name)
+        insert.assert_called_once_with({})
 
-        obj_id = test_obj['_id']
-        test_obj['value'] = 10
-        self.handler.update('test', test_obj)
+    def test_put_with_document(self):
+        self.mongo_handler.status = mongodb.STATUS_CONNECTED
+        object_name = 'object01'
+        document = {"document": "test"}
+        insert = MagicMock()
+        self.mongo_handler.database = MagicMock()
+        self.mongo_handler.database[object_name].insert = insert
+        self.mongo_handler.put(object_name, document)
+        insert.assert_called_once_with(document)
 
-        test_obj = self.handler.find_one('test', {'name': 'test_1'})
-        self.assertEqual(10, test_obj['value'])
-        self.assertEqual(obj_id, test_obj['_id'])
+    def test_update_with_document(self):
+        self.mongo_handler.status = mongodb.STATUS_CONNECTED
+        object_name = 'object01'
+        document = {"_id": "test"}
+        save = MagicMock()
+        self.mongo_handler.database = MagicMock()
+        self.mongo_handler.database[object_name].save = save
+        self.mongo_handler.update(object_name, document)
+        save.assert_called_once_with(document)
 
-        self.handler.delete('test', {'name': 'test_1'})
-        test_obj = self.handler.find_one('test', {'name': 'test_1'})
-        self.assertFalse(test_obj)
+    def test_set_field_no_query_filter(self):
+        self.mongo_handler.status = mongodb.STATUS_CONNECTED
+        object_name = 'object01'
+        update_fields = {}
+        set_field = MagicMock()
+        self.mongo_handler.database = MagicMock()
+        self.mongo_handler.database[object_name].update = set_field
+        self.mongo_handler.set_field(object_name, update_fields)
+        set_field.assert_called_once_with({}, {"$set": update_fields},
+                                           multi=True)
 
-        test_objects = self.handler.find('test', {'name': 'test_2'})
-        self.assertEqual(5, test_objects.count())
+    def test_set_field_query_filter(self):
+        self.mongo_handler.status = mongodb.STATUS_CONNECTED
+        object_name = 'object01'
+        query_filter = {'filter01': 'test'}
+        update_fields = {'field': 'test'}
+        set_field = MagicMock()
+        self.mongo_handler.database = MagicMock()
+        self.mongo_handler.database[object_name].update = set_field
+        self.mongo_handler.set_field(object_name, update_fields, query_filter)
+        set_field.assert_called_once_with({'filter01': 'test'},
+                                          {'$set': {'field': 'test'}},
+                                          multi=True)
 
-        self.handler.delete('test', {'name': 'test_2'})
-        test_objects = self.handler.find('test', {'name': 'test_2'})
-        self.assertEqual(0, test_objects.count())
+    def test_remove_field_no_query_filter(self):
+        self.mongo_handler.status = mongodb.STATUS_CONNECTED
+        object_name = 'object01'
+        update_fields = {'field': 'test'}
+        remove_field = MagicMock()
+        self.mongo_handler.database = MagicMock()
+        self.mongo_handler.database[object_name].update = remove_field
+        self.mongo_handler.remove_field(object_name, update_fields)
+        remove_field.assert_called_once_with({}, {"$unset": update_fields},
+                                             multi=True)
 
-    @unittest.skipIf('RUN_INTEGRATION' not in os.environ or
-                     os.environ['RUN_INTEGRATION'] is False,
-                     'Integration tests are not enabled. Enable them by '
-                     'setting the environment variable "RUN_INTEGRATION"'
-                     'to true.')
-    def test_mongodb_sequences(self):
-        self.handler.create_sequence('test')
-        seq_val = self.handler.next_sequence_value('test')
-        self.assertEqual(1, seq_val)
-        seq_val = self.handler.next_sequence_value('test')
-        self.assertEqual(2, seq_val)
-        self.handler.delete_sequence('test')
+    def test_remove_field_query_filter(self):
+        self.mongo_handler.status = mongodb.STATUS_CONNECTED
+        object_name = 'object01'
+        query_filter = {'filter01': 'test'}
+        update_fields = {'field': 'test'}
+        remove_field = MagicMock()
+        self.mongo_handler.database = MagicMock()
+        self.mongo_handler.database[object_name].update = remove_field
+        self.mongo_handler.remove_field(object_name, update_fields,
+                                        query_filter)
+        remove_field.assert_called_once_with({'filter01': 'test'},
+                                             {'$unset': {'field': 'test'}},
+                                             multi=True)
 
-        seq_doc = self.handler.find_one('sequence', {'name': 'test'})
-        self.assertFalse(seq_doc)
+    def test_find_one_no_query_filter(self):
+        self.mongo_handler.status = mongodb.STATUS_CONNECTED
+        object_name = 'object01'
+        remove = MagicMock()
+        self.mongo_handler.database = MagicMock()
+        self.mongo_handler.database[object_name].remove = remove
+        self.mongo_handler.delete(object_name)
+        remove.assert_called_once_with({}, True)
+
+    def test_find_one_with_query_filter(self):
+        self.mongo_handler.status = mongodb.STATUS_CONNECTED
+        object_name = 'object01'
+        query_filter = {"filter": "test"}
+        remove = MagicMock()
+        self.mongo_handler.database = MagicMock()
+        self.mongo_handler.database[object_name].remove = remove
+        self.mongo_handler.delete(object_name, query_filter)
+        remove.assert_called_once_with({'filter': 'test'}, True)
 
 
 if __name__ == '__main__':

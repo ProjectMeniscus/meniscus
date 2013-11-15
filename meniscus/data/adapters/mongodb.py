@@ -12,6 +12,8 @@ class NamedDatasourceHandler(DatasourceHandler):
         self.database_name = conf.database
         self.username = conf.username
         self.password = conf.password
+        self.connection = None
+        self.status = None
 
     def _check_connection(self):
         """
@@ -76,15 +78,12 @@ class NamedDatasourceHandler(DatasourceHandler):
         self.database[object_name].insert(document)
 
     def update(self, object_name, document=None):
-        if document is None:
-            document = dict()
-        self._check_connection()
-
-        if '_id' not in document:
+        if document is None or '_id' not in document:
             raise DatabaseHandlerError(
                 'The document must have a field "_id" in its root in '
                 'order to perform an update operation.')
 
+        self._check_connection()
         self.database[object_name].save(document)
 
     def set_field(self, object_name, update_fields, query_filter=None):

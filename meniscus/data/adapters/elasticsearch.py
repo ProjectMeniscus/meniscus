@@ -79,7 +79,7 @@ class NamedDatasourceHandler(DatasourceHandler):
 
     def close(self):
         """
-        Close the connection to elasticsearcgh
+        Close the connection to elasticsearch
         """
         self.connection = None
         self.status = STATUS_CLOSED

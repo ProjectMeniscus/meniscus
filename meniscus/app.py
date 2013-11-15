@@ -36,8 +36,8 @@ try:
 except cfg.ConfigFilesNotFoundError:
     conf = get_config()
 
-PERSONALITY = conf.default.personality
-COORDINATOR_URI = conf.default.coordinator_uri
+PERSONALITY = conf.node.personality
+COORDINATOR_URI = conf.node.coordinator_uri
 
 config_cache = ConfigCache()
 

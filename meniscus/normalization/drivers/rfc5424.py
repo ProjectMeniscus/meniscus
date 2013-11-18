@@ -20,6 +20,8 @@ class TailToken(object):
         Tail tokens are used to describe the unique grammar components of
         structured data.
     """
+    __slots__ = ['type', 'value', 'source']
+
     SD_END = 1
     SD_NAME = 2
     SD_PARAM_NAME = 3
@@ -143,6 +145,9 @@ class MessageTailParser(object):
 
 
 class SyslogMessage(object):
+    __slots__ = ['structured_data', 'priority', 'timestamp', 'hostname',
+                 'application', 'process_id', 'message', 'message_id',
+                 'version']
 
     def __init__(self):
         self.structured_data = []

@@ -87,9 +87,9 @@ class Token(object):
 
 class Tenant(object):
     """
-Tenants are users of the environments being monitored for
-application events.
-"""
+    Tenants are users of the environments being monitored for
+    application events.
+    """
 
     def __init__(self, tenant_id, token, event_producers=None,
                  _id=None, tenant_name=None):

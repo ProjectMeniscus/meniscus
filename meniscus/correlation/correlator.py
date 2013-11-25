@@ -66,9 +66,9 @@ def correlate_src_message(src_message):
     #remove meniscus tenant id and message token
     # from the syslog structured data
     try:
-        tenant_data = src_message['sd'].pop('meniscus')
-        tenant_id = tenant_data['tenant']
-        message_token = tenant_data['token']
+
+        tenant_id = src_message.pop('.SDATA.meniscus.tenant')
+        message_token = src_message.pop('.SDATA.meniscus.token')
 
     #if there is a key error then the syslog message did
     #not contain necessary credential information
@@ -91,16 +91,16 @@ def correlate_src_message(src_message):
 def _convert_message_cee(src_message):
     cee_message = dict()
 
-    cee_message['time'] = src_message['timestamp']
-    cee_message['host'] = src_message['hostname']
-    cee_message['pname'] = src_message['appname']
-    cee_message['pri'] = src_message['priority']
-    cee_message['ver'] = src_message['version']
-    cee_message['pid'] = src_message['processid']
-    cee_message['msgid'] = src_message['messageid']
-    cee_message['msg'] = src_message['message']
+    cee_message['time'] = src_message['ISODATE']
+    cee_message['host'] = src_message['HOST']
+    cee_message['pname'] = src_message['PROGRAM']
+    cee_message['pri'] = src_message['PRIORITY']
+    cee_message['ver'] = src_message.get('VERSION', "1")
+    cee_message['pid'] = src_message['PID']
+    cee_message['msgid'] = src_message['MSGID']
+    cee_message['msg'] = src_message['MESSAGE']
 
-    cee_message['native'] = src_message['sd']
+    cee_message['native'] = src_message.get('sd')
 
     return cee_message
 

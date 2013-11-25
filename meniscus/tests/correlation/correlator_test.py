@@ -26,45 +26,31 @@ class WhenCorrelateSrcMessage(unittest.TestCase):
         self.tenant_id = '5164b8f4-16fb-4376-9d29-8a6cbaa02fa9'
         self.token = '87324559-33aa-4534-bfd1-036472a32f2e'
         self.src_msg = {
-            "profile": "http://projectmeniscus.org/cee/profiles/base",
-            "version": "1",
-            "messageid": "-",
-            "priority": "46",
-            "processid": "-",
-            "hostname": "tohru",
-            "appname": "rsyslogd",
-            "timestamp": "2013-04-02T14:12:04.873490-05:00",
-            "message": "start",
-            "sd": {
-                "meniscus": {
-                    "tenant": "5164b8f4-16fb-4376-9d29-8a6cbaa02fa9",
-                    "token": "87324559-33aa-4534-bfd1-036472a32f2e"
-                }
-            },
-            "native": {
-                "origin": {
-                    "x-info": "http://www.rsyslog.com",
-                    "swVersion": "7.2.5",
-                    "x-pid": "12662",
-                    "software": "rsyslogd"
-                }
-            }
+            "HOST": "tohru",
+            ".SDATA.meniscus.tenant": "96d4e514-0564-4b30-8720-85421c157c8e",
+            "PRIORITY": "info",
+            ".SDATA.meniscus.token": "8ceace54-9f42-4b22-8e13-4b8510cec976",
+            "MESSAGE": "127.0.0.1 - - [12/Jul/2013:19:40:58 +0000] "
+                       "\"GET /test.html HTTP/1.1\" 404 466 \"-\" "
+                       "\"curl/7.29.0\"",
+            "FACILITY": "local1",
+            "MSGID": "345",
+            "ISODATE": "2013-07-12T14:17:00+00:00",
+            "PROGRAM": "apache",
+            "DATE": "Nov 25 20:25:37",
+            "PID": "234"
         }
 
     def test_convert_to_cee(self):
         cee_message = correlator._convert_message_cee(self.src_msg)
-        self.assertEquals(cee_message['ver'], self.src_msg['version'])
-        self.assertEquals(cee_message['msgid'], self.src_msg['messageid'])
-        self.assertEquals(cee_message['pid'], self.src_msg['processid'])
-        self.assertEquals(cee_message['pri'], self.src_msg['priority'])
-        self.assertEquals(cee_message['host'], self.src_msg['hostname'])
-        self.assertEquals(cee_message['pname'], self.src_msg['appname'])
-        self.assertEquals(cee_message['time'], self.src_msg['timestamp'])
-        self.assertEquals(cee_message['msg'], self.src_msg['message'])
-        self.assertEquals(
-            cee_message['native']['meniscus']['tenant'], self.tenant_id)
-        self.assertEquals(
-            cee_message['native']['meniscus']['token'], self.token)
+        self.assertEquals(cee_message['ver'], self.src_msg.get('VERSION', "1"))
+        self.assertEquals(cee_message['msgid'], self.src_msg['MSGID'])
+        self.assertEquals(cee_message['pid'], self.src_msg['PID'])
+        self.assertEquals(cee_message['pri'], self.src_msg['PRIORITY'])
+        self.assertEquals(cee_message['host'], self.src_msg['HOST'])
+        self.assertEquals(cee_message['pname'], self.src_msg['PROGRAM'])
+        self.assertEquals(cee_message['time'], self.src_msg['ISODATE'])
+        self.assertEquals(cee_message['msg'], self.src_msg['MESSAGE'])
 
     def test_correlate_message(self):
         get_validated_tenant_func = MagicMock()

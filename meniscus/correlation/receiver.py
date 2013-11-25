@@ -12,9 +12,9 @@ class CorrelationInputServer(transport.ZeroMQInputServer):
 
     def process_msg(self):
         msg = self._get_msg()
-        cee_message = correlator.correlate_src_message(msg)
 
         try:
+            cee_message = correlator.correlate_src_message(msg)
             if should_normalize(cee_message):
                 # send the message to normalization then to
                 # the data dispatch

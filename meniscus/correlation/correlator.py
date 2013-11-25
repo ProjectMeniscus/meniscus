@@ -91,14 +91,14 @@ def correlate_src_message(src_message):
 def _convert_message_cee(src_message):
     cee_message = dict()
 
-    cee_message['time'] = src_message['ISODATE']
-    cee_message['host'] = src_message['HOST']
-    cee_message['pname'] = src_message['PROGRAM']
-    cee_message['pri'] = src_message['PRIORITY']
+    cee_message['time'] = src_message.get('ISODATE', '-')
+    cee_message['host'] = src_message.get('HOST', '-')
+    cee_message['pname'] = src_message.get('PROGRAM', '-')
+    cee_message['pri'] = src_message.get('PRIORITY', '-')
     cee_message['ver'] = src_message.get('VERSION', "1")
-    cee_message['pid'] = src_message['PID']
-    cee_message['msgid'] = src_message['MSGID']
-    cee_message['msg'] = src_message['MESSAGE']
+    cee_message['pid'] = src_message.get('PID', '-')
+    cee_message['msgid'] = src_message.get('MSGID', '-')
+    cee_message['msg'] = src_message.get('MESSAGE', '-')
 
     cee_message['native'] = src_message.get('sd')
 

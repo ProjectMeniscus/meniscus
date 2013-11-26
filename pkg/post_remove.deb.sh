@@ -37,7 +37,7 @@ case "$1" in
 	;;
 
     upgrade|failed-upgrade|abort-upgrade)
-        echo "upgrade ignored, yo"
+        echo "upgrade ignored"
     ;;
 
     remove|abort-install|disappear)

@@ -1,4 +1,4 @@
-[![Build Status](http://166.78.108.142:8080/job/Meniscus/badge/icon)](http://166.78.108.142:8080/job/Meniscus/)
+[![Build Status](http://jenkins.projectmeniscus.org/job/Meniscus/badge/icon)](http://jenkins.projectmeniscus.org/job/Meniscus/)
 
 # Meniscus
 

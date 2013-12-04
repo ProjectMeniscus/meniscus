@@ -35,13 +35,13 @@ case "$1" in
 		if [ ! -d /var/log/meniscus ]; then
             mkdir /var/log/meniscus
             chown -R meniscus:adm /var/log/meniscus/
-            chmod 0750 /var/log/meniscus/
+            chmod 0755 /var/log/meniscus/
         fi
 
         if [ ! -d /var/lib/meniscus ]; then
             mkdir /var/lib/meniscus
             chown meniscus:meniscus -R /var/lib/meniscus/ /etc/meniscus
-            chmod -R 0744 /etc/meniscus/
+            chmod -R 0755 /etc/meniscus/
         fi
     ;;
 

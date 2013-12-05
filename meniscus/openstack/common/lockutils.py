@@ -25,7 +25,7 @@ import weakref
 from oslo.config import cfg
 
 from meniscus.openstack.common import fileutils
-from meniscus.openstack.common.gettextutils import _ # noqa
+from meniscus.openstack.common.gettextutils import _  # noqa
 from meniscus.openstack.common import local
 from meniscus.openstack.common import log as logging
 

@@ -66,9 +66,9 @@ def correlate_src_message(src_message):
     #remove meniscus tenant id and message token
     # from the syslog structured data
     try:
-
-        tenant_id = src_message.pop('.SDATA.meniscus.tenant')
-        message_token = src_message.pop('.SDATA.meniscus.token')
+        meniscus_sd = src_message['_SDATA'].pop('meniscus')
+        tenant_id = meniscus_sd['tenant']
+        message_token = meniscus_sd['token']
 
     #if there is a key error then the syslog message did
     #not contain necessary credential information

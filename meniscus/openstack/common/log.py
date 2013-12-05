@@ -39,7 +39,7 @@ import traceback
 from oslo.config import cfg
 from six import moves
 
-from meniscus.openstack.common.gettextutils import _ # noqa
+from meniscus.openstack.common.gettextutils import _  # noqa
 from meniscus.openstack.common import importutils
 from meniscus.openstack.common import jsonutils
 from meniscus.openstack.common import local
@@ -167,7 +167,7 @@ logging.addLevelName(logging.AUDIT, 'AUDIT')
 
 try:
     NullHandler = logging.NullHandler
-except AttributeError: # NOTE(jkoelker) NullHandler added in Python 2.7
+except AttributeError:  # NOTE(jkoelker) NullHandler added in Python 2.7
     class NullHandler(logging.Handler):
         def handle(self, record):
             pass
@@ -537,12 +537,12 @@ http://docs.python.org/library/logging.html#formatter
 
 class ColorHandler(logging.StreamHandler):
     LEVEL_COLORS = {
-        logging.DEBUG: '\033[00;32m', # GREEN
-        logging.INFO: '\033[00;36m', # CYAN
-        logging.AUDIT: '\033[01;36m', # BOLD CYAN
-        logging.WARN: '\033[01;33m', # BOLD YELLOW
-        logging.ERROR: '\033[01;31m', # BOLD RED
-        logging.CRITICAL: '\033[01;31m', # BOLD RED
+        logging.DEBUG: '\033[00;32m',  # GREEN
+        logging.INFO: '\033[00;36m',  # CYAN
+        logging.AUDIT: '\033[01;36m',  # BOLD CYAN
+        logging.WARN: '\033[01;33m',  # BOLD YELLOW
+        logging.ERROR: '\033[01;31m',  # BOLD RED
+        logging.CRITICAL: '\033[01;31m',  # BOLD RED
     }
 
     def format(self, record):

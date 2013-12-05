@@ -45,8 +45,6 @@ class WhenCorrelateSrcMessage(unittest.TestCase):
             "PID": "234"
         }
 
-
-
     def test_convert_to_cee(self):
         cee_message = correlator._convert_message_cee(self.src_msg)
         self.assertEquals(cee_message['ver'], self.src_msg.get('VERSION', "1"))

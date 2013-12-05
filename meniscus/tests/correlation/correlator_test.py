@@ -27,9 +27,13 @@ class WhenCorrelateSrcMessage(unittest.TestCase):
         self.token = '87324559-33aa-4534-bfd1-036472a32f2e'
         self.src_msg = {
             "HOST": "tohru",
-            ".SDATA.meniscus.tenant": "96d4e514-0564-4b30-8720-85421c157c8e",
+            "_SDATA": {
+                "meniscus": {
+                    "token": self.token,
+                    "tenant": self.tenant_id
+                }
+            },
             "PRIORITY": "info",
-            ".SDATA.meniscus.token": "8ceace54-9f42-4b22-8e13-4b8510cec976",
             "MESSAGE": "127.0.0.1 - - [12/Jul/2013:19:40:58 +0000] "
                        "\"GET /test.html HTTP/1.1\" 404 466 \"-\" "
                        "\"curl/7.29.0\"",
@@ -37,9 +41,11 @@ class WhenCorrelateSrcMessage(unittest.TestCase):
             "MSGID": "345",
             "ISODATE": "2013-07-12T14:17:00+00:00",
             "PROGRAM": "apache",
-            "DATE": "Nov 25 20:25:37",
+            "DATE": "2013-07-12T14:17:00.134+00:00",
             "PID": "234"
         }
+
+
 
     def test_convert_to_cee(self):
         cee_message = correlator._convert_message_cee(self.src_msg)

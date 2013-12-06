@@ -53,7 +53,7 @@ class WhenCorrelateSrcMessage(unittest.TestCase):
         self.assertEquals(cee_message['pri'], self.src_msg['PRIORITY'])
         self.assertEquals(cee_message['host'], self.src_msg['HOST'])
         self.assertEquals(cee_message['pname'], self.src_msg['PROGRAM'])
-        self.assertEquals(cee_message['time'], self.src_msg['ISODATE'])
+        self.assertEquals(cee_message['time'], self.src_msg['DATE'])
         self.assertEquals(cee_message['msg'], self.src_msg['MESSAGE'])
 
     def test_correlate_message(self):

@@ -91,7 +91,7 @@ def correlate_src_message(src_message):
 def _convert_message_cee(src_message):
     cee_message = dict()
 
-    cee_message['time'] = src_message.get('ISODATE', '-')
+    cee_message['time'] = src_message.get('DATE', '-')
     cee_message['host'] = src_message.get('HOST', '-')
     cee_message['pname'] = src_message.get('PROGRAM', '-')
     cee_message['pri'] = src_message.get('PRIORITY', '-')

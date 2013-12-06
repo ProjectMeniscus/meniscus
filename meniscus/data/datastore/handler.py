@@ -12,7 +12,7 @@ class DatabaseHandlerError(Exception):
         super(DatabaseHandlerError, self).__init__(self.msg)
 
 
-class DatasourceHandlerManager():
+class DatasourceHandlerManager(object):
 
     def __init__(self):
         self.registered_handlers = dict()
@@ -24,7 +24,7 @@ class DatasourceHandlerManager():
         return self.registered_handlers[handler_name]
 
 
-class DatasourceHandler():
+class DatasourceHandler(object):
 
     datasource_status = STATUS_NEW
 

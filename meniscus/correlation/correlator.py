@@ -1,68 +1,35 @@
 import httplib
-from uuid import uuid4
 
 import requests
 
 from meniscus.correlation import errors
-from meniscus.openstack.common import timeutils
-from meniscus.api.tenant.resources import MESSAGE_TOKEN
+from meniscus.correlation import correlation_util as util
 from meniscus.api.utils.request import http_request
-from meniscus.data.cache_handler import ConfigCache
 from meniscus.data.cache_handler import TenantCache
 from meniscus.data.cache_handler import TokenCache
-from meniscus.data.model.tenant import EventProducer
-from meniscus.data.model.tenant_util import find_event_producer
 from meniscus.data.model.tenant_util import load_tenant_from_dict
+from meniscus.queue import celery
 from meniscus import env
 
 
 _LOG = env.get_logger(__name__)
 
 
-def add_correlation_info_to_message(tenant, message):
-    #match the producer by the message pname
-    producer = find_event_producer(
-        tenant, producer_name=message['pname'])
-
-    #if the producer is not found, create a default producer
-    if not producer:
-        producer = EventProducer(_id=None, name="default", pattern="default")
-
-    #create correlation dictionary
-    correlation_dict = {
-        'tenant_name': tenant.tenant_name,
-        'ep_id': producer.get_id(),
-        'pattern': producer.pattern,
-        'durable': producer.durable,
-        'encrypted': producer.encrypted,
-        '@timestamp': timeutils.utcnow(),
-        'sinks': producer.sinks,
-        "destinations": dict()
-    }
-
-    #configure sink dispatch
-    for sink in producer.sinks:
-        correlation_dict["destinations"][sink] = {
-            'transaction_id': None,
-            'transaction_time': None
-        }
-
-    #todo(sgonzales) persist message and create job
-    if producer.durable:
-        durable_job_id = str(uuid4())
-        correlation_dict.update({'job_id': durable_job_id})
-
-    message.update({
-        "meniscus": {
-            "tenant": tenant.tenant_id,
-            "correlation": correlation_dict
-        }
-    })
-
-    return message
-
-
 def correlate_src_message(src_message):
+    credentials = _extract_message_credentials(src_message)
+
+    #validate the tenant and the message token
+    _validate_tenant(credentials['tenant_id'], credentials['message_token'],
+                     src_message)
+
+    #TODO EXIT POINT add to method chain
+    # cee_message = _convert_message_cee(src_message)
+    # add_correlation_info_to_message(tenant, cee_message)
+    #
+    # return cee_message
+
+
+def _extract_message_credentials(src_message):
     #remove meniscus tenant id and message token
     # from the syslog structured data
     try:
@@ -77,136 +44,106 @@ def correlate_src_message(src_message):
         _LOG.debug('Message validation failed: {0}'.format(message))
         raise errors.MessageValidationError(message)
 
-    #validate the tenant and the message token
-    tenant_identification = TenantIdentification(
-        tenant_id, message_token)
-    tenant = tenant_identification.get_validated_tenant()
-
-    cee_message = _convert_message_cee(src_message)
-    add_correlation_info_to_message(tenant, cee_message)
-
-    return cee_message
+    return {'tenant_id': tenant_id, 'message_token': message_token}
 
 
-def _convert_message_cee(src_message):
-    cee_message = dict()
+def _validate_tenant(tenant_id, message_token, src_message):
+    """
+    returns a validated tenant object from cache or from coordinator
+    """
+    tenant_cache = TenantCache()
+    token_cache = TokenCache()
+    token = token_cache.get_token(tenant_id)
 
-    cee_message['time'] = src_message.get('ISODATE', '-')
-    cee_message['host'] = src_message.get('HOST', '-')
-    cee_message['pname'] = src_message.get('PROGRAM', '-')
-    cee_message['pri'] = src_message.get('PRIORITY', '-')
-    cee_message['ver'] = src_message.get('VERSION', "1")
-    cee_message['pid'] = src_message.get('PID', '-')
-    cee_message['msgid'] = src_message.get('MSGID', '-')
-    cee_message['msg'] = src_message.get('MESSAGE', '-')
-
-    cee_message['native'] = src_message.get('sd')
-
-    return cee_message
-
-
-class TenantIdentification(object):
-    def __init__(self, tenant_id, message_token):
-        self.tenant_id = tenant_id
-        self.message_token = message_token
-
-    def get_validated_tenant(self):
-        """
-        returns a validated tenant object from cache or from coordinator
-        """
-        token_cache = TokenCache()
-        tenant_cache = TenantCache()
-
-        #check if the token is in the cache
-        token = token_cache.get_token(self.tenant_id)
-        if token:
-            #validate token
-            if not token.validate_token(self.message_token):
-                raise errors.MessageAuthenticationError(
-                    'Message not authenticated, check your tenant id '
-                    'and or message token for validity')
-
-            #get the tenant object from cache
-            tenant = tenant_cache.get_tenant(self.tenant_id)
-
-            #if tenant is not in cache, ask the coordinator
-            if not tenant:
-                tenant = self._get_tenant_from_coordinator()
-                token_cache.set_token(self.tenant_id, tenant.token)
-                tenant_cache.set_tenant(tenant)
-        else:
-            self._validate_token_with_coordinator()
-
-            #get tenant from coordinator
-            tenant = self._get_tenant_from_coordinator()
-            token_cache.set_token(self.tenant_id, tenant.token)
-            tenant_cache.set_tenant(tenant)
-
-        return tenant
-
-    def _validate_token_with_coordinator(self):
-        """
-        This method calls to the coordinator to validate the message token
-        """
-
-        config_cache = ConfigCache()
-        config = config_cache.get_config()
-
-        token_header = {
-            MESSAGE_TOKEN: self.message_token,
-            "hostname": config.hostname
-        }
-
-        request_uri = "{0}/tenant/{1}/token".format(
-            config.coordinator_uri, self.tenant_id)
-
-        try:
-            resp = http_request(request_uri, token_header,
-                                http_verb='HEAD')
-
-        except requests.RequestException as ex:
-            _LOG.exception(ex.message)
-            raise errors.CoordinatorCommunicationError
-
-        if resp.status_code != httplib.OK:
+    if token:
+        #validate token
+        if not token.validate_token(message_token):
             raise errors.MessageAuthenticationError(
                 'Message not authenticated, check your tenant id '
                 'and or message token for validity')
 
-        return True
+        #get the tenant object from cache
+        tenant = tenant_cache.get_tenant(tenant_id)
 
-    def _get_tenant_from_coordinator(self):
-        """
-        This method calls to the coordinator to retrieve tenant
-        """
+        #finish up with correlation
+        util._add_correlation_info_to_message(tenant, src_message)
 
-        config_cache = ConfigCache()
-        config = config_cache.get_config()
+        #if tenant is not in cache, ask the coordinator
+        if not tenant:
 
-        token_header = {
-            MESSAGE_TOKEN: self.message_token,
-            "hostname": config.hostname
-        }
+            tenant = _get_tenant_from_coordinator(tenant_id,
+                                                  message_token,
+                                                  src_message)
+    else:
+        _validate_token_with_coordinator()
 
-        request_uri = "{0}/tenant/{1}".format(
-            config.coordinator_uri, self.tenant_id)
+        #get tenant from coordinator
+        tenant = _get_tenant_from_coordinator()
+        token_cache.set_token(tenant_id, tenant.token)
+        tenant_cache.set_tenant(tenant)
 
-        try:
-            resp = http_request(request_uri, token_header,
-                                http_verb='GET')
+    return tenant
 
-        except requests.RequestException as ex:
-            _LOG.exception(ex.message)
-            raise errors.CoordinatorCommunicationError
 
-        if resp.status_code == httplib.OK:
-            response_body = resp.json()
-            tenant = load_tenant_from_dict(response_body['tenant'])
-            return tenant
+@celery.task()
+def _validate_token_with_coordinator(tenant_id, message_token, src_message):
+    """
+    This method calls to the coordinator to validate the message token
+    """
 
-        elif resp.status_code == httplib.NOT_FOUND:
-            message = 'unable to locate tenant.'
-            _LOG.debug(message)
-            raise errors.ResourceNotFoundError(message)
-        else:
-            raise errors.CoordinatorCommunicationError
+    config = util._get_config_from_cache()
+
+    try:
+        resp = http_request(util._build_request_uri(config.coordinator_uri,
+                                                    tenant_id, True),
+                            util._build_token_header(message_token,
+                                                     config.hostname),
+                            http_verb='HEAD')
+
+    except requests.RequestException as ex:
+        _LOG.exception(ex.message)
+        raise _validate_token_with_coordinator.retry(ex=ex)
+
+    if resp.status_code != httplib.OK:
+        raise errors.MessageAuthenticationError(
+            'Message not authenticated, check your tenant id '
+            'and or message token for validity')
+
+    return True
+
+
+@celery.task()
+def _get_tenant_from_coordinator(tenant_id, message_token, src_message):
+    """
+    This method calls to the coordinator to retrieve tenant
+    """
+
+    config = util._get_config_from_cache()
+
+    try:
+        resp = http_request(util._build_request_uri(config.coordinator_uri,
+                                                    tenant_id),
+                            util._build_token_header(message_token,
+                                                     config.hostname),
+                            http_verb='GET')
+
+    except requests.RequestException as ex:
+        _LOG.exception(ex.message)
+        raise _get_tenant_from_coordinator.retry(ex=ex)
+
+    if resp.status_code == httplib.OK:
+        response_body = resp.json()
+        tenant = load_tenant_from_dict(response_body['tenant'])
+        util._save_tenant_and_token(tenant_id, tenant)
+        #TODO continue with chain of methods
+
+    elif resp.status_code == httplib.NOT_FOUND:
+        message = 'unable to locate tenant.'
+        _LOG.debug(message)
+        raise errors.ResourceNotFoundError(message)
+    else:
+    #TODO not sure where the fall through is here
+        raise errors.CoordinatorCommunicationError
+
+
+

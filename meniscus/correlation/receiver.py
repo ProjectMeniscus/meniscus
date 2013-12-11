@@ -15,6 +15,7 @@ class CorrelationInputServer(transport.ZeroMQInputServer):
 
         try:
             cee_message = correlator.correlate_src_message(msg)
+
             if should_normalize(cee_message):
                 # send the message to normalization then to
                 # the data dispatch

@@ -1,10 +1,9 @@
 import falcon
 
+from meniscus.api.tenant.resources import MESSAGE_TOKEN
 from meniscus.api import (abort, ApiResource, format_response_body,
                           handle_api_exception)
 from meniscus.correlation import correlator
-from meniscus.correlation import errors
-from meniscus.api.tenant.resources import MESSAGE_TOKEN
 from meniscus.api.validator_init import get_validator
 from meniscus.storage import dispatch
 
@@ -20,42 +19,13 @@ class PublishMessageResource(ApiResource):
         by the local cache or by a call to this workers coordinator.
         """
 
-        #read message token from header
-        message_token = req.get_header(MESSAGE_TOKEN, required=True)
-
         #Validate the tenant's JSON event log data as valid JSON.
         message = validated_body['log_message']
 
-        tenant_identification = correlator.TenantIdentification(
-            tenant_id, message_token)
+        #read message token from header
+        message_token = req.get_header(MESSAGE_TOKEN, required=True)
 
-        try:
-            tenant = tenant_identification.get_validated_tenant()
-            message = correlator.add_correlation_info_to_message(
-                tenant, message)
+        # add correlation data to message
+        correlator.correlate_http_message(tenant_id, message_token, message)
 
-        except errors.MessageAuthenticationError as ex:
-            abort(falcon.HTTP_401, ex.message)
-        except errors.ResourceNotFoundError as ex:
-            abort(falcon.HTTP_404, ex.message)
-        except errors.CoordinatorCommunicationError:
-            abort(falcon.HTTP_500)
-
-        dispatch.persist_message(message)
-
-        #if message is durable, return durable job info
-        if message['meniscus']['correlation']['durable']:
-            durable_job_id = message['meniscus']['correlation']['job_id']
-            job_status_uri = "http://{0}/v1/job/{1}/status" \
-                .format("meniscus_uri", durable_job_id)
-
-            resp.status = falcon.HTTP_202
-            resp.body = format_response_body(
-                {
-                    "job_id": durable_job_id,
-                    "job_status_uri": job_status_uri
-                }
-            )
-
-        else:
-            resp.status = falcon.HTTP_204
+        resp.status = falcon.HTTP_204

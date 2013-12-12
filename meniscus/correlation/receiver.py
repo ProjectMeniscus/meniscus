@@ -14,19 +14,9 @@ class CorrelationInputServer(transport.ZeroMQInputServer):
         msg = self._get_msg()
 
         try:
-            cee_message = correlator.correlate_src_message(msg)
-
-            if should_normalize(cee_message):
-                # send the message to normalization then to
-                # the data dispatch
-                normalize_message.apply_async(
-                    (cee_message,),
-                    link=dispatch.persist_message.subtask())
-            else:
-                dispatch.persist_message(cee_message)
+            correlator.correlate_syslog_message.delay(msg)
         except Exception:
-            _LOG.exception('unable to place persist_message '
-                           'task on queue')
+            _LOG.exception('unable to place persist_message task on queue')
 
 
 def new_correlation_input_server():

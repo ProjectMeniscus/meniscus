@@ -35,18 +35,19 @@ from meniscus.queue import celery
 from meniscus.storage import dispatch
 from meniscus import env
 
+from meniscus.normalization import normalizer
 _LOG = env.get_logger(__name__)
 
 
 @celery.task(acks_late=True, max_retries=None,
              ignore_result=True, serializer="json")
-def correlate_syslog_message(src_message):
+def correlate_syslog_message(message):
     """
     entry point for correlating syslog message processing
     """
     try:
         # get message credentials to identify and validate source of message
-        _format_message_cee(src_message)
+        _format_message_cee(message)
 
     except errors.CoordinatorCommunicationError as ex:
         _LOG.exception(ex.message)
@@ -56,25 +57,25 @@ def correlate_syslog_message(src_message):
 
 @celery.task(acks_late=True, max_retries=None,
              ignore_result=True, serializer="json")
-def correlate_http_message(tenant_id, message_token, src_message):
+def correlate_http_message(tenant_id, message_token, message):
     """
     entry point for correlating http message processing
     """
     try:
         #validate the tenant and the message token
-        _validate_token_from_cache(tenant_id, message_token, src_message)
+        _validate_token_from_cache(tenant_id, message_token, message)
 
     except errors.CoordinatorCommunicationError as ex:
         _LOG.exception(ex.message)
         raise correlate_http_message.retry(ex=ex)
 
 
-def _format_message_cee(src_message):
+def _format_message_cee(message):
     """
     extracts credentials from syslog message and formats to CEE
     """
     try:
-        meniscus_sd = src_message['_SDATA'].pop('meniscus')
+        meniscus_sd = message['_SDATA'].pop('meniscus')
         tenant_id = meniscus_sd['tenant']
         message_token = meniscus_sd['token']
 
@@ -88,15 +89,15 @@ def _format_message_cee(src_message):
     # format to CEE
     cee_message = dict()
 
-    cee_message['time'] = src_message.get('ISODATE', '-')
-    cee_message['host'] = src_message.get('HOST', '-')
-    cee_message['pname'] = src_message.get('PROGRAM', '-')
-    cee_message['pri'] = src_message.get('PRIORITY', '-')
-    cee_message['ver'] = src_message.get('VERSION', "1")
-    cee_message['pid'] = src_message.get('PID', '-')
-    cee_message['msgid'] = src_message.get('MSGID', '-')
-    cee_message['msg'] = src_message.get('MESSAGE', '-')
-    cee_message['native'] = src_message.get('sd')
+    cee_message['time'] = message.get('ISODATE', '-')
+    cee_message['host'] = message.get('HOST', '-')
+    cee_message['pname'] = message.get('PROGRAM', '-')
+    cee_message['pri'] = message.get('PRIORITY', '-')
+    cee_message['ver'] = message.get('VERSION', "1")
+    cee_message['pid'] = message.get('PID', '-')
+    cee_message['msgid'] = message.get('MSGID', '-')
+    cee_message['msg'] = message.get('MESSAGE', '-')
+    cee_message['native'] = message.get('sd')
 
     # validate token
     _validate_token_from_cache(tenant_id, message_token, cee_message)
@@ -119,7 +120,7 @@ def _validate_token_from_cache(tenant_id, message_token, message):
                 'Message not authenticated, check your tenant id '
                 'and or message token for validity')
 
-        # get tenant
+        # get tenant from cache
         _get_tenant_from_cache(tenant_id, message_token, message)
     else:
         # token not in cache, get it from coordinator
@@ -143,8 +144,7 @@ def _get_tenant_from_cache(tenant_id, message_token, message):
 
 def _validate_token_with_coordinator(tenant_id, message_token, message):
     """
-    call coordinator to validate the message token
-    then get tenant
+    call coordinator to validate the message token then get tenant
     """
 
     config = _get_config_from_cache()
@@ -164,7 +164,6 @@ def _validate_token_with_coordinator(tenant_id, message_token, message):
             'Message not authenticated, check your tenant id '
             'and or message token for validity')
 
-    #get tenant
     _get_tenant_from_coordinator(tenant_id, message_token, message)
 
 
@@ -239,23 +238,16 @@ def _add_correlation_info_to_message(tenant, message):
     message.update({"meniscus": {"tenant": tenant.tenant_id,
                                  "correlation": correlation_dict}})
 
-    dispatch.persist_message(message)
-
-    #TODO: do something with this
-    #
-    # #if message is durable, return durable job info
-    # if message['meniscus']['correlation']['durable']:
-    #     durable_job_id = message['meniscus']['correlation']['job_id']
-    #     job_status_uri = "http://{0}/v1/job/{1}/status" \
-    #         .format("meniscus_uri", durable_job_id)
-    #
-    #     resp.status = falcon.HTTP_202
-    #     resp.body = format_response_body(
-    #         {
-    #             "job_id": durable_job_id,
-    #             "job_status_uri": job_status_uri
-    #         }
-    #     )
+    if normalizer.should_normalize(message):
+        # send the message to normalization then to
+        # the data dispatch
+        normalizer.normalize_message.apply_async(
+            (message,),
+            link=dispatch.persist_message.subtask())
+    else:
+        dispatch.persist_message(message)
+        # except Exception:
+        # _LOG.exception('unable to place persist_message task on queue')
 
 
 def _save_tenant_to_cache(tenant_id, tenant):

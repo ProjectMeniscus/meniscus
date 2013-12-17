@@ -7,12 +7,10 @@ import requests
 from meniscus.correlation import correlator
 
 from meniscus.correlation import errors
-from meniscus.api.tenant.resources import MESSAGE_TOKEN
 from meniscus.data.model.tenant import EventProducer
 from meniscus.data.model.tenant import Tenant
 from meniscus.data.model.tenant import Token
 from meniscus.data.model.worker import WorkerConfiguration
-from meniscus.sinks import VALID_SINKS
 
 
 def suite():
@@ -32,49 +30,62 @@ class WhenTestingCorrelationPipeline(unittest.TestCase):
         self.invalid_message_token = 'yyy7104e-8d93-47dc-a49a-8fb0d39e5192'
         self.token = Token('ffe7104e-8d93-47dc-a49a-8fb0d39e5192',
                            'bbd6302e-8d93-47dc-a49a-8fb0d39e5192',
-                           "2013-03-19T18:16:48.411029Z")
+                           '2013-03-19T18:16:48.411029Z')
         self.tenant = Tenant(self.tenant_id, self.token,
                              event_producers=self.producers)
         self.get_token = MagicMock(return_value=self.token)
         self.get_tenant = MagicMock(return_value=self.tenant)
         self.get_none = MagicMock(return_value=None)
         self.src_msg = {
-            "HOST": "tohru",
-            "_SDATA": {
-                "meniscus": {
-                    "token": self.token,
-                    "tenant": self.tenant_id
+            'HOST': 'tohru',
+            '_SDATA': {
+                'meniscus': {
+                    'token': self.message_token,
+                    'tenant': self.tenant_id
                 }
             },
-            "PRIORITY": "info",
-            "MESSAGE": "127.0.0.1 - - [12/Jul/2013:19:40:58 +0000] "
-                       "\"GET /test.html HTTP/1.1\" 404 466 \"-\" "
-                       "\"curl/7.29.0\"",
-            "FACILITY": "local1",
-            "MSGID": "345",
-            "ISODATE": "2013-07-12T14:17:00+00:00",
-            "PROGRAM": "apache",
-            "DATE": "2013-07-12T14:17:00.134+00:00",
-            "PID": "234"
+            'PRIORITY': 'info',
+            'MESSAGE': '127.0.0.1 - - [12/Jul/2013:19:40:58 +0000] '
+                       '\'GET /test.html HTTP/1.1\' 404 466 \'-\' '
+                       '\'curl/7.29.0\'',
+            'FACILITY': 'local1',
+            'MSGID': '345',
+            'ISODATE': '2013-07-12T14:17:00+00:00',
+            'PROGRAM': 'apache',
+            'DATE': '2013-07-12T14:17:00.134+00:00',
+            'PID': '234'
         }
         self.malformed_sys_msg = {
-            "HOST": "tohru",
-            "_SDATA": {
-                "meniscus": {
-                    "token": '',
-                    "tenant": ''
+            'HOST': 'tohru',
+            '_SDATA': {
+                'meniscus': {
+                    'token': '',
+                    'tenant': ''
                 }
             },
-            "PRIORITY": "info",
-            "MESSAGE": "127.0.0.1 - - [12/Jul/2013:19:40:58 +0000] "
-                       "\"GET /test.html HTTP/1.1\" 404 466 \"-\" "
-                       "\"curl/7.29.0\"",
-            "FACILITY": "local1",
-            "MSGID": "345",
-            "ISODATE": "2013-07-12T14:17:00+00:00",
-            "PROGRAM": "apache",
-            "DATE": "2013-07-12T14:17:00.134+00:00",
-            "PID": "234"
+            'PRIORITY': 'info',
+            'MESSAGE': '127.0.0.1 - - [12/Jul/2013:19:40:58 +0000] '
+                       '\'GET /test.html HTTP/1.1\' 404 466 \'-\' '
+                       '\'curl/7.29.0\'',
+            'FACILITY': 'local1',
+            'MSGID': '345',
+            'ISODATE': '2013-07-12T14:17:00+00:00',
+            'PROGRAM': 'apache',
+            'DATE': '2013-07-12T14:17:00.134+00:00',
+            'PID': '234'
+        }
+        self.cee_msg = {
+            'host': 'tohru',
+            'pri': 'info',
+            'msg': '127.0.0.1 - - [12/Jul/2013:19:40:58 +0000] '
+                   '\'GET /test.html HTTP/1.1\' 404 466 \'-\' '
+                   '\'curl/7.29.0\'',
+            'msgid': '345',
+            'time': '2013-07-12T14:17:00+00:00',
+            'pname': 'apache',
+            'pid': '234',
+            'ver': '1',
+            'native': {}
         }
         self.config = WorkerConfiguration(
             personality='worker',
@@ -110,6 +121,16 @@ class WhenTestingCorrelationPipeline(unittest.TestCase):
     def test_format_message_cee_message_failure_empty_string(self):
         with self.assertRaises(errors.MessageValidationError):
             correlator.correlate_syslog_message({})
+
+    def test_format_message_cee_message(self):
+        _validate_token_from_cache_func = MagicMock()
+        with patch('meniscus.correlation.correlator.'
+                   '_validate_token_from_cache',
+                   _validate_token_from_cache_func):
+
+            correlator._format_message_cee(self.src_msg)
+            _validate_token_from_cache_func.assert_called_once_with(
+                self.tenant_id, self.message_token, self.cee_msg)
 
     # Tests for _validate_token_from_cache
     def test_validate_token_from_cache_throws_auth_exception_from_cache(self):
@@ -283,7 +304,13 @@ class WhenTestingCorrelationPipeline(unittest.TestCase):
 
     #Tests for _add_correlation_info_to_message
     def test_add_correlation_info_to_message(self):
-        pass
+        persist_message_func = MagicMock()
+        with patch('meniscus.correlation.correlator.dispatch.persist_message',
+                   persist_message_func):
+
+            correlator._add_correlation_info_to_message(self.tenant,
+                                                        self.cee_msg)
+        persist_message_func.assert_called_once_with(self.cee_msg)
 
 if __name__ == '__main__':
     unittest.main()

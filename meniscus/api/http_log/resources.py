@@ -1,11 +1,9 @@
 import falcon
 
 from meniscus.api.tenant.resources import MESSAGE_TOKEN
-from meniscus.api import (abort, ApiResource, format_response_body,
-                          handle_api_exception)
+from meniscus.api import (ApiResource, handle_api_exception)
 from meniscus.correlation import correlator
 from meniscus.api.validator_init import get_validator
-from meniscus.storage import dispatch
 
 
 class PublishMessageResource(ApiResource):

@@ -20,5 +20,5 @@ class CorrelationInputServer(transport.ZeroMQInputServer):
 
 
 def new_correlation_input_server():
-    zmq_receiver = transport.new_zqm_receiver()
+    zmq_receiver = transport.new_zmq_receiver()
     return CorrelationInputServer(zmq_receiver)

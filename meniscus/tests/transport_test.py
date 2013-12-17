@@ -87,7 +87,7 @@ class WhenTestingReceiverFactory(unittest.TestCase):
 
     def test_new_zmq_receiver(self):
         with patch('meniscus.transport._CONF', self.conf_mock):
-            zmq_receiver = transport.new_zqm_receiver()
+            zmq_receiver = transport.new_zmq_receiver()
         self.assertIsInstance(zmq_receiver, transport.ZeroMQReceiver)
         self.assertEqual(zmq_receiver.upstream_hosts, self.validate_hosts)
 

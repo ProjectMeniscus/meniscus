@@ -34,7 +34,6 @@ from meniscus.openstack.common import timeutils
 from meniscus.queue import celery
 from meniscus.storage import dispatch
 from meniscus import env
-
 from meniscus.normalization import normalizer
 _LOG = env.get_logger(__name__)
 
@@ -52,7 +51,6 @@ def correlate_syslog_message(message):
     except errors.CoordinatorCommunicationError as ex:
         _LOG.exception(ex.message)
         raise correlate_syslog_message.retry(ex=ex)
-
 
 
 @celery.task(acks_late=True, max_retries=None,
@@ -97,7 +95,7 @@ def _format_message_cee(message):
     cee_message['pid'] = message.get('PID', '-')
     cee_message['msgid'] = message.get('MSGID', '-')
     cee_message['msg'] = message.get('MESSAGE', '-')
-    cee_message['native'] = message.get('sd')
+    cee_message['native'] = message.get('_SDATA', {})
 
     # validate token
     _validate_token_from_cache(tenant_id, message_token, cee_message)

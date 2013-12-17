@@ -95,7 +95,7 @@ class ZeroMQReceiver(object):
             self.connected = False
 
 
-def new_zqm_receiver():
+def new_zmq_receiver():
     """
     Factory method creates a new instance of ZeroMQReceiver to connect to all
     host:ports listed in zmq_upstream_hosts from meniscus config.

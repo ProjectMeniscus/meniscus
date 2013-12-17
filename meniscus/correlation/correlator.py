@@ -50,7 +50,7 @@ def correlate_syslog_message(message):
 
     except errors.CoordinatorCommunicationError as ex:
         _LOG.exception(ex.message)
-        raise correlate_syslog_message.retry(ex=ex)
+        raise correlate_syslog_message.retry()
 
 
 @celery.task(acks_late=True, max_retries=None,
@@ -65,7 +65,7 @@ def correlate_http_message(tenant_id, message_token, message):
 
     except errors.CoordinatorCommunicationError as ex:
         _LOG.exception(ex.message)
-        raise correlate_http_message.retry(ex=ex)
+        raise correlate_http_message.retry()
 
 
 def _format_message_cee(message):
@@ -73,7 +73,7 @@ def _format_message_cee(message):
     extracts credentials from syslog message and formats to CEE
     """
     try:
-        meniscus_sd = message['_SDATA'].pop('meniscus')
+        meniscus_sd = message['_SDATA']['meniscus']
         tenant_id = meniscus_sd['tenant']
         message_token = meniscus_sd['token']
 
@@ -233,8 +233,9 @@ def _add_correlation_info_to_message(tenant, message):
         durable_job_id = str(uuid4())
         correlation_dict.update({'job_id': durable_job_id})
 
-    message.update({"meniscus": {"tenant": tenant.tenant_id,
-                                 "correlation": correlation_dict}})
+    message['native'].pop('meniscus', None)
+    message.update({'meniscus': {'tenant': tenant.tenant_id,
+                                 'correlation': correlation_dict}})
 
     if normalizer.should_normalize(message):
         # send the message to normalization then to

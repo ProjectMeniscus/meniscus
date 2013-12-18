@@ -80,9 +80,9 @@ def _format_message_cee(message):
     #if there is a key error then the syslog message did
     #not contain necessary credential information
     except KeyError:
-        message = 'tenant_id or message token not provided'
-        _LOG.debug('Message validation failed: {0}'.format(message))
-        raise errors.MessageValidationError(message)
+        error_message = 'tenant_id or message token not provided'
+        _LOG.debug('Message validation failed: {0}'.format(error_message))
+        raise errors.MessageValidationError(error_message)
 
     # format to CEE
     cee_message = dict()
@@ -146,7 +146,6 @@ def _validate_token_with_coordinator(tenant_id, message_token, message):
     """
 
     config = _get_config_from_cache()
-
     try:
         resp = http_request(
             '{0}/tenant/{1}/token'.format(config.coordinator_uri, tenant_id),
@@ -161,7 +160,6 @@ def _validate_token_with_coordinator(tenant_id, message_token, message):
         raise errors.MessageAuthenticationError(
             'Message not authenticated, check your tenant id '
             'and or message token for validity')
-
     _get_tenant_from_coordinator(tenant_id, message_token, message)
 
 
@@ -195,9 +193,9 @@ def _get_tenant_from_coordinator(tenant_id, message_token, message):
         _add_correlation_info_to_message(tenant, message)
 
     elif resp.status_code == httplib.NOT_FOUND:
-        message = 'unable to locate tenant.'
-        _LOG.debug(message)
-        raise errors.ResourceNotFoundError(message)
+        error_message = 'unable to locate tenant.'
+        _LOG.debug(error_message)
+        raise errors.ResourceNotFoundError(error_message)
     else:
         #coordinator responds, but coordinator datasink could be unreachable
         raise errors.CoordinatorCommunicationError

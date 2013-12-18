@@ -85,7 +85,9 @@ class WhenTestingCorrelationPipeline(unittest.TestCase):
             'pname': 'apache',
             'pid': '234',
             'ver': '1',
-            'native': {}
+            'native': {'meniscus': {
+                'token': 'ffe7104e-8d93-47dc-a49a-8fb0d39e5192',
+                'tenant': '5164b8f4-16fb-4376-9d29-8a6cbaa02fa9'}}
         }
         self.config = WorkerConfiguration(
             personality='worker',

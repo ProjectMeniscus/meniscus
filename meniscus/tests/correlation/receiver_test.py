@@ -81,14 +81,6 @@ class WhenTestingCorrelationInputServer(unittest.TestCase):
             self.server.process_msg()
             correlate_func.assert_called_once()
 
-    def test_process_msg_failure(self):
-        correlate_func = MagicMock(side_effect=_LOG.exception)
-        with patch('meniscus.correlation.correlator.'
-                   'correlate_syslog_message', correlate_func):
-            correlate_func.assert_called_once()
-            with self.assertRaises(_LOG.exception):
-                self.server.process_msg()
-
     def test_new_correlation_input_server(self):
         server = receiver.new_correlation_input_server()
         self.assertIsInstance(server, receiver.CorrelationInputServer)

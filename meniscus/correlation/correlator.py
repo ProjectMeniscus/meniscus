@@ -232,9 +232,6 @@ def _validate_token_with_coordinator(tenant_id, message_token, message):
             'Message not authenticated, check your tenant id '
             'and or message token for validity')
 
-    # saves validated token to cache
-    _save_token_to_cache(tenant_id, message_token)
-
     # hand off the message to validate the tenant with the coordinator
     _get_tenant_from_coordinator(tenant_id, message_token, message)
 
@@ -265,7 +262,7 @@ def _get_tenant_from_coordinator(tenant_id, message_token, message):
         tenant = tenant_util.load_tenant_from_dict(response_body['tenant'])
 
         # update the cache with new tenant info
-        _save_tenant_to_cache(tenant)
+        _save_tenant_to_cache(tenant_id, tenant)
 
         # add correlation to message
         _add_correlation_info_to_message(tenant, message)
@@ -332,28 +329,17 @@ def _add_correlation_info_to_message(tenant, message):
         dispatch.persist_message(message)
 
 
-def _save_tenant_to_cache(tenant):
-    """
-    saves validated tenant to cache to reduce validation calls to the
-    coordinator
-    """
-    #load tenant cache
-    tenant_cache = cache_handler.TenantCache()
-
-    #save token and tenant information to cache
-    tenant_cache.set_tenant(tenant)
-
-
-def _save_token_to_cache(tenant_id, message_token):
+def _save_tenant_to_cache(tenant_id, tenant):
     """
     saves validated token to cache to reduce validation calls to the
     coordinator
     """
-    #load token cache
+    tenant_cache = cache_handler.TenantCache()
     token_cache = cache_handler.TokenCache()
 
     #save token and tenant information to cache
-    token_cache.set_token(tenant_id, message_token)
+    token_cache.set_token(tenant_id, tenant.token)
+    tenant_cache.set_tenant(tenant)
 
 
 def _get_config_from_cache():

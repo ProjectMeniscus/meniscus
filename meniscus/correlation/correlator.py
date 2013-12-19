@@ -331,7 +331,7 @@ def _add_correlation_info_to_message(tenant, message):
 
 def _save_tenant_to_cache(tenant_id, tenant):
     """
-    saves validated token to cache to reduce validation calls to the
+    saves validated tenant and token to cache to reduce validation calls to the
     coordinator
     """
     tenant_cache = cache_handler.TenantCache()

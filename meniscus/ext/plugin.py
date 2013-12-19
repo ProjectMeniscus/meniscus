@@ -22,7 +22,7 @@ class PluginError(ImportError):
         self.msg = msg
 
 
-class PluginFinder():
+class PluginFinder(object):
 
     def __init__(self, paths=None):
         if paths is None:
@@ -55,7 +55,7 @@ class PluginFinder():
         return None
 
 
-class SecureLoader():
+class SecureLoader(object):
 
     def __init__(self, module_name, target, is_pkg):
         self.module_name = module_name

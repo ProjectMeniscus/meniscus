@@ -14,20 +14,16 @@ class CorrelationInputServer(transport.ZeroMQInputServer):
         msg = self._get_msg()
 
         try:
-            cee_message = correlator.correlate_src_message(msg)
-            if should_normalize(cee_message):
-                # send the message to normalization then to
-                # the data dispatch
-                normalize_message.apply_async(
-                    (cee_message,),
-                    link=dispatch.persist_message.subtask())
-            else:
-                dispatch.persist_message(cee_message)
+            #Queue the message for correlation
+            correlator.correlate_syslog_message.delay(msg)
         except Exception:
-            _LOG.exception('unable to place persist_message '
-                           'task on queue')
+            _LOG.exception('unable to place persist_message task on queue')
 
 
 def new_correlation_input_server():
-    zmq_receiver = transport.new_zqm_receiver()
+    """
+    Create a correlation input server for receiving json messages form the
+    syslog parser of ZeroMQ
+    """
+    zmq_receiver = transport.new_zmq_receiver()
     return CorrelationInputServer(zmq_receiver)

@@ -11,5 +11,5 @@ def persist_message(message):
     if DEFAULT_SINK in message_sinks:
         default_store.persist_message.delay(message)
 
-    if (set(message_sinks) & set(SECONDARY_SINKS)):
+    if set(message_sinks) & set(SECONDARY_SINKS):
         short_term_store.persist_message.delay(message)

@@ -76,89 +76,10 @@ class WhenTestingPublishMessage(testing.TestBase):
             body=jsonutils.dumps(self.message))
         self.assertEquals(falcon.HTTP_400, self.srmock.status)
 
-    def test_returns_401_for_MessageAuthenticationError(self):
-        with patch.object(correlator.TenantIdentification,
-                          'get_validated_tenant',
-                          MagicMock(return_value=self.tenant)), \
-            patch('meniscus.api.http_log.resources.correlator.'
-                  'add_correlation_info_to_message',
-                  MagicMock(side_effect=errors.MessageAuthenticationError)):
-
-            self.simulate_request(
-                self.test_route,
-                method='POST',
-                headers={
-                    'content-type': 'application/json',
-                    MESSAGE_TOKEN: self.token
-                },
-                body=jsonutils.dumps(self.message))
-
-        self.assertEquals(falcon.HTTP_401, self.srmock.status)
-
-    def test_returns_404_for_ResourceNotFoundError(self):
-        with patch.object(correlator.TenantIdentification,
-                          'get_validated_tenant',
-                          MagicMock(return_value=self.tenant)), \
-            patch('meniscus.api.http_log.resources.correlator.'
-                  'add_correlation_info_to_message',
-                  MagicMock(side_effect=errors.ResourceNotFoundError)):
-
-            self.simulate_request(
-                self.test_route,
-                method='POST',
-                headers={
-                    'content-type': 'application/json',
-                    MESSAGE_TOKEN: self.token
-                },
-                body=jsonutils.dumps(self.message))
-
-        self.assertEquals(falcon.HTTP_404, self.srmock.status)
-
-    def test_returns_500_for_CoordinatorCommunicationError(self):
-        with patch.object(correlator.TenantIdentification,
-                          'get_validated_tenant',
-                          MagicMock(return_value=self.tenant)), \
-            patch('meniscus.api.http_log.resources.correlator.'
-                  'add_correlation_info_to_message',
-                  MagicMock(side_effect=errors.CoordinatorCommunicationError)):
-
-            self.simulate_request(
-                self.test_route,
-                method='POST',
-                headers={
-                    'content-type': 'application/json',
-                    MESSAGE_TOKEN: self.token
-                },
-                body=jsonutils.dumps(self.message))
-
-        self.assertEquals(falcon.HTTP_500, self.srmock.status)
-
-    def test_returns_204_for_non_durable_message(self):
-        self.message['log_message']['pname'] = self.producer_non_durable
-        with patch.object(correlator.TenantIdentification,
-                          'get_validated_tenant',
-                          MagicMock(return_value=self.tenant)),\
-            patch('meniscus.api.http_log.resources.'
-                  'dispatch.persist_message',
-                  MagicMock()):
-            self.simulate_request(
-                self.test_route,
-                method='POST',
-                headers={
-                    'content-type': 'application/json',
-                    MESSAGE_TOKEN: self.token
-                },
-                body=jsonutils.dumps(self.message))
-        self.assertEquals(falcon.HTTP_204, self.srmock.status)
-
     def test_returns_202_for_non_durable_message(self):
-        self.message['log_message']['pname'] = self.producer_durable
-        with patch.object(correlator.TenantIdentification,
-                          'get_validated_tenant',
-                          MagicMock(return_value=self.tenant)), \
-            patch('meniscus.api.http_log.resources.'
-                  'dispatch.persist_message',
-                  MagicMock()):
+        correlate_http_msg_func = MagicMock()
+        with patch('meniscus.correlation.correlator.correlate_http_message',
+                   correlate_http_msg_func):
             self.simulate_request(
                 self.test_route,
                 method='POST',
@@ -167,6 +88,8 @@ class WhenTestingPublishMessage(testing.TestBase):
                     MESSAGE_TOKEN: self.token
                 },
                 body=jsonutils.dumps(self.message))
+            correlate_http_msg_func.assert_called_once()
+
         self.assertEquals(falcon.HTTP_202, self.srmock.status)
 
 

@@ -4,8 +4,10 @@ import json
 from mock import MagicMock
 from mock import patch
 
+from meniscus import env
 from meniscus.correlation import receiver
-from meniscus.storage import dispatch
+
+_LOG = env.get_logger(__name__)
 
 
 class WhenTestingCorrelationInputServer(unittest.TestCase):
@@ -68,24 +70,16 @@ class WhenTestingCorrelationInputServer(unittest.TestCase):
                 }
             }
         }
-        zmq_reciever = MagicMock()
-        zmq_reciever.get.return_value = json.dumps(self.src_msg)
-        self.server = receiver.CorrelationInputServer(zmq_reciever)
+        zmq_receiver = MagicMock()
+        zmq_receiver.get.return_value = json.dumps(self.src_msg)
+        self.server = receiver.CorrelationInputServer(zmq_receiver)
 
     def test_process_msg(self):
-        correlate_func = MagicMock(return_value=self.correlated_message)
-        normalizer_func = MagicMock()
-        with patch('meniscus.correlation.correlator.correlate_src_message',
-                   correlate_func), \
-            patch('meniscus.correlation.receiver.normalize_message',
-                  normalizer_func),\
-            patch('meniscus.correlation.receiver.should_normalize',
-                  MagicMock(return_value=True)):
+        correlate_func = MagicMock()
+        with patch('meniscus.correlation.correlator.'
+                   'correlate_syslog_message', correlate_func):
             self.server.process_msg()
-            correlate_func.assert_called_once_with(self.src_msg)
-            normalizer_func.apply_async.assert_called_once_with(
-                (self.correlated_message,),
-                link=dispatch.persist_message.subtask())
+            correlate_func.assert_called_once()
 
     def test_new_correlation_input_server(self):
         server = receiver.new_correlation_input_server()

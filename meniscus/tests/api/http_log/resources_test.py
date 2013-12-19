@@ -90,7 +90,7 @@ class WhenTestingPublishMessage(testing.TestBase):
                 body=jsonutils.dumps(self.message))
             correlate_http_msg_func.assert_called_once()
 
-        self.assertEquals(falcon.HTTP_204, self.srmock.status)
+        self.assertEquals(falcon.HTTP_202, self.srmock.status)
 
 
 if __name__ == '__main__':

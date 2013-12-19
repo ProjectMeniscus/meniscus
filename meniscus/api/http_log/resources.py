@@ -23,9 +23,9 @@ class PublishMessageResource(ApiResource):
         #read message token from header
         message_token = req.get_header(MESSAGE_TOKEN, required=True)
 
-        # add correlation data to message
+        # Queue the message for correlation
         correlator.correlate_http_message.delay(tenant_id,
                                                 message_token,
                                                 message)
 
-        resp.status = falcon.HTTP_204
+        resp.status = falcon.HTTP_202

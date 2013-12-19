@@ -1,6 +1,13 @@
 """
-This Module is a pipeline of correlation related methods used to validate
-and format incoming messages:
+This Module is a pipeline of correlation related methods used to validate and
+format incoming messages. Entry points into the correlation pipeline have been
+implemented as asynchronous tasks. This allows for failures due to network
+communications or heavy load to be retried, and also allows for messages to be
+persisted in case of a service restart.
+
+There are 2 entry points into the pipeline, one for messages that are received
+from a syslog parser, and another entry point for messages posted to the
+http_log endpoint.
 
 Case 1 - Syslog: Entry point - correlate_src_syslog_message
 
@@ -9,32 +16,37 @@ Case 1 - Syslog: Entry point - correlate_src_syslog_message
 
 Case 2 - HTTP: Entry point - correlate_src_http_message
 
-    attempts to validate token from cache otherwise from coordinator
+    Token Validation - messages contain a tenant_id and message token which
+    are used to validate a message. Previously validated tokens are stored in
+    a local cache for faster processing. Message validation is first attempted
+    by looking up information in the local cache. If the cache does not contain
+    the necessary information to validate the message, the the message
+    validation is attempted by making http calls to the Tenant API hosted on
+    the coordinator.
 
-    if validated from cache, validate tenant from cache
-    else validated from coordinator, get and save tenant from coordinator
+    Add Tenant Data to Message - After validating the message, configuration
+    data from the tenant used for processing the message are added to the
+    message dictionary
 
-    once validated correlate message and persist message to datasink
+    Normalization or Storage - The data added to the message is used to decide
+    whether the message should be queued for normalization or for storage.
 """
-#TODO: add normalization description
 
 import httplib
 import requests
 
-from uuid import uuid4
-
+from meniscus import env
 from meniscus.api.tenant.resources import MESSAGE_TOKEN
 from meniscus.api.utils.request import http_request
 from meniscus.correlation import errors
 from meniscus.data import cache_handler
 from meniscus.data.model.tenant import EventProducer
-from meniscus.data.model.tenant_util import find_event_producer
-from meniscus.data.model.tenant_util import load_tenant_from_dict
+from meniscus.data.model import tenant_util
+from meniscus.normalization import normalizer
 from meniscus.openstack.common import timeutils
 from meniscus.queue import celery
 from meniscus.storage import dispatch
-from meniscus import env
-from meniscus.normalization import normalizer
+
 _LOG = env.get_logger(__name__)
 
 
@@ -42,12 +54,21 @@ _LOG = env.get_logger(__name__)
              ignore_result=True, serializer="json")
 def correlate_syslog_message(message):
     """
-    entry point for correlating syslog message processing
+    Entry point into correlation pipeline for messages received from the
+    syslog parser after being converted to JSON. These messages must be
+    converted into CEE format for processing.
+
+    This entry point is implemented as a queued task. The parameters in the
+    task decorator allow for the task to be retried indefinitely int he event
+    of network failure (store & forward). Exceptions thrown from failed
+    validation or a malformed message do not initiate a retry but instead
+    allow the task to fail.
     """
     try:
-        # get message credentials to identify and validate source of message
         _format_message_cee(message)
 
+    # Catch all CoordinationCommunicationErrors and retry the task.
+    # All other Exceptions will fail the task.
     except errors.CoordinatorCommunicationError as ex:
         _LOG.exception(ex.message)
         raise correlate_syslog_message.retry()
@@ -57,12 +78,22 @@ def correlate_syslog_message(message):
              ignore_result=True, serializer="json")
 def correlate_http_message(tenant_id, message_token, message):
     """
-    entry point for correlating http message processing
+    Entry point into correlation pipeline for messages received from the
+    PublishMessage resource. These messages should already comply with CEE
+    format as this is enforced when the message is posted to the endpoint.
+
+    This entry point is implemented as a queued task. The parameters in the
+    task decorator allow for the task to be retried indefinitely int he event
+    of network failure (store & forward). Exceptions thrown from failed
+    validation or a malformed message do not initiate a retry but instead allow
+    the task to fail.
     """
     try:
-        #validate the tenant and the message token
+        #enter the pipeline by beginning mesage validation
         _validate_token_from_cache(tenant_id, message_token, message)
 
+    # Catch all CoordinationCommunicationErrors and retry the task.
+    # All other Exceptions will fail the task.
     except errors.CoordinatorCommunicationError as ex:
         _LOG.exception(ex.message)
         raise correlate_http_message.retry()
@@ -70,7 +101,41 @@ def correlate_http_message(tenant_id, message_token, message):
 
 def _format_message_cee(message):
     """
-    extracts credentials from syslog message and formats to CEE
+    Format message as CEE and begin message validation. The incoming message
+    originates a syslog message (RFC 5424) that has been received on the syslog
+    endpoint and parsed into the following JSON format:
+
+        {
+            "PRIORITY": "{RFC 5424 PRI}",
+            "VERSION": "{RFC 5424 VERSION}",
+            "ISODATE": "{RFC 5424 TIMESTAMP}",
+            "HOST": "{RFC 5424 HOSTNAME}",
+            "PROGRAM": "{RFC 5424 APPNAME}",
+            "PID": "{RFC 5424 PROCID}",
+            "MSGID": "{RFC 5424 MSGID}",
+            "SDATA": {
+            "meniscus": {
+            "tenant": "{tenantid}",
+            "token": "{message-token}"
+        },
+            "any client_data": {}
+        }
+            "MESSAGE": "{RFC 5424 MSG}"
+        }
+
+        After conversion to CEE, the message will have the following format:
+
+        {
+            "pri": "{PRIORITY}",
+            "ver": "{VERSION}",
+            "time": "{ISODATE}",
+            "host": "{HOST}",
+            "pname": "{PROGRAM}",
+            "pid": "{PID}",
+            "msgid": "{MSGID}",
+            "msg": "{MSG}",
+            "native": "{_SDATA}"
+        }
     """
     try:
         meniscus_sd = message['_SDATA']['meniscus']
@@ -97,15 +162,17 @@ def _format_message_cee(message):
     cee_message['msg'] = message.get('MESSAGE', '-')
     cee_message['native'] = message.get('_SDATA', {})
 
-    # validate token
+    #send the new cee_message to be validated
     _validate_token_from_cache(tenant_id, message_token, cee_message)
 
 
 def _validate_token_from_cache(tenant_id, message_token, message):
     """
     validate token from cache:
-    If token valid, get tenant from cache.
-    If token invalid, validate token with coordinator
+        Attempt to validate the message against the local cache.
+        If successful, send off to retrieve the tenant information.
+        If the token does not exist in the cache, send off to validate with
+        the coordinator.
     """
 
     token_cache = cache_handler.TokenCache()
@@ -118,17 +185,19 @@ def _validate_token_from_cache(tenant_id, message_token, message):
                 'Message not authenticated, check your tenant id '
                 'and or message token for validity')
 
-        # get tenant from cache
+        # hand off the message to retrieve tenant information
         _get_tenant_from_cache(tenant_id, message_token, message)
     else:
-        # token not in cache, get it from coordinator
+        # hand off the message to validate the token with the coordinator
         _validate_token_with_coordinator(tenant_id, message_token, message)
 
 
 def _get_tenant_from_cache(tenant_id, message_token, message):
     """
-    get tenant from cache and then calls correlation or
-    get tenant from coordinator
+    Retrieve tenant information from local cache. If tenant data exists in
+    local cache, hand off message to be packed with correlation data. If the
+    tenant data is not in cache, hand off message for tenant data to be
+    retrieved from coordinator
     """
     tenant_cache = cache_handler.TenantCache()
     #get the tenant object from cache
@@ -142,7 +211,9 @@ def _get_tenant_from_cache(tenant_id, message_token, message):
 
 def _validate_token_with_coordinator(tenant_id, message_token, message):
     """
-    call coordinator to validate the message token then get tenant
+    Call coordinator to validate the message token. If token is validated,
+    persist the token in the local cache for future lookups, and hand off
+    message to retrieve tenant information.
     """
 
     config = _get_config_from_cache()
@@ -160,12 +231,19 @@ def _validate_token_with_coordinator(tenant_id, message_token, message):
         raise errors.MessageAuthenticationError(
             'Message not authenticated, check your tenant id '
             'and or message token for validity')
+
+    # saves validated token to cache
+    _save_token_to_cache(tenant_id, message_token)
+
+    # hand off the message to validate the tenant with the coordinator
     _get_tenant_from_coordinator(tenant_id, message_token, message)
 
 
 def _get_tenant_from_coordinator(tenant_id, message_token, message):
     """
-    This method calls to the coordinator to retrieve tenant
+    This method retrieves tenant data from the coordinator, and persists the
+    tenant data in the local cache for future lookups. The message is then
+    handed off to be packed with correlation data.
     """
 
     config = _get_config_from_cache()
@@ -184,10 +262,10 @@ def _get_tenant_from_coordinator(tenant_id, message_token, message):
         response_body = resp.json()
 
         #load new tenant data from response body
-        tenant = load_tenant_from_dict(response_body['tenant'])
+        tenant = tenant_util.load_tenant_from_dict(response_body['tenant'])
 
         # update the cache with new tenant info
-        _save_tenant_to_cache(tenant_id, tenant)
+        _save_tenant_to_cache(tenant)
 
         # add correlation to message
         _add_correlation_info_to_message(tenant, message)
@@ -202,8 +280,14 @@ def _get_tenant_from_coordinator(tenant_id, message_token, message):
 
 
 def _add_correlation_info_to_message(tenant, message):
+    """
+    Pack the message with correlation data. The message will be update by
+    adding a dictionary named "meniscus" that contains tenant specific
+    information used in processing the message.
+    """
     #match the producer by the message pname
-    producer = find_event_producer(tenant, producer_name=message['pname'])
+    producer = tenant_util.find_event_producer(tenant,
+                                               producer_name=message['pname'])
 
     #if the producer is not found, create a default producer
     if not producer:
@@ -226,35 +310,50 @@ def _add_correlation_info_to_message(tenant, message):
         correlation_dict["destinations"][sink] = {'transaction_id': None,
                                                   'transaction_time': None}
 
-    # if durable, update correlation dict with new durable job id
-    if producer.durable:
-        durable_job_id = str(uuid4())
-        correlation_dict.update({'job_id': durable_job_id})
-
+    # After successful correlation remove meniscus information from structured
+    # data so that the client's token is scrubbed form the message.
     message['native'].pop('meniscus', None)
     message.update({'meniscus': {'tenant': tenant.tenant_id,
                                  'correlation': correlation_dict}})
 
+    # If the message data indicates that the message has normalization rules
+    # that apply, Queue the message for normalization processing
     if normalizer.should_normalize(message):
-        # send the message to normalization then to
-        # the data dispatch
+        #Todo: (stevendgonzales) Examine whether or not to remove
+        #Todo: persist_message as a linked subtask(callback) of the
+        #Todo: normalization task instead Queue the task based on routing
+        #Todo: determined at the end of the normalization process.
+        # send the message to normalization then to the data dispatch
         normalizer.normalize_message.apply_async(
             (message,),
             link=dispatch.persist_message.subtask())
     else:
+        # Queue the message for indexing/storage
         dispatch.persist_message(message)
-        # except Exception:
-        # _LOG.exception('unable to place persist_message task on queue')
 
 
-def _save_tenant_to_cache(tenant_id, tenant):
-    #load caches
+def _save_tenant_to_cache(tenant):
+    """
+    saves validated tenant to cache to reduce validation calls to the
+    coordinator
+    """
+    #load tenant cache
     tenant_cache = cache_handler.TenantCache()
+
+    #save token and tenant information to cache
+    tenant_cache.set_tenant(tenant)
+
+
+def _save_token_to_cache(tenant_id, message_token):
+    """
+    saves validated token to cache to reduce validation calls to the
+    coordinator
+    """
+    #load token cache
     token_cache = cache_handler.TokenCache()
 
     #save token and tenant information to cache
-    token_cache.set_token(tenant_id, tenant.token)
-    tenant_cache.set_tenant(tenant)
+    token_cache.set_token(tenant_id, message_token)
 
 
 def _get_config_from_cache():

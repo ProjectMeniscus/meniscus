@@ -293,7 +293,8 @@ class WhenTestingCorrelationPipeline(unittest.TestCase):
                           self.get_config), \
                 patch('meniscus.correlation.correlator.http_request',
                       http_request), \
-                patch('meniscus.correlation.correlator.load_tenant_from_dict',
+                patch('meniscus.correlation.correlator.tenant_util.'
+                      'load_tenant_from_dict',
                       self.tenant_found), \
                 patch('meniscus.correlation.correlator.'
                       '_add_correlation_info_to_message',

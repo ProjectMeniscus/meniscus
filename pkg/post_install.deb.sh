@@ -33,7 +33,7 @@ case "$1" in
         chown root:root /etc/init/meniscus.conf
         chown -R root:root /usr/share/meniscus
         chmod -R 0755 /usr/share/meniscus
-        mkdir /tmp/meniscus
+        mkdir /tmp/meniscus/cache
         chown -R meniscus:meniscus /tmp/meniscus
         chmod -R 0766 /tmp/meniscus
 

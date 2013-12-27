@@ -39,7 +39,6 @@ class DeploymentLocations(object):
         self.project_share = mkdir(path.join(self.usr_share, project_name))
 
         self.etc = mkdir(path.join(self.root, 'etc'))
-        self.init_d = mkdir(path.join(self.etc, 'init.d'))
 
 
 class BuildContext(object):

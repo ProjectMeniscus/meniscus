@@ -33,6 +33,9 @@ case "$1" in
         chown root:root /etc/init/meniscus.conf
         chown -R root:root /usr/share/meniscus
         chmod -R 0755 /usr/share/meniscus
+        mkdir /tmp/meniscus
+        chown -R meniscus:meniscus /tmp/meniscus
+        chmod -R 0766 /tmp/meniscus
 
 		if [ ! -d /var/log/meniscus ]; then
             mkdir /var/log/meniscus

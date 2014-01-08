@@ -31,7 +31,7 @@ coordinator_db_options = [
                     """
                ),
     cfg.ListOpt('servers',
-                default='localhost:27017',
+                default=['localhost:27017'],
                 help="""hostname:port for db servers
                     """
                 ),
@@ -77,7 +77,7 @@ short_term_store_options = [
                     """
                ),
     cfg.ListOpt('servers',
-                default='localhost:27017',
+                default=['localhost:27017'],
                 help="""hostname:port for db servers
                     """
                 ),
@@ -117,18 +117,18 @@ default_sink_options = [
                     """
                 ),
     cfg.StrOpt('adapter_name',
-               default='elasticsearch',
+               default='es',
                help="""Sets the name of the handler to load for
                        datasource interactions. e.g. mongodb
                     """
                ),
     cfg.ListOpt('servers',
-                default='localhost:9200',
+                default=['localhost:9200'],
                 help="""hostname:port for db servers
                     """
                 ),
     cfg.IntOpt('bulk_size',
-               default='0',
+               default=100,
                help="""Amount of records to transmit in bulk
                     """
                ),

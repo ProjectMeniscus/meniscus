@@ -94,7 +94,8 @@ class WhenTestingFindMethods(unittest.TestCase):
         ttl_create_index_call = MagicMock()
         with patch('meniscus.data.model.tenant_util._db_handler',
                    self.ds_handler), patch(
-                'meniscus.data.model.tenant_util.ttl_tasks.create_index.delay',
+                'meniscus.data.model.tenant_util.'
+                'mapping_tasks.create_index.delay',
                 ttl_create_index_call):
             tenant_util.create_tenant(self.tenant_id)
             self.ds_handler.put.assert_called_once()
@@ -145,7 +146,7 @@ class WhenTestingFindMethods(unittest.TestCase):
                 self.ds_handler), \
             patch(
                 'meniscus.data.model.tenant_util.'
-                'ttl_tasks.create_ttl_mapping.delay',
+                'mapping_tasks.create_ttl_mapping.delay',
                 ttl_create_mapping_call), \
             patch(
                 'meniscus.data.model.tenant_util.save_tenant',

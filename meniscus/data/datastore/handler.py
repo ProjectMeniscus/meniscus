@@ -29,44 +29,10 @@ class DatasourceHandler(object):
     datasource_status = STATUS_NEW
 
     def status(self):
-        return self.datasource_status
+        return self.status
 
     def connect(self):
         raise NotImplementedError
 
     def close(self):
-        raise NotImplementedError
-
-    def create_sequence(self, sequence_name):
-        raise NotImplementedError
-
-    def delete_sequence(self, sequence_name):
-        raise NotImplementedError
-
-    def next_sequence(self, sequence_name):
-        raise NotImplementedError
-
-    def find(self, object_name, query_filter=None):
-        if query_filter is None:
-            query_filter = dict()
-        raise NotImplementedError
-
-    def find_one(self, object_name, query_filter=None):
-        if query_filter is None:
-            query_filter = dict()
-        raise NotImplementedError
-
-    def put(self, object_name, document=None):
-        if document is None:
-            document = dict()
-        raise NotImplementedError
-
-    def update(self, object_name, document=None, id=None):
-        if document is None:
-            document = dict()
-        raise NotImplementedError
-
-    def delete(self, object_name, query_filter=None, limit_one=False):
-        if query_filter is None:
-            query_filter = dict()
         raise NotImplementedError

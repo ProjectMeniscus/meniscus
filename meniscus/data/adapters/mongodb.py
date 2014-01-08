@@ -1,7 +1,9 @@
 from pymongo import MongoClient
 
 from meniscus.data.datastore.handler import (
-    DatabaseHandlerError, DatasourceHandler, STATUS_CONNECTED, STATUS_CLOSED)
+    DatabaseHandlerError, DatasourceHandler,
+    STATUS_CONNECTED, STATUS_CLOSED, STATUS_NEW
+)
 
 
 ## TODO: (JHop) Document this damn thing --> pymongo.errors.OperationFailure.
@@ -13,7 +15,7 @@ class NamedDatasourceHandler(DatasourceHandler):
         self.username = conf.username
         self.password = conf.password
         self.connection = None
-        self.status = None
+        self.status = STATUS_NEW
 
     def _check_connection(self):
         """

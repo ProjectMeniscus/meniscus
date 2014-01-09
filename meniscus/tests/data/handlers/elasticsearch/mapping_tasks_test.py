@@ -2,7 +2,7 @@ import unittest
 
 from mock import MagicMock, patch
 
-from meniscus.data import mapping_tasks
+from meniscus.data.handlers.elasticsearch import mapping_tasks
 
 
 def suite():
@@ -23,8 +23,9 @@ class WhenTestingTtlTasks(unittest.TestCase):
         self.db_handler.put_mapping = self.put_mapping_method
 
     def test_create_ttl_mapping(self):
-        with patch('meniscus.data.mapping_tasks._db_handler',
-                   self.db_handler):
+        with patch(
+            'meniscus.data.handlers.elasticsearch.'
+                'mapping_tasks._es_handler', self.db_handler):
             mapping_tasks.create_ttl_mapping(self.tenant_id, self.doc_type)
             self.put_mapping_method.assert_called_once_with(
                 index=self.tenant_id, doc_type=self.doc_type,
@@ -34,10 +35,14 @@ class WhenTestingTtlTasks(unittest.TestCase):
     def test_create_index(self):
         delay_call = MagicMock()
 
-        with patch('meniscus.data.mapping_tasks._db_handler',
-                   self.db_handler), \
-                patch('meniscus.data.mapping_tasks.create_ttl_mapping',
-                      MagicMock()):
+        with patch(
+            'meniscus.data.handlers.elasticsearch.'
+            'mapping_tasks._es_handler',
+            self.db_handler), \
+                patch(
+                    'meniscus.data.handlers.elasticsearch.'
+                    'mapping_tasks.create_ttl_mapping',
+                    MagicMock()):
             mapping_tasks.create_index(self.tenant_id)
         self.create_index_method.assert_called_once_with(
             index=self.tenant_id, mapping=mapping_tasks.DEFAULT_MAPPING)

@@ -3,10 +3,10 @@ The worker_util module provides an abstraction of database operations used
 with instances fo the Worker class
 """
 
-from meniscus.data.datastore import COORDINATOR_DB, datasource_handler
+from meniscus.data.handlers import mongodb
 from meniscus.data.model.worker import Worker
 
-_db_handler = datasource_handler(COORDINATOR_DB)
+_db_handler = mongodb.get_handler()
 
 
 def create_worker(worker):

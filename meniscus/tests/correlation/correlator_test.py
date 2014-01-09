@@ -307,13 +307,12 @@ class WhenTestingCorrelationPipeline(unittest.TestCase):
 
     #Tests for _add_correlation_info_to_message
     def test_add_correlation_info_to_message(self):
-        persist_message_func = MagicMock()
-        with patch('meniscus.correlation.correlator.dispatch.persist_message',
-                   persist_message_func):
-
-            correlator._add_correlation_info_to_message(self.tenant,
-                                                        self.cee_msg)
-        persist_message_func.assert_called_once_with(self.cee_msg)
+        route_message_func = MagicMock()
+        with patch('meniscus.correlation.correlator.dispatch.route_message',
+                   route_message_func):
+            correlator._add_correlation_info_to_message(
+                self.tenant, self.cee_msg)
+        route_message_func.assert_called_once_with(self.cee_msg)
 
 if __name__ == '__main__':
     unittest.main()

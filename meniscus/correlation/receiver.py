@@ -1,6 +1,5 @@
 from meniscus import env
 from meniscus.correlation import correlator
-from meniscus.storage import dispatch
 from meniscus import transport
 
 from meniscus.normalization.normalizer import *

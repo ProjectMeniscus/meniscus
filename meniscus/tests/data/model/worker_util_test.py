@@ -49,3 +49,20 @@ class WhenTestingWorkerUtil(unittest.TestCase):
             find_one_method.assert_called_once_with(
                 'worker', {'hostname': self.worker.hostname})
             self.assertIsNone(worker)
+
+    def test_save_worker(self):
+        update_method = MagicMock(return_value=None)
+        with patch('meniscus.data.model.worker_util._db_handler.update',
+                   update_method):
+            worker_util.save_worker(self.worker)
+            update_method.assert_called_once_with(
+                'worker', self.worker.format_for_save())
+
+    def test_retrieve_all_workers(self):
+        find_method = MagicMock(return_value=[self.worker.format_for_save()])
+        with patch('meniscus.data.model.worker_util._db_handler.find',
+                   find_method):
+            workers = worker_util.retrieve_all_workers()
+            find_method.assert_called_once_with('worker')
+            for worker in workers:
+                self.assertIsInstance(worker, Worker)

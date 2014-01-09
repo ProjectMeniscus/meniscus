@@ -12,12 +12,12 @@ config.get_config().register_group(_DATA_SINKS_GROUP)
 
 _SINK = [
     cfg.ListOpt('valid_sinks',
-                default=['elasticsearch', 'hdfs'],
+                default=['elasticsearch'],
                 help="""valid data sinks list"""
                 ),
     cfg.StrOpt('default_sink',
                default='elasticsearch',
-               help="""default data sinks list"""
+               help="""default data sink"""
                )
 ]
 
@@ -32,4 +32,3 @@ conf = config.get_config()
 
 VALID_SINKS = conf.data_sinks.valid_sinks
 DEFAULT_SINK = conf.data_sinks.default_sink
-SECONDARY_SINKS = [sink for sink in VALID_SINKS if sink != DEFAULT_SINK]

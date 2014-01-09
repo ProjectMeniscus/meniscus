@@ -3,13 +3,13 @@ The tenant_util module provides an abstraction of database operations used
 with instances of the Tenant class and its member objects
 """
 
-from meniscus.data.datastore import COORDINATOR_DB, datasource_handler
+from meniscus.data.handlers import mongodb
+from meniscus.data.handlers.elasticsearch import mapping_tasks
 from meniscus.data.model.tenant import EventProducer
 from meniscus.data.model.tenant import (
     load_tenant_from_dict, Tenant, Token)
-from meniscus.data import mapping_tasks
 
-_db_handler = datasource_handler(COORDINATOR_DB)
+_db_handler = mongodb.get_handler()
 
 
 def find_tenant(tenant_id, create_on_missing=False):

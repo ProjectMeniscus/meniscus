@@ -1,11 +1,8 @@
 import unittest
-
 from mock import MagicMock, patch
-
 from meniscus.data.model.tenant import EventProducer, Tenant
-from meniscus.openstack.common import jsonutils
-
 from meniscus.data.model import tenant_util
+from meniscus.openstack.common import jsonutils
 
 
 def suite():

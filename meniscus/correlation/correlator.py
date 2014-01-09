@@ -45,7 +45,7 @@ from meniscus.data.model import tenant_util
 from meniscus.normalization import normalizer
 from meniscus.openstack.common import timeutils
 from meniscus.queue import celery
-from meniscus.sinks import dispatch
+from meniscus import sinks
 
 _LOG = env.get_logger(__name__)
 
@@ -323,10 +323,10 @@ def _add_correlation_info_to_message(tenant, message):
         # send the message to normalization then to the data dispatch
         normalizer.normalize_message.apply_async(
             (message,),
-            link=dispatch.route_message.subtask())
+            link=sinks.route_message.subtask())
     else:
         # Queue the message for indexing/storage
-        dispatch.route_message(message)
+        sinks.route_message(message)
 
 
 def _save_tenant_to_cache(tenant_id, tenant):

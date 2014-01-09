@@ -85,8 +85,7 @@ class ElasticsearchHandler(base.DataHandlerBase):
 
     def connect(self):
         """
-        Create a connection to elasticsearch.  if a bulk size has been set
-        the connection will be configured for bulk indexing.
+        Create a connection to elasticsearch.
         """
         self.connection = Elasticsearch(hosts=self.es_servers)
         self.status = ElasticsearchHandler.STATUS_CONNECTED
@@ -102,8 +101,7 @@ class ElasticsearchHandler(base.DataHandlerBase):
         """
         Creates a new index on the elasticsearch cluster.
         :param index: the name of the index to create
-        :param default_mapping: Whether or not to apply the default
-        mapping to the index
+        :param mapping: a mapping to apply to the index
         """
         self._check_connection()
         self.connection.indices.create(index=index, body=mapping)

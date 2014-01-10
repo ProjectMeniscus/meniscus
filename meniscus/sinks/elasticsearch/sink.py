@@ -97,7 +97,7 @@ def get_queue_stream(ack_list, bulk_timeout):
             yield msg.payload
 
 
-def flush_to_es(bulk_size, bulk_timeout):
+def flush_to_es(bulk_timeout):
     """
     Flushes a stream of messages to elasticsearch using bulk flushing.
     Uses a generator to pull messages off the queue and passes this as an
@@ -108,19 +108,25 @@ def flush_to_es(bulk_size, bulk_timeout):
     :param bulk_timeout:
     :return: length of time to wait for a message from queue
     """
-    es_client = es_handler.connection
-    ack_list = list()
-    actions = get_queue_stream(ack_list, bulk_timeout)
-    bulker = es_helpers.streaming_bulk(
-        es_client, actions, chunk_size=bulk_size)
 
     while True:
-        for response in bulker:
-            msg = ack_list.pop(0)
-            msg_ok = response[0]
+        try:
+            es_client = es_handler.connection
+            ack_list = list()
+            actions = get_queue_stream(ack_list, bulk_timeout)
+            bulker = es_helpers.streaming_bulk(
+                es_client, actions, chunk_size=BULK_SIZE)
 
-            if msg_ok:
-                msg.ack()
+            while True:
+                for response in bulker:
+                    msg = ack_list.pop(0)
+                    msg_ok = response[0]
+
+                    if msg_ok:
+                        msg.ack()
+
+        except Exception as ex:
+            _LOG.exception(ex)
 
 
 class ElasticSearchStreamBulker(object):
@@ -134,20 +140,10 @@ class ElasticSearchStreamBulker(object):
         self.concurrency = concurrency
         self.pool = None
 
-    def _stream_flush(self, process_num):
-        _LOG.info("starting stream_flush process {}".format(process_num))
-        while True:
-            try:
-                flush_to_es(self.bulk_size, self.bulk_timeout)
-            except Exception as ex:
-                _LOG.exception(ex)
-
     def start(self):
         """
         Start a process pool to handle streaming
         """
-        if self.concurrency is None:
-            self.concurrency = cpu_count()
         self.pool = Pool(self.concurrency)
 
         def signal_handler(signal, frame):
@@ -156,4 +152,5 @@ class ElasticSearchStreamBulker(object):
             _LOG.info("Hayrack StdInRelayServer stopped.")
             sys.exit(0)
 
-        self.pool.map(self._stream_flush, range(self.concurrency))
+        self.pool.map(
+            flush_to_es, [self.bulk_timeout for x in range(self.concurrency)])

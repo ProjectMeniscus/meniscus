@@ -80,7 +80,7 @@ def _queue_index_request(index, doc_type, document, ttl=TTL):
                          serializer='json', declare=[es_queue])
 
 
-def get_queue_stream(ack_list, bulk_timeout):
+def get_queue_stream(ack_list):
     """
     A generator that pulls messages off a queue and yields the result.
     The generator can be used as an iterable to consume messages.
@@ -92,12 +92,12 @@ def get_queue_stream(ack_list, bulk_timeout):
     with Connection(broker_url) as connection:
         simple_queue = connection.SimpleQueue(ELASTICSEARCH_QUEUE)
         while True:
-            msg = simple_queue.get(block=True, timeout=bulk_timeout)
+            msg = simple_queue.get(block=True)
             ack_list.append(msg)
             yield msg.payload
 
 
-def flush_to_es(bulk_timeout):
+def flush_to_es():
     """
     Flushes a stream of messages to elasticsearch using bulk flushing.
     Uses a generator to pull messages off the queue and passes this as an
@@ -113,7 +113,7 @@ def flush_to_es(bulk_timeout):
         try:
             es_client = es_handler.connection
             ack_list = list()
-            actions = get_queue_stream(ack_list, bulk_timeout)
+            actions = get_queue_stream(ack_list)
             bulker = es_helpers.streaming_bulk(
                 es_client, actions, chunk_size=BULK_SIZE)
 
@@ -133,12 +133,11 @@ class ElasticSearchStreamBulker(object):
     Controls a mutliprocess pool that pulls a message stream from a queue and
     bulk flushes to elasticsearch
     """
-    def __init__(self, bulk_size=BULK_SIZE, bulk_timeout=60):
+    def __init__(self, bulk_size=BULK_SIZE):
         self.bulk_size = bulk_size
-        self.bulk_timeout = bulk_timeout
 
     def start(self):
         """
         Start a process pool to handle streaming
         """
-        flush_to_es(self.bulk_timeout)
+        flush_to_es()

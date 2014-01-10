@@ -54,11 +54,10 @@ def start_up():
     )
 
     es_flusher = ElasticSearchStreamBulker()
-    es_flusher.start()
-    #flush_proc = Process(target=es_flusher.start)
-    #flush_proc.start()
-    #_LOG.info(
-    #    'ElasticSearchStreamBulker started as process: {}'.format(
-    #        flush_proc.pid)
-    #)
+    flush_proc = Process(target=es_flusher.start)
+    flush_proc.start()
+    _LOG.info(
+        'ElasticSearchStreamBulker started as process: {}'.format(
+            flush_proc.pid)
+    )
     return application

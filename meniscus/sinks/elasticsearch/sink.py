@@ -133,27 +133,12 @@ class ElasticSearchStreamBulker(object):
     Controls a mutliprocess pool that pulls a message stream from a queue and
     bulk flushes to elasticsearch
     """
-    def __init__(self, processes=cpu_count(),
-                 bulk_size=BULK_SIZE, bulk_timeout=60):
+    def __init__(self, bulk_size=BULK_SIZE, bulk_timeout=60):
         self.bulk_size = bulk_size
         self.bulk_timeout = bulk_timeout
-        self.processes = processes
 
     def start(self):
         """
         Start a process pool to handle streaming
         """
-        pool = Pool(self.processes)
-
-        def signal_handler(signal, frame):
-            _LOG.info("ElasticSearchStreamBulker closing pool.")
-            pool.close()
-            pool.join()
-            _LOG.info("ElasticSearchStreamBulker stopped.")
-            sys.exit(0)
-
-        signal.signal(signal.SIGINT, signal_handler)
-        signal.signal(signal.SIGTERM, signal_handler)
-
-        pool.map(flush_to_es, [self.bulk_timeout]*self.processes)
         flush_to_es(self.bulk_timeout)

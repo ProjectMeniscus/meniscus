@@ -149,6 +149,7 @@ class ElasticSearchStreamBulker(object):
         pool = Pool(self.processes)
 
         def signal_handler(signal, frame):
+            _LOG.info("ElasticSearchStreamBulker closing pool.")
             pool.close()
             pool.join()
             _LOG.info("ElasticSearchStreamBulker stopped.")

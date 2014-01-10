@@ -110,6 +110,7 @@ def flush_to_es():
     """
 
     while True:
+        ack_total = 0
         try:
             _LOG.error("\n\n\n\n**************initializing client********")
             es_client = es_handler.connection
@@ -119,9 +120,13 @@ def flush_to_es():
                 es_client, actions, chunk_size=BULK_SIZE)
             _LOG.error("Post flush")
 
-
+            ack_count = 0
             for response in bulker:
-                _LOG.error("acking")
+                ack_count += 1
+                ack_total += 1
+                _LOG.error("ack_count: {0} ack_total: {1}".format(
+                    ack_count, ack_total))
+
                 msg = ack_list.pop(0)
                 msg_ok = response[0]
 

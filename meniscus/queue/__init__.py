@@ -18,7 +18,7 @@ _CELERY = [
                help="""url to the broker behind celery"""
                ),
     cfg.IntOpt('CELERYD_CONCURRENCY',
-               default=10,
+               default=1,
                help="""Number of concurrent worker processes/threads"""
                ),
     cfg.BoolOpt('CELERY_DISABLE_RATE_LIMITS',

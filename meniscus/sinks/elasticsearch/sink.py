@@ -119,7 +119,7 @@ def flush_to_es():
             _LOG.debug("Post flush")
 
             for response in bulker:
-                _LOG.debug("acking")
+                _LOG.debug("\n\n\n\n\n\n\n\n\n\n**************************************acking")
                 msg = ack_list.pop(0)
                 msg_ok = response[0]
 

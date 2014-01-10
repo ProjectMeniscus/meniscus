@@ -36,6 +36,6 @@ DEFAULT_SINK = conf.data_sinks.default_sink
 def route_message(message):
     message_sinks = message['meniscus']['correlation']['sinks']
     _LOG.exception(message)
-    if 'elasticserch' in message_sinks:
+    if 'elasticsearch' in message_sinks:
         _LOG.exception("Queue for elasticsearch")
         elasticsearch.put_message.delay(message)

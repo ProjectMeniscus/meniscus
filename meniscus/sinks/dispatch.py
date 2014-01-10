@@ -1,10 +1,8 @@
-from meniscus.queue import celery
-
 from oslo.config import cfg
 
 import meniscus.config as config
 from meniscus import env
-
+from meniscus.sinks import elasticsearch
 
 _LOG = env.get_logger(__name__)
 
@@ -15,11 +13,11 @@ _SINK = [
     cfg.ListOpt('valid_sinks',
                 default=['elasticsearch'],
                 help="""valid data sinks list"""
-    ),
+                ),
     cfg.StrOpt('default_sink',
                default='elasticsearch',
                help="""default data sink"""
-    )
+               )
 ]
 
 config.get_config().register_opts(_SINK, group=_DATA_SINKS_GROUP)
@@ -35,7 +33,7 @@ VALID_SINKS = conf.data_sinks.valid_sinks
 DEFAULT_SINK = conf.data_sinks.default_sink
 
 
-@celery.task
 def route_message(message):
     message_sinks = message['meniscus']['correlation']['sinks']
-    #Todo: sgonzales Route message to sink using new design for bulk flush
+    if 'elasticserch' in message_sinks:
+        elasticsearch.put_message.delay(message)

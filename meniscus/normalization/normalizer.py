@@ -1,6 +1,7 @@
+from meniscus import env
 from meniscus.queue import celery
 from meniscus.normalization.lognorm import get_normalizer
-from meniscus import env
+from meniscus import sinks
 import json
 
 
@@ -32,4 +33,4 @@ def normalize_message(message):
     message['normalized'] = {
         pattern: normalized_doc
     }
-    return message
+    sinks.route_message(message)

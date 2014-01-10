@@ -92,7 +92,9 @@ def get_queue_stream(ack_list, bulk_timeout):
     with Connection(broker_url) as connection:
         simple_queue = connection.SimpleQueue(ELASTICSEARCH_QUEUE)
         while True:
+            _LOG.debug("waiting for message")
             msg = simple_queue.get(block=True, timeout=bulk_timeout)
+            _LOG.debug(msg)
             ack_list.append(msg)
             yield msg.payload
 

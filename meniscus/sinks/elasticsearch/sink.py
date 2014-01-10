@@ -117,13 +117,12 @@ def flush_to_es(bulk_timeout):
             bulker = es_helpers.streaming_bulk(
                 es_client, actions, chunk_size=BULK_SIZE)
 
-            while True:
-                for response in bulker:
-                    msg = ack_list.pop(0)
-                    msg_ok = response[0]
+            for response in bulker:
+                msg = ack_list.pop(0)
+                msg_ok = response[0]
 
-                    if msg_ok:
-                        msg.ack()
+                if msg_ok:
+                    msg.ack()
 
         except Exception as ex:
             _LOG.exception(ex)

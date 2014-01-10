@@ -116,8 +116,10 @@ def flush_to_es():
             actions = get_queue_stream(ack_list)
             bulker = es_helpers.streaming_bulk(
                 es_client, actions, chunk_size=BULK_SIZE)
+            _LOG.debug("Post flush")
 
             for response in bulker:
+                _LOG.debug("acking")
                 msg = ack_list.pop(0)
                 msg_ok = response[0]
 

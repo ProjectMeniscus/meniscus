@@ -4,7 +4,7 @@ It exposes a task that allows messages to be queued for indexing.  It then
 exposes the ElasticSearchBulkStreamer which creates a pool of processes for
 pulling a stream off of the queue and performing bulk flushes to Elasticsearch.
 """
-from multiprocessing import Pool
+from multiprocessing import cpu_count, Pool
 import signal
 import sys
 import uuid
@@ -134,7 +134,8 @@ class ElasticSearchStreamBulker(object):
         self.concurrency = concurrency
         self.pool = None
 
-    def _stream_flush(self):
+    def _stream_flush(self, process_num):
+        _LOG.info("starting stream_flush process {}".format(process_num))
         while True:
             try:
                 flush_to_es(self.bulk_size, self.bulk_timeout)
@@ -142,6 +143,11 @@ class ElasticSearchStreamBulker(object):
                 _LOG.exception(ex)
 
     def start(self):
+        """
+        Start a process pool to handle streaming
+        """
+        if self.concurrency is None:
+            self.concurrency = cpu_count()
         self.pool = Pool(self.concurrency)
 
         def signal_handler(signal, frame):
@@ -150,4 +156,4 @@ class ElasticSearchStreamBulker(object):
             _LOG.info("Hayrack StdInRelayServer stopped.")
             sys.exit(0)
 
-        self.pool.map(self._stream_flush)
+        self.pool.map(self._stream_flush, range(self.concurrency))

@@ -138,6 +138,8 @@ class ElasticSearchStreamBulker(object):
         self.bulk_size = bulk_size
         self.bulk_timeout = bulk_timeout
         self.concurrency = concurrency
+        if self.concurrency is None:
+            self.concurrency = cpu_count()
         self.pool = None
 
     def start(self):

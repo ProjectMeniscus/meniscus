@@ -76,7 +76,7 @@ def _queue_index_request(index, doc_type, document, ttl=TTL):
 
     #publish the message
     with producers[connection].acquire(block=True) as producer:
-        producer.publish(action, routing_key='stream_bulk',
+        producer.publish(action, routing_key=ELASTICSEARCH_QUEUE,
                          serializer='json', declare=[es_queue])
 
 
@@ -90,7 +90,7 @@ def get_queue_stream(ack_list, bulk_timeout):
     :param bulk_timeout:  length of time to wait for a message from queue
     """
     with Connection(broker_url) as connection:
-        simple_queue = connection.SimpleQueue('elasticsearch')
+        simple_queue = connection.SimpleQueue(ELASTICSEARCH_QUEUE)
         while True:
             msg = simple_queue.get(block=True, timeout=bulk_timeout)
             ack_list.append(msg)
@@ -151,8 +151,9 @@ class ElasticSearchStreamBulker(object):
         def signal_handler(signal, frame):
             self.pool.close()
             self.pool.join()
-            _LOG.info("Hayrack StdInRelayServer stopped.")
+            _LOG.info("ES_FLusher stopped")
             sys.exit(0)
 
+        _LOG.info("ES_FLusher starting process pool")
         self.pool.map(
             flush_to_es, [self.bulk_timeout for x in range(self.concurrency)])

@@ -111,17 +111,17 @@ def flush_to_es():
 
     while True:
         try:
-            _LOG.debug("\n\n\n\n**************initializing client********")
+            _LOG.error("\n\n\n\n**************initializing client********")
             es_client = es_handler.connection
             ack_list = list()
             actions = get_queue_stream(ack_list)
             bulker = es_helpers.streaming_bulk(
                 es_client, actions, chunk_size=BULK_SIZE)
-            _LOG.debug("Post flush")
+            _LOG.error("Post flush")
 
 
             for response in bulker:
-                _LOG.debug("acking")
+                _LOG.error("acking")
                 msg = ack_list.pop(0)
                 msg_ok = response[0]
 

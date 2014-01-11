@@ -30,18 +30,21 @@ BULK_SIZE = es_handler.bulk_size
 TTL = es_handler.ttl
 ELASTICSEARCH_QUEUE = 'elasticsearch'
 
-# The broker where our exchange is.
-connection = Connection(broker_url)
+try:
+    # The broker where our exchange is.
+    connection = Connection(broker_url)
 
-# The exchange we send our index requests to.
-es_exchange = Exchange(
-    ELASTICSEARCH_QUEUE, exchange_type='direct', exchange_durable=True)
-bound_exchange = es_exchange(connection)
-bound_exchange.declare()
+    # The exchange we send our index requests to.
+    es_exchange = Exchange(
+        ELASTICSEARCH_QUEUE, exchange_type='direct', exchange_durable=True)
+    bound_exchange = es_exchange(connection)
+    bound_exchange.declare()
 
-# Queue that exchange will route messages to
-es_queue = Queue(ELASTICSEARCH_QUEUE, exchange=bound_exchange,
-                 routing_key=ELASTICSEARCH_QUEUE, queue_durable=True)
+    # Queue that exchange will route messages to
+    es_queue = Queue(ELASTICSEARCH_QUEUE, exchange=bound_exchange,
+                     routing_key=ELASTICSEARCH_QUEUE, queue_durable=True)
+except Exception as ex:
+    _LOG.exception(ex)
 
 def _queue_index_request(index, doc_type, document, ttl=TTL):
     """

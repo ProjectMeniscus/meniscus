@@ -93,10 +93,7 @@ def get_queue_stream(ack_list, bulk_timeout=60):
     with Connection(broker_url) as connection:
         simple_queue = connection.SimpleQueue(ELASTICSEARCH_QUEUE)
         while True:
-            try:
-                msg = simple_queue.get(block=True, timeout=bulk_timeout)
-            except Exception as ex:
-                break
+            msg = simple_queue.get(block=True, timeout=bulk_timeout)
             ack_list.append(msg)
             yield msg.payload
 
@@ -159,4 +156,4 @@ class ElasticSearchStreamBulker(object):
 
         signal.signal(signal.SIGINT, signal_handler)
         signal.signal(signal.SIGTERM, signal_handler)
-        map(lambda x: x.start(),process_list)
+        map(lambda x: x.start(), process_list)

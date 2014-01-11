@@ -1,5 +1,7 @@
 [![Build Status](http://jenkins.projectmeniscus.org/job/Meniscus/badge/icon)](http://jenkins.projectmeniscus.org/job/Meniscus/)
 
+**Note:** 1/10/2014 - Project Meniscus is being put on hold and the fulltime team resources are being moved to other projects.
+
 # Meniscus
 
 Meniscus is a Python based system for event collection, transit and processing in the large. It's primary use case is for large-scale Cloud logging, but can be used in many other scenarios including usage reporting and API tracing.

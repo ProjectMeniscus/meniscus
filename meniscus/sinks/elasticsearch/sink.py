@@ -30,6 +30,37 @@ BULK_SIZE = es_handler.bulk_size
 TTL = es_handler.ttl
 ELASTICSEARCH_QUEUE = 'elasticsearch'
 
+# The broker where our exchange is.
+connection = Connection(broker_url)
+
+# The exchange we send our index requests to.
+es_exchange = Exchange(
+    ELASTICSEARCH_QUEUE, exchange_type='direct', exchange_durable=True)
+bound_exchange = es_exchange(connection)
+bound_exchange.declare()
+
+# Queue that exchange will route messages to
+es_queue = Queue(ELASTICSEARCH_QUEUE, exchange=bound_exchange,
+                 routing_key=ELASTICSEARCH_QUEUE, queue_durable=True)
+
+def _queue_index_request(index, doc_type, document, ttl=TTL):
+    """
+    places a message index request on the queue
+    """
+
+    #create the metadata for index operation
+    action = {
+        '_index': index,
+        '_type': doc_type,
+        '_id': str(uuid.uuid4()),
+        '_ttl': ttl,
+        '_source': document
+    }
+
+    #publish the message
+    with producers[connection].acquire(block=True) as producer:
+        producer.publish(action, routing_key=ELASTICSEARCH_QUEUE,
+                         serializer='json', declare=[es_queue])
 
 @celery.task
 def put_message(message):
@@ -47,40 +78,7 @@ def put_message(message):
         put_message.retry()
 
 
-def _queue_index_request(index, doc_type, document, ttl=TTL):
-    """
-    places a message index request on the queue
-    """
-
-    # The broker where our exchange is.
-    connection = Connection(broker_url)
-
-    # The exchange we send our index requests to.
-    es_exchange = Exchange(
-        ELASTICSEARCH_QUEUE, exchange_type='direct', exchange_durable=True)
-    bound_exchange = es_exchange(connection)
-    bound_exchange.declare()
-
-    # Queue that exchange will route messages to
-    es_queue = Queue(ELASTICSEARCH_QUEUE, exchange=bound_exchange,
-                     routing_key=ELASTICSEARCH_QUEUE, queue_durable=True)
-
-    #create the metadata for index operation
-    action = {
-        '_index': index,
-        '_type': doc_type,
-        '_id': str(uuid.uuid4()),
-        '_ttl': ttl,
-        '_source': document
-    }
-
-    #publish the message
-    with producers[connection].acquire(block=True) as producer:
-        producer.publish(action, routing_key=ELASTICSEARCH_QUEUE,
-                         serializer='json', declare=[es_queue])
-
-
-def get_queue_stream(ack_list):
+def get_queue_stream(ack_list, bulk_timeout=60):
     """
     A generator that pulls messages off a queue and yields the result.
     The generator can be used as an iterable to consume messages.
@@ -92,9 +90,10 @@ def get_queue_stream(ack_list):
     with Connection(broker_url) as connection:
         simple_queue = connection.SimpleQueue(ELASTICSEARCH_QUEUE)
         while True:
-            msg = simple_queue.get(block=True)
+            msg = simple_queue.get(block=True, timeout=bulk_timeout)
             ack_list.append(msg)
             yield msg.payload
+        simple_queue.close()
 
 
 def flush_to_es():
@@ -112,7 +111,6 @@ def flush_to_es():
     while True:
 
         try:
-            _LOG.error("\n\n\n\n**************initializing client********")
             es_client = es_handler.connection
             ack_list = list()
             actions = get_queue_stream(ack_list)

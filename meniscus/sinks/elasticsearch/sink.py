@@ -149,7 +149,7 @@ class ElasticSearchStreamBulker(object):
             Process(target=flush_to_es) for x in range(concurrency)]
 
         def signal_handler(signal, frame):
-            map(lambda x: x.join(),process_list)
+            map(lambda x: x.terminate(),process_list)
 
             _LOG.info("ElasticSearchStreamBulker stopping.")
             sys.exit(0)

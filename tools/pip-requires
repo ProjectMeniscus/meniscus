@@ -6,7 +6,7 @@ requests
 iso8601==0.1.4
 oslo.config
 uWSGI
-pyes==0.20.1
+elasticsearch
 jsonschema
 celery
 librabbitmq

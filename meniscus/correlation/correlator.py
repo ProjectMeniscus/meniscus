@@ -45,7 +45,7 @@ from meniscus.data.model import tenant_util
 from meniscus.normalization import normalizer
 from meniscus.openstack.common import timeutils
 from meniscus.queue import celery
-from meniscus.storage import dispatch
+from meniscus import sinks
 
 _LOG = env.get_logger(__name__)
 
@@ -316,17 +316,11 @@ def _add_correlation_info_to_message(tenant, message):
     # If the message data indicates that the message has normalization rules
     # that apply, Queue the message for normalization processing
     if normalizer.should_normalize(message):
-        #Todo: (stevendgonzales) Examine whether or not to remove
-        #Todo: persist_message as a linked subtask(callback) of the
-        #Todo: normalization task instead Queue the task based on routing
-        #Todo: determined at the end of the normalization process.
-        # send the message to normalization then to the data dispatch
-        normalizer.normalize_message.apply_async(
-            (message,),
-            link=dispatch.persist_message.subtask())
+        # send the message to normalization then route to sink
+        normalizer.normalize_message.delay(message)
     else:
         # Queue the message for indexing/storage
-        dispatch.persist_message(message)
+        sinks.route_message(message)
 
 
 def _save_tenant_to_cache(tenant_id, tenant):

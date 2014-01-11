@@ -10,6 +10,7 @@ from meniscus import env
 from meniscus.correlation import receiver
 from meniscus.personas.common import publish_stats
 from meniscus.queue import celery
+from meniscus.sinks.elasticsearch import ElasticSearchStreamBulker
 
 
 _LOG = env.get_logger(__name__)
@@ -50,5 +51,13 @@ def start_up():
     celery_proc.start()
     _LOG.info(
         'Celery started as process: {}'.format(celery_proc.pid)
+    )
+
+    es_flusher = ElasticSearchStreamBulker()
+    flush_proc = Process(target=es_flusher.start)
+    flush_proc.start()
+    _LOG.info(
+        'ElasticSearchStreamBulker started as process: {}'.format(
+            flush_proc.pid)
     )
     return application

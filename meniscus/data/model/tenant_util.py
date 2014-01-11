@@ -3,13 +3,13 @@ The tenant_util module provides an abstraction of database operations used
 with instances of the Tenant class and its member objects
 """
 
-from meniscus.data.datastore import COORDINATOR_DB, datasource_handler
+from meniscus.data.handlers import mongodb
+from meniscus.data.handlers.elasticsearch import mapping_tasks
 from meniscus.data.model.tenant import EventProducer
 from meniscus.data.model.tenant import (
     load_tenant_from_dict, Tenant, Token)
-from meniscus.data import ttl_tasks
 
-_db_handler = datasource_handler(COORDINATOR_DB)
+_db_handler = mongodb.get_handler()
 
 
 def find_tenant(tenant_id, create_on_missing=False):
@@ -47,7 +47,7 @@ def create_tenant(tenant_id, tenant_name=None):
 
     #create an index for the tenant in the default sink
     # and enables time to live for the default doc_type
-    ttl_tasks.create_index.delay(tenant_id)
+    mapping_tasks.create_index.delay(tenant_id)
 
 
 def retrieve_tenant(tenant_id):
@@ -88,7 +88,7 @@ def create_event_producer(tenant, name, pattern, durable, encrypted, sinks):
 
     #create a new mapping for the producer in the default
     # sink to enable time_to_live
-    ttl_tasks.create_ttl_mapping.delay(
+    mapping_tasks.create_ttl_mapping.delay(
         tenant_id=tenant.tenant_id,
         producer_pattern=new_event_producer.pattern)
 

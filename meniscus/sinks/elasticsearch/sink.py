@@ -4,7 +4,7 @@ It exposes a task that allows messages to be queued for indexing.  It then
 exposes the ElasticSearchBulkStreamer which creates a pool of processes for
 pulling a stream off of the queue and performing bulk flushes to Elasticsearch.
 """
-from multiprocessing import cpu_count, Pool
+from multiprocessing import cpu_count, Process
 import signal
 import sys
 import uuid
@@ -147,4 +147,16 @@ class ElasticSearchStreamBulker(object):
         """
         Start a process pool to handle streaming
         """
-        flush_to_es()
+        concurrency = cpu_count()
+        process_list = [
+            Process(target=flush_to_es) for x in range(concurrency)]
+
+        def signal_handler(signal, frame):
+            map(lambda x: x.join(),process_list)
+
+            _LOG.info("ElasticSearchStreamBulker stopping.")
+            sys.exit(0)
+
+        signal.signal(signal.SIGINT, signal_handler)
+        signal.signal(signal.SIGTERM, signal_handler)
+        map(lambda x: x.start(),process_list)

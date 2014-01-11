@@ -46,6 +46,7 @@ try:
 except Exception as ex:
     _LOG.exception(ex)
 
+
 def _queue_index_request(index, doc_type, document, ttl=TTL):
     """
     places a message index request on the queue
@@ -64,6 +65,7 @@ def _queue_index_request(index, doc_type, document, ttl=TTL):
     with producers[connection].acquire(block=True) as producer:
         producer.publish(action, routing_key=ELASTICSEARCH_QUEUE,
                          serializer='json', declare=[es_queue])
+
 
 @celery.task
 def put_message(message):
@@ -96,7 +98,6 @@ def get_queue_stream(ack_list, bulk_timeout=60):
             msg = simple_queue.get(block=True, timeout=bulk_timeout)
             ack_list.append(msg)
             yield msg.payload
-
 
 
 def flush_to_es():

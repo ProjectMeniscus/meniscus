@@ -93,10 +93,13 @@ def get_queue_stream(ack_list, bulk_timeout=60):
     with Connection(broker_url) as connection:
         simple_queue = connection.SimpleQueue(ELASTICSEARCH_QUEUE)
         while True:
-            msg = simple_queue.get(block=True, timeout=bulk_timeout)
+            try:
+                msg = simple_queue.get(block=True, timeout=bulk_timeout)
+            except Exception as ex:
+                break
             ack_list.append(msg)
             yield msg.payload
-        simple_queue.close()
+
 
 
 def flush_to_es():

@@ -1,6 +1,6 @@
 [![Build Status](http://jenkins.projectmeniscus.org/job/Meniscus/badge/icon)](http://jenkins.projectmeniscus.org/job/Meniscus/)
 
-**Note:** 1/10/2014 - Project Meniscus is being put on hold and the fulltime team resources are being moved to [Barbican](https://github.com/stackforge/barbican)
+**Note:** 1/10/2014 - Project Meniscus is being put on hold and the fulltime team resources are being moved to [Barbican](https://github.com/openstack/barbican)
 
 # Meniscus
 
